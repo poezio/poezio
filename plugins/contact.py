@@ -51,9 +51,9 @@ class Plugin(BasePlugin):
         else:
             self.api.information('No Contact Addresses for %s' % iq['from'], 'Error')
 
-    def command_disco(self, jid):
+    async def command_disco(self, jid):
         try:
-            self.core.xmpp.plugin['xep_0030'].get_info(jid=jid, cached=False,
-                                                       callback=self.on_disco)
+            iq = await self.core.xmpp.plugin['xep_0030'].get_info(jid=jid, cached=False)
+            self.on_disco(iq)
         except InvalidJID as e:
             self.api.information('Invalid JID “%s”: %s' % (jid, e), 'Error')

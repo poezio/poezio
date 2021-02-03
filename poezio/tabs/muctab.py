@@ -1404,19 +1404,19 @@ class MucTab(ChatTab):
             self.core.information("Unknown user: %s" % nick, "Error")
 
     @command_args_parser.quoted(0)
-    def command_configure(self, ignored: Any) -> None:
+    async def command_configure(self, ignored: Any) -> None:
         """
         /configure
         """
 
-        def on_form_received(form: Form) -> None:
-            if not form:
-                self.core.information(
-                    'Could not retrieve the configuration form', 'Error')
-                return
+        try:
+            form = await self.core.xmpp.plugin['xep_0045'].get_room_config(
+                self.jid.bare
+            )
             self.core.open_new_form(form, self.cancel_config, self.send_config)
-
-        fixes.get_room_form(self.core.xmpp, self.jid.bare, on_form_received)
+        except (IqError, IqTimeout, ValueError):
+            self.core.information(
+                'Could not retrieve the configuration form', 'Error')
 
     @command_args_parser.raw
     def command_cycle(self, msg: str) -> None:
@@ -1457,7 +1457,7 @@ class MucTab(ChatTab):
             self.set_nick_color(nick, color)
 
     @command_args_parser.quoted(1)
-    def command_version(self, args: List[str]) -> None:
+    async def command_version(self, args: List[str]) -> None:
         """
         /version <jid or nick>
         """
@@ -1466,7 +1466,7 @@ class MucTab(ChatTab):
             return
         nick = args[0]
         try:
-            if nick in [user.nick for user in self.users]:
+            if nick in {user.nick for user in self.users}:
                 jid = copy(self.jid)
                 jid.resource = nick
             else:
@@ -1474,8 +1474,8 @@ class MucTab(ChatTab):
         except InvalidJID:
             self.core.information('Invalid jid or nick %r' % nick, 'Error')
             return
-        self.core.xmpp.plugin['xep_0092'].get_version(
-            jid, callback=self.core.handler.on_version_result)
+        iq = await self.core.xmpp.plugin['xep_0092'].get_version(jid)
+        self.core.handler.on_version_result(iq)
 
     @command_args_parser.quoted(1)
     def command_nick(self, args: List[str]) -> None:

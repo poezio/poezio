@@ -301,27 +301,40 @@ class CommandCore:
             jid = self.core.tabs.current_tab.jid
         if jid is None or not jid.domain:
             return None
+        asyncio.ensure_future(
+            self._list_async(jid)
+        )
+
+    async def _list_async(self, jid: JID):
         jid = JID(jid.domain)
         list_tab = tabs.MucListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
-        cb = list_tab.on_muc_list_item_received
-        self.core.xmpp.plugin['xep_0030'].get_items(jid=jid, callback=cb)
+        iq = await self.core.xmpp.plugin['xep_0030'].get_items(jid=jid)
+        list_tab.on_muc_list_item_received(iq)
 
     @command_args_parser.quoted(1)
-    def version(self, args):
+    async def version(self, args):
         """
         /version <jid>
         """
         if args is None:
             return self.help('version')
-        jid = safeJID(args[0])
+        try:
+            jid = JID(args[0])
+        except InvalidJID:
+            return self.core.information(
+                'Invalid JID for /version: %s' % args[0],
+                'Error'
+            )
         if jid.resource or jid not in roster or not roster[jid].resources:
-            self.core.xmpp.plugin['xep_0092'].get_version(
-                jid, callback=self.core.handler.on_version_result)
+            iq = await self.core.xmpp.plugin['xep_0092'].get_version(jid)
+            self.core.handler.on_version_result(iq)
         elif jid in roster:
             for resource in roster[jid].resources:
-                self.core.xmpp.plugin['xep_0092'].get_version(
-                    resource.jid, callback=self.core.handler.on_version_result)
+                iq = await self.core.xmpp.plugin['xep_0092'].get_version(
+                    resource.jid
+                )
+                self.core.handler.on_version_result(iq)
 
     def _empty_join(self):
         tab = self.core.tabs.current_tab
@@ -440,12 +453,14 @@ class CommandCore:
         room, nick = self._parse_join_jid(args[0] if args else '')
         password = args[1] if len(args) > 1 else None
 
-        self._add_bookmark(
-            room=room,
-            nick=nick,
-            autojoin=True,
-            password=password,
-            method='local',
+        asyncio.ensure_future(
+            self._add_bookmark(
+                room=room,
+                nick=nick,
+                autojoin=True,
+                password=password,
+                method='local',
+            )
         )
 
     @command_args_parser.quoted(0, 3)
@@ -463,9 +478,11 @@ class CommandCore:
         autojoin = (method == 'local' or
                     (len(args) > 1 and args[1].lower() == 'true'))
 
-        self._add_bookmark(room, nick, autojoin, password, method)
+        asyncio.ensure_future(
+            self._add_bookmark(room, nick, autojoin, password, method)
+        )
 
-    def _add_bookmark(
+    async def _add_bookmark(
         self,
         room: Optional[str],
         nick: Optional[str],
@@ -496,7 +513,7 @@ class CommandCore:
             if password is None and tab.password is not None:
                 password = tab.password
         elif room == '*':
-            return self._add_wildcard_bookmarks(method)
+            return await self._add_wildcard_bookmarks(method)
 
         # Once we found which room to bookmark, find corresponding tab if it
         # exists and fill nickname if none was specified and not default.
@@ -528,10 +545,15 @@ class CommandCore:
             bookmark.password = password
 
         self.core.bookmarks.save_local()
-        self.core.bookmarks.save_remote(self.core.xmpp,
-                                        self.core.handler.on_bookmark_result)
+        try:
+            result = await self.core.bookmarks.save_remote(
+                self.core.xmpp,
+            )
+            self.core.handler.on_bookmark_result(result)
+        except (IqError, IqTimeout) as iq:
+            self.core.handler.on_bookmark_result(iq)
 
-    def _add_wildcard_bookmarks(self, method):
+    async def _add_wildcard_bookmarks(self, method):
         new_bookmarks = []
         for tab in self.core.get_tabs(tabs.MucTab):
             bookmark = self.core.bookmarks[tab.jid.bare]
@@ -545,8 +567,11 @@ class CommandCore:
         new_bookmarks.extend(self.core.bookmarks.bookmarks)
         self.core.bookmarks.set(new_bookmarks)
         self.core.bookmarks.save_local()
-        self.core.bookmarks.save_remote(self.core.xmpp,
-                                        self.core.handler.on_bookmark_result)
+        try:
+            iq = await self.core.bookmarks.save_remote(self.core.xmpp)
+            self.core.handler.on_bookmark_result(iq)
+        except IqError as iq:
+            self.core.handler.on_bookmark_result(iq)
 
     @command_args_parser.ignored
     def bookmarks(self):
@@ -563,27 +588,30 @@ class CommandCore:
     @command_args_parser.quoted(0, 1)
     def remove_bookmark(self, args):
         """/remove_bookmark [jid]"""
-
-        def cb(success):
-            if success:
-                self.core.information('Bookmark deleted', 'Info')
-            else:
-                self.core.information('Error while deleting the bookmark',
-                                      'Error')
-
+        jid = None
         if not args:
             tab = self.core.tabs.current_tab
-            if isinstance(tab, tabs.MucTab) and self.core.bookmarks[tab.jid.bare]:
-                self.core.bookmarks.remove(tab.jid.bare)
-                self.core.bookmarks.save(self.core.xmpp, callback=cb)
-            else:
-                self.core.information('No bookmark to remove', 'Info')
+            if isinstance(tab, tabs.MucTab):
+                jid = tab.jid.bare
         else:
-            if self.core.bookmarks[args[0]]:
-                self.core.bookmarks.remove(args[0])
-                self.core.bookmarks.save(self.core.xmpp, callback=cb)
-            else:
-                self.core.information('No bookmark to remove', 'Info')
+            jid = args[0]
+
+        asyncio.ensure_future(
+            self._remove_bookmark_routine(jid)
+        )
+
+    async def _remove_bookmark_routine(self, jid: str):
+        """Asynchronously remove a bookmark"""
+        if self.core.bookmarks[jid]:
+            self.core.bookmarks.remove(jid)
+            try:
+                await self.core.bookmarks.save(self.core.xmpp)
+                self.core.information('Bookmark deleted', 'Info')
+            except (IqError, IqTimeout):
+                self.core.information('Error while deleting the bookmark',
+                                      'Error')
+        else:
+            self.core.information('No bookmark to remove', 'Info')
 
     @deny_anonymous
     @command_args_parser.quoted(0, 1)
@@ -968,7 +996,7 @@ class CommandCore:
             name=name, server_address=address, callback=dumb_callback)
 
     @command_args_parser.quoted(2, 1, [None])
-    def invite(self, args):
+    async def invite(self, args):
         """/invite <to> <room> [reason]"""
 
         if args is None:
@@ -985,8 +1013,9 @@ class CommandCore:
         except InvalidJID:
             self.core.information('Invalid room JID specified to invite: %s' % args[1], 'Error')
             return None
-        self.core.invite(to.full, room, reason=reason)
-        self.core.information('Invited %s to %s' % (to.bare, room), 'Info')
+        result = await self.core.invite(to.full, room, reason=reason)
+        if result:
+            self.core.information('Invited %s to %s' % (to.bare, room), 'Info')
 
     @command_args_parser.quoted(1, 0)
     def impromptu(self, args: str) -> None:
@@ -1034,6 +1063,7 @@ class CommandCore:
                 jid = JID(args[0]).full
             except InvalidJID:
                 self.core.information('Invalid JID %s' % args, 'Error')
+                return
 
         current_tab = self.core.tabs.current_tab
         if jid is None:
@@ -1056,20 +1086,20 @@ class CommandCore:
             if isinstance(current_tab, chattabs):
                 jid = current_tab.jid.bare
 
-        def callback(iq: Iq) -> None:
-            if iq['type'] == 'error':
-                return self.core.information(
-                    'Could not block %s.' % jid, 'Error',
-                )
-            if iq['type'] == 'result':
-                return self.core.information('Blocked %s.' % jid, 'Info')
-            return None
-
-
-        if jid is not None:
-            self.core.xmpp.plugin['xep_0191'].block(jid, callback=callback)
-        else:
+        if jid is None:
             self.core.information('No specified JID to block', 'Error')
+        else:
+            asyncio.ensure_future(self._block_async(jid))
+
+    async def _block_async(self, jid: JID):
+        """Block a JID, asynchronously"""
+        try:
+            await self.core.xmpp.plugin['xep_0191'].block(jid)
+            return self.core.information('Blocked %s.' % jid, 'Info')
+        except (IqError, IqTimeout):
+            return self.core.information(
+                'Could not block %s.' % jid, 'Error',
+            )
 
     @command_args_parser.quoted(0, 1)
     def unblock(self, args: List[str]) -> None:
@@ -1088,6 +1118,7 @@ class CommandCore:
                 jid = JID(args[0]).full
             except InvalidJID:
                 self.core.information('Invalid JID %s' % args, 'Error')
+                return
 
         current_tab = self.core.tabs.current_tab
         if jid is None:
@@ -1111,16 +1142,20 @@ class CommandCore:
                 jid = current_tab.jid.bare
 
         if jid is not None:
-            def callback(iq: Iq):
-                if iq['type'] == 'error':
-                    return self.core.information('Could not unblock the contact.',
-                                                 'Error')
-                elif iq['type'] == 'result':
-                    return self.core.information('Unblocked %s.' % jid, 'Info')
-
-            self.core.xmpp.plugin['xep_0191'].unblock(jid, callback=callback)
+            asyncio.ensure_future(
+                self._unblock_async(jid)
+            )
         else:
             self.core.information('No specified JID to unblock', 'Error')
+
+    async def _unblock_async(self, jid: JID):
+        """Unblock a JID, asynchrously"""
+        try:
+            await self.core.xmpp.plugin['xep_0191'].unblock(jid)
+            return self.core.information('Unblocked %s.' % jid, 'Info')
+        except (IqError, IqTimeout):
+            return self.core.information('Could not unblock the contact.',
+                                         'Error')
 
 ### Commands without a completion in this class ###
 
@@ -1329,15 +1364,23 @@ class CommandCore:
             self.core.xml_tab = tab
 
     @command_args_parser.quoted(1)
-    def adhoc(self, args):
+    async def adhoc(self, args):
         if not args:
             return self.help('ad-hoc')
-        jid = safeJID(args[0])
+        try:
+            jid = JID(args[0])
+        except InvalidJID:
+            return self.core.information(
+                'Invalid JID for ad-hoc command: %s' % args[0],
+                'Error',
+            )
         list_tab = tabs.AdhocCommandsListTab(self.core, jid)
         self.core.add_tab(list_tab, True)
-        cb = list_tab.on_list_received
-        self.core.xmpp.plugin['xep_0050'].get_commands(
-            jid=jid, local=False, callback=cb)
+        iq = await self.core.xmpp.plugin['xep_0050'].get_commands(
+            jid=jid,
+            local=False
+        )
+        list_tab.on_list_received(iq)
 
     @command_args_parser.ignored
     def self_(self):

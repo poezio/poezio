@@ -73,7 +73,7 @@ class Plugin(BasePlugin):
         self.api.information('\n'.join(describe(item) for item in items['items']), 'Items')
 
     @command_args_parser.quoted(1, 3)
-    def command_disco(self, args):
+    async def command_disco(self, args):
         if args is None:
             self.core.command.help('disco')
             return
@@ -88,10 +88,14 @@ class Plugin(BasePlugin):
             jid, node, type_ = args
         try:
             if type_ == 'info':
-                self.core.xmpp.plugin['xep_0030'].get_info(
-                    jid=jid, node=node, cached=False, callback=self.on_info)
+                iq = await self.core.xmpp.plugin['xep_0030'].get_info(
+                    jid=jid, node=node, cached=False
+                )
+                self.on_info(iq)
             elif type_ == 'items':
-                self.core.xmpp.plugin['xep_0030'].get_items(
-                    jid=jid, node=node, cached=False, callback=self.on_items)
+                iq = await self.core.xmpp.plugin['xep_0030'].get_items(
+                    jid=jid, node=node, cached=False
+                )
+                self.on_items(iq)
         except InvalidJID as e:
             self.api.information('Invalid JID “%s”: %s' % (jid, e), 'Error')

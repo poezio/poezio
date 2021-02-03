@@ -30,9 +30,19 @@ Adding a remote bookmark:
 
 import functools
 import logging
-from typing import Optional, List, Union
+from typing import (
+    Callable,
+    List,
+    Optional,
+    Union,
+)
 
-from slixmpp import InvalidJID, JID
+from slixmpp import (
+    InvalidJID,
+    JID,
+    ClientXMPP,
+)
+from slixmpp.exceptions import IqError, IqTimeout
 from slixmpp.plugins.xep_0048 import Bookmarks, Conference, URL
 from poezio.config import config
 
@@ -213,17 +223,17 @@ class BookmarkList:
             self.preferred = value
             config.set_and_save('use_bookmarks_method', value)
 
-    def save_remote(self, xmpp, callback):
+    async def save_remote(self, xmpp: ClientXMPP):
         """Save the remote bookmarks."""
         if not any(self.available_storage.values()):
             return
         method = 'xep_0049' if self.preferred == 'privatexml' else 'xep_0223'
 
         if method:
-            xmpp.plugin['xep_0048'].set_bookmarks(
+            return await xmpp.plugin['xep_0048'].set_bookmarks(
                 stanza_storage(self.bookmarks),
                 method=method,
-                callback=callback)
+            )
 
     def save_local(self):
         """Save the local bookmarks."""
@@ -231,61 +241,54 @@ class BookmarkList:
                         if bookmark.method == 'local')
         config.set_and_save('rooms', local)
 
-    def save(self, xmpp, core=None, callback=None):
+    async def save(self, xmpp: ClientXMPP, core=None):
         """Save all the bookmarks."""
         self.save_local()
-
-        def _cb(iq):
-            if callback:
-                callback(iq)
-            if iq["type"] == "error" and core:
-                core.information('Could not save remote bookmarks.', 'Error')
-            elif core:
-                core.information('Bookmarks saved', 'Info')
-
         if config.get('use_remote_bookmarks'):
-            self.save_remote(xmpp, _cb)
+            try:
+                result = await self.save_remote(xmpp)
+                if core is not None:
+                    core.information('Bookmarks saved', 'Info')
+                return result
+            except (IqError, IqTimeout) as iq:
+                if core is not None:
+                    core.information(
+                        'Could not save remote bookmarks.',
+                        'Error'
+                    )
+                raise
 
-    def get_pep(self, xmpp, callback):
+    async def get_pep(self, xmpp: ClientXMPP):
         """Add the remotely stored bookmarks via pep to the list."""
+        iq = await xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0223')
+        for conf in iq['pubsub']['items']['item']['bookmarks'][
+                'conferences']:
+            if isinstance(conf, URL):
+                continue
+            bookm = Bookmark.parse(conf)
+            self.append(bookm)
+        return iq
 
-        def _cb(iq):
-            if iq['type'] == 'result':
-                for conf in iq['pubsub']['items']['item']['bookmarks'][
-                        'conferences']:
-                    if isinstance(conf, URL):
-                        continue
-                    b = Bookmark.parse(conf)
-                    self.append(b)
-            if callback:
-                callback(iq)
-
-        xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0223', callback=_cb)
-
-    def get_privatexml(self, xmpp, callback):
+    async def get_privatexml(self, xmpp: ClientXMPP):
         """
         Fetch the remote bookmarks stored via privatexml.
         """
 
-        def _cb(iq):
-            if iq['type'] == 'result':
-                for conf in iq['private']['bookmarks']['conferences']:
-                    b = Bookmark.parse(conf)
-                    self.append(b)
-            if callback:
-                callback(iq)
+        iq = await xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0049')
+        for conf in iq['private']['bookmarks']['conferences']:
+            bookm = Bookmark.parse(conf)
+            self.append(bookm)
+        return iq
 
-        xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0049', callback=_cb)
-
-    def get_remote(self, xmpp, information, callback):
+    async def get_remote(self, xmpp: ClientXMPP, information: Callable):
         """Add the remotely stored bookmarks to the list."""
         if xmpp.anon or not any(self.available_storage.values()):
             information('No remote bookmark storage available', 'Warning')
             return
         if self.preferred == 'pep':
-            self.get_pep(xmpp, callback=callback)
+            return await self.get_pep(xmpp)
         else:
-            self.get_privatexml(xmpp, callback=callback)
+            return await self.get_privatexml(xmpp)
 
     def get_local(self):
         """Add the locally stored bookmarks to the list."""

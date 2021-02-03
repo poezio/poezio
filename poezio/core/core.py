@@ -44,7 +44,10 @@ from poezio import theming
 from poezio import timed_events
 from poezio import windows
 
-from poezio.bookmarks import BookmarkList
+from poezio.bookmarks import (
+    BookmarkList,
+    Bookmark,
+)
 from poezio.common import get_error_message
 from poezio.config import config, firstrun
 from poezio.contact import Contact, Resource
@@ -882,25 +885,36 @@ class Core:
         self.tabs.current_tab.command_say(msg)
         return True
 
-    def invite(self, jid: JID, room: JID, reason: Optional[str] = None) -> None:
+    async def invite(self, jid: JID, room: JID, reason: Optional[str] = None, force_mediated: bool = False) -> bool:
         """
         Checks if the sender supports XEP-0249, then send an invitation,
         or a mediated one if it does not.
         TODO: allow passwords
         """
+        features = set()
 
-        def callback(iq):
-            if not iq:
-                return
-            if 'jabber:x:conference' in iq['disco_info'].get_features():
-                self.xmpp.plugin['xep_0249'].send_invitation(
-                    jid, room, reason=reason)
-            else:  # fallback
-                self.xmpp.plugin['xep_0045'].invite(
-                    room, jid, reason=reason or '')
-
-        self.xmpp.plugin['xep_0030'].get_info(
-            jid=jid, timeout=5, callback=callback)
+        # force mediated: act as if the other entity does not
+        # support direct invites
+        if not force_mediated:
+            try:
+                iq = await self.xmpp.plugin['xep_0030'].get_info(
+                    jid=jid,
+                    timeout=5,
+                )
+                features = iq['disco_info'].get_features()
+            except (IqError, IqTimeout):
+                pass
+        supports_direct = 'jabber:x:conference' in features
+        if supports_direct:
+            invite = self.xmpp.plugin['xep_0249'].send_invitation
+        else:  # fallback
+            invite = self.xmpp.plugin['xep_0045'].invite
+        invite(
+            jid=jid,
+            room=room,
+            reason=reason
+        )
+        return True
 
     def _impromptu_room_form(self, room):
         fields = [
@@ -987,7 +1001,7 @@ class Core:
         self.information('Room %s created' % room, 'Info')
 
         for jid in jids:
-            self.invite(jid, room)
+            await self.invite(jid, room, force_mediated=True)
 
 ####################### Tab logic-related things ##############################
 
@@ -1710,7 +1724,7 @@ class Core:
                 shortdesc='Send your gaming activity.',
                 completion=None)
 
-    def check_blocking(self, features):
+    def check_blocking(self, features: List[str]):
         if 'urn:xmpp:blocking' in features and not self.xmpp.anon:
             self.register_command(
                 'block',
@@ -1729,7 +1743,7 @@ class Core:
 
 ####################### Random things to move #################################
 
-    def join_initial_rooms(self, bookmarks):
+    def join_initial_rooms(self, bookmarks: List[Bookmark]):
         """Join all rooms given in the iterator `bookmarks`"""
         for bm in bookmarks:
             if not (bm.autojoin or config.get('open_all_bookmarks')):
@@ -1745,14 +1759,16 @@ class Core:
             if bm.autojoin:
                 tab.join()
 
-    def check_bookmark_storage(self, features):
+    async def check_bookmark_storage(self, features: List[str]):
         private = 'jabber:iq:private' in features
         pep_ = 'http://jabber.org/protocol/pubsub#publish' in features
         self.bookmarks.available_storage['private'] = private
         self.bookmarks.available_storage['pep'] = pep_
 
-        def _join_remote_only(iq):
-            if iq['type'] == 'error':
+        if not self.xmpp.anon and config.get('use_remote_bookmarks'):
+            try:
+                await self.bookmarks.get_remote(self.xmpp, self.information)
+            except IqError as iq:
                 type_ = iq['error']['type']
                 condition = iq['error']['condition']
                 if not (type_ == 'cancel' and condition == 'item-not-found'):
@@ -1762,10 +1778,6 @@ class Core:
                 return
             remote_bookmarks = self.bookmarks.remote()
             self.join_initial_rooms(remote_bookmarks)
-
-        if not self.xmpp.anon and config.get('use_remote_bookmarks'):
-            self.bookmarks.get_remote(self.xmpp, self.information,
-                                      _join_remote_only)
 
     def room_error(self, error: IqError, room_name: str) -> None:
         """

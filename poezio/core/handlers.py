@@ -79,27 +79,26 @@ class HandlerCore:
     def __init__(self, core):
         self.core = core
 
-    def on_session_start_features(self, _):
+    async def on_session_start_features(self, _):
         """
         Enable carbons & blocking on session start if wanted and possible
         """
 
-        def callback(iq):
-            if not iq:
-                return
-            features = iq['disco_info']['features']
-            rostertab = self.core.tabs.by_name_and_class(
-                'Roster', tabs.RosterInfoTab)
-            rostertab.check_blocking(features)
-            rostertab.check_saslexternal(features)
-            self.core.check_blocking(features)
-            if (config.get('enable_carbons')
-                    and 'urn:xmpp:carbons:2' in features):
-                self.core.xmpp.plugin['xep_0280'].enable()
-            self.core.check_bookmark_storage(features)
 
-        self.core.xmpp.plugin['xep_0030'].get_info(
-            jid=self.core.xmpp.boundjid.domain, callback=callback)
+        iq = await self.core.xmpp.plugin['xep_0030'].get_info(
+            jid=self.core.xmpp.boundjid.domain
+        )
+        features = iq['disco_info']['features']
+
+        rostertab = self.core.tabs.by_name_and_class(
+            'Roster', tabs.RosterInfoTab)
+        rostertab.check_saslexternal(features)
+        rostertab.check_blocking(features)
+        self.core.check_blocking(features)
+        if (config.get('enable_carbons')
+                and 'urn:xmpp:carbons:2' in features):
+            self.core.xmpp.plugin['xep_0280'].enable()
+        await self.core.check_bookmark_storage(features)
 
     def find_identities(self, _):
         asyncio.ensure_future(
@@ -1348,7 +1347,7 @@ class HandlerCore:
                 pres.send()
         self.core.bookmarks.get_local()
         # join all the available bookmarks. As of yet, this is just the local ones
-        self.core.join_initial_rooms(self.core.bookmarks)
+        self.core.join_initial_rooms(self.core.bookmarks.local())
 
         if config.get('enable_user_nick'):
             self.core.xmpp.plugin['xep_0172'].publish_nick(

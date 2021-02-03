@@ -184,15 +184,15 @@ class PrivateTab(OneToOneTab):
         self.cancel_paused_delay()
 
     @command_args_parser.quoted(0, 1)
-    def command_version(self, args):
+    async def command_version(self, args):
         """
         /version
         """
         if args:
-            return self.core.command.version(args[0])
+            return await self.core.command.version(args[0])
         jid = self.jid.full
-        self.core.xmpp.plugin['xep_0092'].get_version(
-            jid, callback=self.core.handler.on_version_result)
+        iq = await self.core.xmpp.plugin['xep_0092'].get_version(jid)
+        self.core.handler.on_version_result(iq)
 
     @command_args_parser.quoted(0, 1)
     def command_info(self, arg):
@@ -369,7 +369,6 @@ class PrivateTab(OneToOneTab):
         The user (or at least someone with the same nick) came back in the MUC
         """
         self.activate()
-        self.check_features()
         tab = self.parent_muc
         theme = get_theme()
         color = dump_tuple(theme.COLOR_REMOTE_USER)
