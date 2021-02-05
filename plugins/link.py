@@ -87,8 +87,17 @@ from poezio.xhtml import clean_text
 from poezio import common
 from poezio import tabs
 
-url_pattern = re.compile(r'\b(?:http[s]?://(?:\S+))|(?:magnet:\?(?:\S+))|(?:aesgcm://(?:\Z+))\b',
-                         re.I | re.U)
+url_pattern = re.compile(
+    r'\b'
+    '(?:http[s]?://(?:\S+))|'
+    '(?:magnet:\?(?:\S+))|'
+    '(?:aesgcm://(?:\S+))|'
+    '(?:gopher://(?:\S+))|'
+    '(?:gemini://(?:\S+))'
+    '\b',
+     re.I | re.U
+)
+
 app_mapping = {
     'Linux': 'xdg-open',
     'Darwin': 'open',
