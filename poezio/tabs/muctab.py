@@ -1677,21 +1677,25 @@ class MucTab(ChatTab):
         self.change_affiliation(nick, affiliation)
 
     async def get_users_affiliations(self, jid: JID) -> None:
-        MUC_ADMIN_NS = 'http://jabber.org/protocol/muc#admin'
-
-        iqs = await asyncio.gather(
-            self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'owner'),
-            self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'admin'),
-            self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'member'),
-            self.core.xmpp['xep_0045'].get_users_by_affiliation(jid, 'outcast'),
+        owners, admins, members, outcasts = await asyncio.gather(
+            self.core.xmpp['xep_0045'].get_affiliation_list(jid, 'owner'),
+            self.core.xmpp['xep_0045'].get_affiliation_list(jid, 'admin'),
+            self.core.xmpp['xep_0045'].get_affiliation_list(jid, 'member'),
+            self.core.xmpp['xep_0045'].get_affiliation_list(jid, 'outcast'),
             return_exceptions=True,
         )
 
         all_errors = functools.reduce(
             lambda acc, iq: acc and isinstance(iq, (IqError, IqTimeout)),
-            iqs,
+            (owners, admins, members, outcasts),
             True,
         )
+        if all_errors:
+            self.core.information(
+                'Can’t access affiliations for %s' % jid.bare,
+                'Error',
+            )
+            return None
 
         theme = get_theme()
         aff_colors = {
@@ -1701,29 +1705,20 @@ class MucTab(ChatTab):
             'outcast': theme.CHAR_AFFILIATION_OUTCAST,
         }
 
-        if all_errors:
-            self.core.information(
-                'Can’t access affiliations for %s' % jid.bare,
-                'Error',
-            )
-            return None
 
 
         lines = ['Affiliations for %s' % jid.bare]
-        for iq in iqs:
-            if isinstance(iq, BaseException):
+        affiliation_dict = {
+            'owner': owners,
+            'admin': admins,
+            'member': members,
+            'outcast': outcasts,
+        }
+        for affiliation, items in affiliation_dict.items():
+            if isinstance(items, BaseException) or not items:
                 continue
-
-            query = iq.xml.find('{%s}query' % MUC_ADMIN_NS)
-            items = query.findall('{%s}item' % MUC_ADMIN_NS)
-            if not items:  # Nobody with this affiliation
-                continue
-
-            affiliation = items[0].get('affiliation')
             aff_char = aff_colors[affiliation]
             lines.append('  %s%s' % (aff_char, affiliation.capitalize()))
-
-            items = map(lambda i: i.get('jid'), items)
             for ajid in sorted(items):
                 lines.append('    %s' % ajid)
 
