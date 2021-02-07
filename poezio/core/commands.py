@@ -382,7 +382,7 @@ class CommandCore:
         return (room, set_nick)
 
     @command_args_parser.quoted(0, 2)
-    def join(self, args):
+    async def join(self, args):
         """
         /join [room][/nick] [password]
         """
@@ -428,7 +428,7 @@ class CommandCore:
         if config.get('synchronise_open_rooms') and room not in self.core.bookmarks:
             method = 'remote' if config.get(
                 'use_remote_bookmarks') else 'local'
-            self._add_bookmark(
+            await self._add_bookmark(
                 room=room,
                 nick=nick if not config_nick else None,
                 autojoin=True,
