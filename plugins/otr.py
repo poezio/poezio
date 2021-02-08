@@ -613,6 +613,8 @@ class Plugin(BasePlugin):
         """
         Message received
         """
+        if msg['from'].bare == self.core.xmpp.boundjid.bare:
+            return
         format_dict = {
             'jid_c': '\x19%s}' % dump_tuple(get_theme().COLOR_MUC_JID),
             'info': '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT),

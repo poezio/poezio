@@ -114,7 +114,8 @@ class Plugin(BasePlugin):
 
     def on_conversation_msg(self, message, tab):
         fro = message['from'].bare
-        self.do_notify(message, fro)
+        if fro.bare != self.core.xmpp.boundjid.bare:
+            self.do_notify(message, fro)
 
     def on_muc_msg(self, message, tab):
         # Don't notify if message is from yourself
