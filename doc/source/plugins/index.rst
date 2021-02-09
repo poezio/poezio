@@ -312,6 +312,11 @@ Plugin index
 
         Add an ``/upload`` command to upload a file.
 
+    User Extras
+        :ref:`Documentation <userextras-plugin>`
+
+        Add /mood, /gaming, /activity
+
 .. toctree::
     :hidden:
 
@@ -361,3 +366,4 @@ Plugin index
     vcard
     upload
     contact
+    userextras

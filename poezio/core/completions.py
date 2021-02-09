@@ -13,7 +13,6 @@ from functools import reduce
 from slixmpp import JID
 
 from poezio import common
-from poezio import pep
 from poezio import tabs
 from poezio import xdg
 from poezio.common import safeJID
@@ -317,33 +316,6 @@ class CompletionCore:
                 offlines.append(barejid)
         comp = sorted(onlines) + sorted(offlines)
         return Completion(the_input.new_completion, comp, n, quotify=True)
-
-    def activity(self, the_input):
-        """Completion for /activity"""
-        n = the_input.get_argument_position(quoted=True)
-        args = common.shell_split(the_input.text)
-        if n == 1:
-            return Completion(
-                the_input.new_completion,
-                sorted(pep.ACTIVITIES.keys()),
-                n,
-                quotify=True)
-        elif n == 2:
-            if args[1] in pep.ACTIVITIES:
-                l = list(pep.ACTIVITIES[args[1]])
-                l.remove('category')
-                l.sort()
-                return Completion(the_input.new_completion, l, n, quotify=True)
-
-    def mood(self, the_input):
-        """Completion for /mood"""
-        n = the_input.get_argument_position(quoted=True)
-        if n == 1:
-            return Completion(
-                the_input.new_completion,
-                sorted(pep.MOODS.keys()),
-                1,
-                quotify=True)
 
     def last_activity(self, the_input):
         """
