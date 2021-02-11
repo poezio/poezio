@@ -45,8 +45,10 @@ Options
 """
 
 from poezio.core.structs import Completion
+from poezio.ui.types import Message
 from poezio.plugin import BasePlugin
 from poezio.xhtml import clean_text
+from poezio.theming import get_theme
 from poezio import common
 from poezio import tabs
 
@@ -74,13 +76,14 @@ class Plugin(BasePlugin):
             return self.api.run_command('/help quote')
         message = self.find_message(message)
         if message:
+            time = message.time.strftime(get_theme().SHORT_TIME_FORMAT)
             before = self.config.get('before_quote', '') % {
                 'nick': message.nickname or '',
-                'time': message.str_time
+                'time': message.time,
             }
             after = self.config.get('after_quote', '') % {
                 'nick': message.nickname or '',
-                'time': message.str_time
+                'time': message.time
             }
             self.core.insert_input_text(
                 '%(before)s%(quote)s%(after)s' % {
@@ -96,7 +99,7 @@ class Plugin(BasePlugin):
         if not messages:
             return None
         for message in messages[::-1]:
-            if clean_text(message.txt) == txt:
+            if isinstance(message, Message) and clean_text(message.txt) == txt:
                 return message
         return None
 
@@ -114,5 +117,8 @@ class Plugin(BasePlugin):
             messages = list(filter(message_match, messages))
         elif len(args) > 1:
             return False
-        return Completion(the_input.auto_completion,
-                          [clean_text(msg.txt) for msg in messages[::-1]], '')
+        return Completion(
+            the_input.auto_completion,
+            [clean_text(msg.txt) for msg in messages[::-1] if isinstance(msg, Message)],
+            ''
+        )
