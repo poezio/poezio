@@ -231,7 +231,7 @@ class MucTab(ChatTab):
             muc.leave_groupchat(self.core.xmpp, self.jid.bare, self.own_nick,
                                 message)
 
-    def change_affiliation(
+    async def change_affiliation(
         self,
         nick_or_jid: Union[str, JID],
         affiliation: str,
@@ -266,30 +266,25 @@ class MucTab(ChatTab):
                 )
                 return
 
-        async def do_set_affiliation(room: JID, jid: JID, nick: Optional[str], affiliation: str, reason: str):
-            try:
-                await self.core.xmpp['xep_0045'].set_affiliation(
-                    room,
-                    nick=nick,
-                    jid=jid,
-                    affiliation=affiliation,
-                    reason=reason
-                )
-                self.core.information(
-                    f"Affiliation of {jid} set to {affiliation} successfully",
-                    "Info"
-                )
-            except (IqError, IqTimeout) as exc:
-                self.core.information(
-                    f"Could not set affiliation '{affiliation}' for '{jid}': {exc}",
-                    "Warning",
-                )
+        try:
+            await self.core.xmpp['xep_0045'].set_affiliation(
+                self.jid.bare,
+                nick=nick,
+                jid=jid,
+                affiliation=affiliation,
+                reason=reason
+            )
+            self.core.information(
+                f"Affiliation of {jid} set to {affiliation} successfully",
+                "Info"
+            )
+        except (IqError, IqTimeout) as exc:
+            self.core.information(
+                f"Could not set affiliation '{affiliation}' for '{jid}': {exc}",
+                "Warning",
+            )
 
-        asyncio.ensure_future(
-            do_set_affiliation(self.jid.bare, jid, nick, affiliation, reason)
-        )
-
-    def change_role(self, nick: str, role: str, reason: str = '') -> None:
+    async def change_role(self, nick: str, role: str, reason: str = '') -> None:
         """
         Change the role of a nick
         """
@@ -308,15 +303,18 @@ class MucTab(ChatTab):
             self.core.information('Invalid nick', 'Info')
             return
 
-        async def do_set_role(room: JID, nick: str, role: str, reason: str):
-            try:
-                await self.core.xmpp['xep_0045'].set_role(room, nick, role, reason=reason)
-            except (IqError, IqTimeout) as e:
-                self.core.information(
-                    "Could not set role '%s' for '%s': %s" % (role, nick, e),
-                    "Warning")
-
-        asyncio.ensure_future(do_set_role(self.jid.bare, nick, role, reason))
+        try:
+            await self.core.xmpp['xep_0045'].set_role(
+                self.jid.bare, nick, role=role, reason=reason
+            )
+            self.core.information(
+                f'Role of {nick} changed to {role} successfully.'
+                'Info'
+            )
+        except (IqError, IqTimeout) as e:
+            self.core.information(
+                "Could not set role '%s' for '%s': %s" % (role, nick, e),
+                "Warning")
 
     @refresh_wrapper.conditional
     def print_info(self, nick: str) -> bool:
@@ -1623,7 +1621,7 @@ class MucTab(ChatTab):
         self.input.refresh()
 
     @command_args_parser.quoted(1, 1)
-    def command_kick(self, args: List[str]) -> None:
+    async def command_kick(self, args: List[str]) -> None:
         """
         /kick <nick> [reason]
         """
@@ -1635,10 +1633,10 @@ class MucTab(ChatTab):
         else:
             reason = ''
         nick = args[0]
-        self.change_role(nick, 'none', reason)
+        await self.change_role(nick, 'none', reason)
 
     @command_args_parser.quoted(1, 1)
-    def command_ban(self, args: List[str]) -> None:
+    async def command_ban(self, args: List[str]) -> None:
         """
         /ban <nick> [reason]
         """
@@ -1647,29 +1645,27 @@ class MucTab(ChatTab):
             return
         nick = args[0]
         msg = args[1] if len(args) == 2 else ''
-        self.change_affiliation(nick, 'outcast', msg)
+        await self.change_affiliation(nick, 'outcast', msg)
 
     @command_args_parser.quoted(2, 1, [''])
-    def command_role(self, args: List[str]) -> None:
+    async def command_role(self, args: List[str]) -> None:
         """
         /role <nick> <role> [reason]
         Changes the role of a user
         roles can be: none, visitor, participant, moderator
         """
-
-        def callback(iq: Iq) -> None:
-            if iq['type'] == 'error':
-                self.core.room_error(iq, self.jid.bare)
-
         if args is None:
             self.core.command.help('role')
             return
 
         nick, role, reason = args[0], args[1].lower(), args[2]
-        self.change_role(nick, role, reason)
+        try:
+            await self.change_role(nick, role, reason)
+        except IqError as iq:
+            self.core.room_error(iq, self.jid.bare)
 
     @command_args_parser.quoted(0, 2)
-    def command_affiliation(self, args: List[str]) -> None:
+    async def command_affiliation(self, args: List[str]) -> None:
         """
         /affiliation [<nick or jid> <affiliation>]
         Changes the affiliation of a user
@@ -1683,7 +1679,7 @@ class MucTab(ChatTab):
 
         # List affiliations
         if not args:
-            asyncio.ensure_future(self.get_users_affiliations(room))
+            await self.get_users_affiliations(room)
             return None
 
         if len(args) != 2:
@@ -1692,7 +1688,7 @@ class MucTab(ChatTab):
 
         nick, affiliation = args[0], args[1].lower()
         # Set affiliation
-        self.change_affiliation(nick, affiliation)
+        await self.change_affiliation(nick, affiliation)
 
     async def get_users_affiliations(self, jid: JID) -> None:
         owners, admins, members, outcasts = await asyncio.gather(
