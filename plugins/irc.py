@@ -129,6 +129,8 @@ Example configuration
 
 """
 
+import asyncio
+
 from poezio.plugin import BasePlugin
 from poezio.decorators import command_args_parser
 from poezio.core.structs import Completion
@@ -139,7 +141,9 @@ from poezio import tabs
 class Plugin(BasePlugin):
     def init(self):
         if self.config.get('initial_connect', True):
-            self.initial_connect()
+            asyncio.ensure_future(
+                self.initial_connect()
+            )
 
         self.api.add_command(
             'irc_login',
@@ -179,17 +183,20 @@ class Plugin(BasePlugin):
                   'example.com "hi there"`'),
             short='Open a private conversation with an IRC user')
 
-    def join(self, gateway, server):
+    async def join(self, gateway, server):
         "Join irc rooms on a server"
         nick = self.config.get_by_tabname(
             'nickname', server, default='') or self.core.own_nick
         rooms = self.config.get_by_tabname(
             'rooms', server, default='').split(':')
+        joins = []
         for room in rooms:
             room = '{}%{}@{}/{}'.format(room, server, gateway, nick)
-            self.core.command.join(room)
+            joins.append(self.core.command.join(room))
 
-    def initial_connect(self):
+        await asyncio.gather(*joins)
+
+    async def initial_connect(self):
         gateway = self.config.get('gateway', 'irc.poez.io')
         sections = self.config.sections()
 
@@ -229,7 +236,7 @@ class Plugin(BasePlugin):
                     login(gateway, section, login_nick, login_command,
                           room_suffix[1:])
             elif not already_opened:
-                self.join(gateway, section)
+                await self.join(gateway, section)
 
     @command_args_parser.quoted(0, -1)
     def command_irc_login(self, args):
@@ -299,7 +306,7 @@ class Plugin(BasePlugin):
         return Completion(the_input.new_completion, sections, pos)
 
     @command_args_parser.quoted(1, 1)
-    def command_irc_join(self, args):
+    async def command_irc_join(self, args):
         """
         /irc_join <room or server>
         """
@@ -310,9 +317,9 @@ class Plugin(BasePlugin):
             sections.remove('irc')
         if args[0] in sections and self.config.get_by_tabname(
                 'rooms', args[0]):
-            self.join_server_rooms(args[0])
+            await self.join_server_rooms(args[0])
         else:
-            self.join_room(args[0])
+            await self.join_room(args[0])
 
     @command_args_parser.quoted(1, 1)
     def command_irc_query(self, args):
@@ -336,7 +343,7 @@ class Plugin(BasePlugin):
         else:
             self.core.command.message('{}'.format(jid))
 
-    def join_server_rooms(self, section):
+    async def join_server_rooms(self, section):
         """
         Join all the rooms configured for a section
         (section = irc server)
@@ -351,9 +358,9 @@ class Plugin(BasePlugin):
         suffix = '%{}@{}{}'.format(section, gateway, nick)
 
         for room in rooms:
-            self.core.command.join(room + suffix)
+            await self.core.command.join(room + suffix)
 
-    def join_room(self, name):
+    async def join_room(self, name):
         """
         Join a room with only its name and the current tab
         """
@@ -366,7 +373,7 @@ class Plugin(BasePlugin):
         if self.config.get_by_tabname('nickname', server):
             room += '/' + self.config.get_by_tabname('nickname', server)
 
-        self.core.command.join(room)
+        await self.core.command.join(room)
 
     def get_current_tab_irc_info(self):
         """
