@@ -122,10 +122,14 @@ class Plugin(BasePlugin):
             completion=self.complete_nick)
 
     def role(self, role):
-        return lambda args: self.api.current_tab().command_role(args + ' ' + role)
+        async def inner(args):
+            await self.api.current_tab().command_role(args + ' ' + role)
+        return inner
 
     def affiliation(self, affiliation):
-        return lambda args: self.api.current_tab().command_affiliation(args + ' ' + affiliation)
+        async def inner(args):
+            await self.api.current_tab().command_affiliation(args + ' ' + affiliation)
+        return inner
 
     def complete_nick(self, the_input):
         tab = self.api.current_tab()
