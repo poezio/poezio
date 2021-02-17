@@ -48,7 +48,6 @@ def make_line(
         time: datetime,
         jid: JID,
         identifier: str = '',
-        deterministic: bool = True,
     ) -> Message:
     """Adds a textual entry in the TextBuffer"""
 
@@ -59,22 +58,17 @@ def make_line(
     if isinstance(tab, tabs.MucTab):
         nick = jid.resource
         user = tab.get_user_by_name(nick)
-        if deterministic:
-            if user:
-                color = user.color
-            else:
-                theme = get_theme()
-                if theme.ccg_palette:
-                    fg_color = colors.ccg_text_to_color(theme.ccg_palette, nick)
-                    color = fg_color, -1
-                else:
-                    mod = len(theme.LIST_COLOR_NICKNAMES)
-                    nick_pos = int(md5(nick.encode('utf-8')).hexdigest(), 16) % mod
-                    color = theme.LIST_COLOR_NICKNAMES[nick_pos]
+        if user:
+            color = user.color
         else:
-            color = random.choice(list(xhtml.colors))
-            color = xhtml.colors.get(color)
-            color = (color, -1)
+            theme = get_theme()
+            if theme.ccg_palette:
+                fg_color = colors.ccg_text_to_color(theme.ccg_palette, nick)
+                color = fg_color, -1
+            else:
+                mod = len(theme.LIST_COLOR_NICKNAMES)
+                nick_pos = int(md5(nick.encode('utf-8')).hexdigest(), 16) % mod
+                color = theme.LIST_COLOR_NICKNAMES[nick_pos]
     else:
         if jid.bare == tab.core.xmpp.boundjid.bare:
             nick = tab.core.own_nick
@@ -144,21 +138,16 @@ async def retrieve_messages(tab: tabs.ChatTab,
                             results: AsyncIterable[SMessage],
                             amount: int = 100) -> List[BaseMessage]:
     """Run the MAM query and put messages in order"""
-    text_buffer = tab._text_buffer
     msg_count = 0
     msgs = []
     to_add = []
-    deterministic = config.get_by_tabname(
-        'deterministic_nick_colors',
-        tab.jid.bare
-    )
     try:
         async for rsm in results:
             for msg in rsm['mam']['results']:
                 if msg['mam_result']['forwarded']['stanza'] \
                         .xml.find('{%s}%s' % ('jabber:client', 'body')) is not None:
                     args = _parse_message(msg)
-                    msgs.append(make_line(tab, deterministic=deterministic, **args))
+                    msgs.append(make_line(tab, **args))
             for msg in reversed(msgs):
                 to_add.append(msg)
                 msg_count += 1

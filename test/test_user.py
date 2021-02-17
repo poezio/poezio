@@ -17,7 +17,6 @@ def user1():
         'My Status!',
         'moderator',
         JID('foo@muc/nick1'),
-        False,
         'red',
     )
 
@@ -41,5 +40,5 @@ def test_change_nick(user1):
 
 
 def test_change_color(user1):
-    user1.change_color('blue', deterministic=False)
+    user1.change_color('blue')
     assert user1.color == (21, -1)

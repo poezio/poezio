@@ -380,37 +380,15 @@ class MucTab(ChatTab):
         )
 
     @refresh_wrapper.always
-    def recolor(self, random_colors: bool = False) -> None:
+    def recolor(self) -> None:
         """Recolor the current MUC users"""
-        deterministic = config.get_by_tabname('deterministic_nick_colors',
-                                              self.jid.bare)
-        if deterministic:
-            for user in self.users:
-                if user is self.own_user:
-                    continue
-                color = self.search_for_color(user.nick)
-                if color != '':
-                    continue
-                user.set_deterministic_color()
-            return
-        # Sort the user list by last talked, to avoid color conflicts
-        # on active participants
-        sorted_users = sorted(self.users, key=COMPARE_USERS_LAST_TALKED, reverse=True)
-        full_sorted_users = sorted_users[:]
-        # search our own user, to remove it from the list
-        # Also remove users whose color is fixed
-        for user in full_sorted_users:
-            color = self.search_for_color(user.nick)
+        for user in self.users:
             if user is self.own_user:
-                sorted_users.remove(user)
-            elif color != '':
-                sorted_users.remove(user)
-                user.change_color(color, deterministic)
-        colors = list(get_theme().LIST_COLOR_NICKNAMES)
-        if random_colors:
-            random.shuffle(colors)
-        for i, user in enumerate(sorted_users):
-            user.color = colors[i % len(colors)]
+                continue
+            color = self.search_for_color(user.nick)
+            if color != '':
+                continue
+            user.set_deterministic_color()
         self.text_win.rebuild_everything(self._text_buffer)
 
     @refresh_wrapper.conditional
@@ -527,16 +505,13 @@ class MucTab(ChatTab):
         """
         Batch-process all the initial presences
         """
-        deterministic = config.get_by_tabname('deterministic_nick_colors',
-                                              self.jid.bare)
-
         for stanza in self.presence_buffer:
             try:
-                self.handle_presence_unjoined(stanza, deterministic)
+                self.handle_presence_unjoined(stanza)
             except PresenceError:
                 self.core.room_error(stanza, stanza['from'].bare)
         self.presence_buffer = []
-        self.handle_presence_unjoined(last_presence, deterministic, own)
+        self.handle_presence_unjoined(last_presence, own)
         self.users.sort()
         # Enable the self ping event, to regularly check if we
         # are still in the room.
@@ -547,7 +522,7 @@ class MucTab(ChatTab):
             self.core.tabs.current_tab.refresh_input()
             self.core.doupdate()
 
-    def handle_presence_unjoined(self, presence: Presence, deterministic: bool, own: bool = False) -> None:
+    def handle_presence_unjoined(self, presence: Presence, own: bool = False) -> None:
         """
         Presence received while we are not in the room (before code=110)
         """
@@ -560,7 +535,7 @@ class MucTab(ChatTab):
             return
         user_color = self.search_for_color(from_nick)
         new_user = User(from_nick, affiliation, show, status, role, jid,
-                        deterministic, user_color)
+                        user_color)
         self.users.append(new_user)
         self.core.events.trigger('muc_join', presence, self)
         if own:
@@ -710,10 +685,8 @@ class MucTab(ChatTab):
         """
         When a new user joins the groupchat
         """
-        deterministic = config.get_by_tabname('deterministic_nick_colors',
-                                              self.jid.bare)
         user = User(from_nick, affiliation, show, status, role, jid,
-                    deterministic, color)
+                    color)
         bisect.insort_left(self.users, user)
         hide_exit_join = config.get_by_tabname('hide_exit_join',
                                                self.general_jid)
@@ -763,11 +736,8 @@ class MucTab(ChatTab):
             user.change_nick(new_nick)
         else:
             user.change_nick(new_nick)
-            deterministic = config.get_by_tabname('deterministic_nick_colors',
-                                                  self.jid.bare)
             color = config.get_by_tabname(new_nick, 'muc_colors') or None
-            if color or deterministic:
-                user.change_color(color, deterministic)
+            user.change_color(color)
         self.users.remove(user)
         bisect.insort_left(self.users, user)
 
@@ -2169,12 +2139,11 @@ class MucTab(ChatTab):
             'func':
             self.command_recolor,
             'usage':
-            '[random]',
-            'desc': ('Re-assign a color to all participants of the'
-                     ' current room, based on the last time they talked.'
-                     ' Use this if the participants currently talking '
-                     'have too many identical colors. Use /recolor random'
-                     ' for a non-deterministic result.'),
+            '',
+            'desc': (
+                'Re-assign a color to all participants of the room '
+                'if the theme has changed.'
+            ),
             'shortdesc':
             'Change the nicks colors.',
             'completion':
