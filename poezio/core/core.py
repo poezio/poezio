@@ -329,7 +329,6 @@ class Core:
             ('connection_check_interval', self.xmpp.set_keepalive_values),
             ('connection_timeout_delay', self.xmpp.set_keepalive_values),
             ('create_gaps', self.on_gaps_config_change),
-            ('deterministic_nick_colors', self.on_nick_determinism_changed),
             ('enable_carbons', self.on_carbons_switch),
             ('enable_vertical_tab_list',
              self.on_vertical_tab_list_config_change),
@@ -440,14 +439,6 @@ class Core:
         Set the new password in the slixmpp.ClientXMPP object
         """
         self.xmpp.password = value
-
-    def on_nick_determinism_changed(self, option, value):
-        """If we change the value to true, we call /recolor on all the MucTabs, to
-        make the current nick colors reflect their deterministic value.
-        """
-        if value.lower() == "true":
-            for tab in self.get_tabs(tabs.MucTab):
-                tab.command_recolor('')
 
     def on_carbons_switch(self, option, value):
         """Whenever the user enables or disables carbons using /set, we should

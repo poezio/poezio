@@ -17,7 +17,6 @@ def user1():
         'My Status!',
         'moderator',
         JID('foo@muc/nick1'),
-        False,
         'red',
     )
 
