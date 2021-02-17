@@ -343,8 +343,7 @@ MultiUserChat tab commands
         are considered identical if they only differ by the presence of one
         ore more **_** character at the beginning or the end. For example
         _Foo and Foo___ are considered aliases of the nick Foo) will then
-        always have the specified color, in all MultiUserChat tabs.  This is
-        true whatever the value of **deterministic_nick_colors** is.
+        always have the specified color, in all MultiUserChat tabs.
 
         Use the completion to get a list of all the available color values.
         Use the special color **unset** to remove the attributed color on
@@ -428,12 +427,10 @@ MultiUserChat tab commands
         Change your nickname in the current room.
 
     /recolor
-        **Usage:** ``/recolor [random]``
+        **Usage:** ``/recolor``
 
-        Re-assign a color to all the participants in the current
-        room, based on the last time they talked. Use this if the participants
-        currently talking have too many identical colors. If a random argument is
-        given, the participants will be shuffled before they are assigned a color.
+        Re-assign a color to all the participants in the current room,
+        if the theme has changed.
 
     /cycle
         **Usage:** ``/cycle [message]``

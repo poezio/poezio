@@ -38,7 +38,6 @@ class User:
                  status: str,
                  role: str,
                  jid: JID,
-                 deterministic=True,
                  color='') -> None:
         # The oldest possible time
         self.last_talked: datetime = datetime(1, 1, 1)
@@ -48,12 +47,9 @@ class User:
         self.chatstate: Optional[str] = None
         self.color: Tuple[int, int] = (1, 1)
         if color != '':
-            self.change_color(color, deterministic)
+            self.change_color(color)
         else:
-            if deterministic:
-                self.set_deterministic_color()
-            else:
-                self.color = choice(get_theme().LIST_COLOR_NICKNAMES)
+            self.set_deterministic_color()
 
     def set_deterministic_color(self) -> None:
         theme = get_theme()
@@ -82,14 +78,10 @@ class User:
     def change_nick(self, nick: str):
         self.nick = nick
 
-    def change_color(self, color_name: Optional[str], deterministic=False):
+    def change_color(self, color_name: Optional[str]):
         color = xhtml.colors.get(color_name or '')
         if color is None:
-            if deterministic:
-                self.set_deterministic_color()
-            else:
-                log.error('Unknown color "%s"', color_name)
-                self.color = choice(get_theme().LIST_COLOR_NICKNAMES)
+            self.set_deterministic_color()
         else:
             self.color = (color, -1)
 

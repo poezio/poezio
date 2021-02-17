@@ -512,23 +512,14 @@ or the way messages are displayed.
         bottom in the list, if set to ``asc``, they will be displayed from
         bottom to top.
 
-    deterministic_nick_colors
-
-        **Default value:** ``true``
-
-        Use a deterministic algorithm to choose the user colors in chatrooms if
-        set to ``true``. Otherwise the colors will be picked randomly.
-
-        The value of this option affects the behavior of :term:`/recolor`.
-
     nick_color_aliases
 
         **Default value:** ``true``
 
-	Automatically search for color of nick aliases. For example, if nick is
-	set to red, _nick, nick\_, _nick_, nick\__ etc. will have the same color.
-	Aliases colors are checked first, so that it is still possible to have
-	different colors for nick\_ and nick.
+        Automatically search for color of nick aliases. For example, if nick is
+        set to red, _nick, nick\_, _nick_, nick\__ etc. will have the same color.
+        Aliases colors are checked first, so that it is still possible to have
+        different colors for nick\_ and nick.
 
     vertical_tab_list_size
 
