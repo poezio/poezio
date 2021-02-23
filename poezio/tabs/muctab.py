@@ -350,7 +350,7 @@ class MucTab(ChatTab):
 
     def change_topic(self, topic: str) -> None:
         """Change the current topic"""
-        muc.change_subject(self.core.xmpp, self.jid.bare, topic)
+        self.core.xmpp.plugin['xep_0045'].set_subject(self.jid.bare, topic)
 
     @refresh_wrapper.always
     def show_topic(self) -> None:

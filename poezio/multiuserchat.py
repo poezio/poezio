@@ -54,17 +54,6 @@ def change_show(
     pres.send()
 
 
-def change_subject(xmpp: ClientXMPP, jid: JID, subject: str) -> None:
-    """
-    Change the room subject
-    """
-    jid = safeJID(jid)
-    msg = xmpp.make_message(jid)
-    msg['type'] = 'groupchat'
-    msg['subject'] = subject
-    msg.send()
-
-
 def change_nick(
     core: Core,
     jid: JID,
