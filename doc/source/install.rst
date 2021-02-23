@@ -16,9 +16,8 @@ using one of these.
 - **Archlinux**: poezio_ and poezio-git_ packages are in the AUR
   (use your favourite AUR wrapper to install them)
 - **Gentoo**:  `net-im/poezio`_
-- **Fedora**: The stable poezio package was out of date for a long time in
-  Fedora, but now thanks to Casper, there is an `up-to-date package`_ in
-  the repos since F19.
+- **Fedora**: There is an `up-to-date package`_ in the repos since F19.
+- **CentOS**: Poezio is available in EPEL repositories since CentOS 8.
 - **Flatpak**: A stable package is provided on flathub_.
 - **Debian**: A stable package is provided since buster_ thanks to debacle.
 - **Nix** (and **NixOS**): The last stable version of poezio is availalble in
