@@ -47,7 +47,7 @@ class Plugin(BasePlugin):
                 short='Send a short image',
                 completion=self.completion_bob)
 
-    def command_bob(self, filename):
+    async def command_bob(self, filename):
         path = Path(expanduser(filename))
         try:
             size = path.stat().st_size
@@ -67,7 +67,7 @@ class Plugin(BasePlugin):
         with open(path.as_posix(), 'rb') as file:
             data = file.read()
         max_age = self.config.get('max_age')
-        cid = self.core.xmpp.plugin['xep_0231'].set_bob(
+        cid = await self.core.xmpp.plugin['xep_0231'].set_bob(
             data, mime_type, max_age=max_age)
         self.api.run_command(
             '/xhtml <img src="cid:%s" alt="%s"/>' % (cid, path.name))
