@@ -5,6 +5,7 @@ upstream.
 TODO: Check that they are fixed and remove those hacks
 """
 
+import asyncio
 from typing import Callable, Any
 from slixmpp import Message, Iq, ClientXMPP
 from slixmpp.xmlstream import ET
@@ -23,7 +24,9 @@ def has_identity(xmpp, jid, identity, on_true=None, on_false=None):
         if not res and on_false is not None:
             on_false()
 
-    xmpp.plugin['xep_0030'].get_info(jid=jid, callback=_cb)
+    asyncio.ensure_future(
+        xmpp.plugin['xep_0030'].get_info(jid=jid, callback=_cb)
+    )
 
 
 def _filter_add_receipt_request(self, stanza):

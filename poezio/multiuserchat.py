@@ -12,6 +12,7 @@ slix plugin
 
 from __future__ import annotations
 
+import asyncio
 from xml.etree import ElementTree as ET
 from typing import (
     Optional,
@@ -118,7 +119,9 @@ def join_groupchat(
         xmpp.plugin['xep_0045'].rooms[jid] = {}
         xmpp.plugin['xep_0045'].our_nicks[jid] = to.resource
 
-    xmpp.plugin['xep_0030'].get_info(jid=jid, callback=on_disco)
+    asyncio.ensure_future(
+        xmpp.plugin['xep_0030'].get_info(jid=jid, callback=on_disco)
+    )
 
 
 def leave_groupchat(
