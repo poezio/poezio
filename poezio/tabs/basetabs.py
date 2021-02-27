@@ -15,11 +15,10 @@ revolving around chats.
 
 from __future__ import annotations
 
-import copy
 import logging
 import string
 import asyncio
-import time
+from copy import copy
 from math import ceil, log10
 from datetime import datetime
 from xml.etree import ElementTree as ET
@@ -41,7 +40,6 @@ from poezio import (
     windows
 )
 from poezio.core.structs import Command, Completion, Status
-from poezio.common import safeJID
 from poezio.config import config
 from poezio.decorators import command_args_parser, refresh_wrapper
 from poezio.logger import logger
@@ -563,7 +561,7 @@ class ChatTab(Tab):
 
     @property
     def jid(self) -> JID:
-        return copy.copy(self._jid)
+        return copy(self._jid)
 
     @jid.setter
     def jid(self, value: JID) -> None:
@@ -749,7 +747,7 @@ class ChatTab(Tab):
         if correct:
             # XXX: Is the copy needed. Is the object passed here reused
             # afterwards? Who knows.
-            msg = copy.copy(msg)
+            msg = copy(msg)
             msg['id'] = self.last_sent_message['id']
         self.last_sent_message = msg
 

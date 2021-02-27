@@ -13,7 +13,6 @@ import asyncio
 import bisect
 import curses
 import logging
-import asyncio
 import os
 import random
 import re
@@ -39,13 +38,12 @@ from slixmpp.exceptions import IqError, IqTimeout
 from poezio.tabs import ChatTab, Tab, SHOW_NAME
 
 from poezio import common
-from poezio import fixes
 from poezio import mam
 from poezio import multiuserchat as muc
 from poezio import timed_events
 from poezio import windows
 from poezio import xhtml
-from poezio.common import safeJID, to_utc
+from poezio.common import to_utc
 from poezio.config import config
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper, command_args_parser
@@ -60,7 +58,6 @@ from poezio.ui.types import (
     Message,
     MucOwnJoinMessage,
     MucOwnLeaveMessage,
-    StatusMessage,
 )
 
 if TYPE_CHECKING:
@@ -350,7 +347,7 @@ class MucTab(ChatTab):
 
     def change_topic(self, topic: str) -> None:
         """Change the current topic"""
-        muc.change_subject(self.core.xmpp, self.jid.bare, topic)
+        self.core.xmpp.plugin['xep_0045'].set_subject(self.jid.bare, topic)
 
     @refresh_wrapper.always
     def show_topic(self) -> None:
