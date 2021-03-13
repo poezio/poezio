@@ -914,7 +914,7 @@ class CommandCore:
             return self.core.information('Invalid JID for /last_activity: %s' % args[0], 'Error')
 
         try:
-            await self.core.xmpp.plugin['xep_0012'].get_last_activity(jid)
+            iq = await self.core.xmpp.plugin['xep_0012'].get_last_activity(jid)
         except IqError as error:
             if error.etype == 'auth':
                 msg = 'You are not allowed to see the activity of %s' % jid
