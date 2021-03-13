@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
-    from poezio.core import Core
+    from poezio.core.core import Core
     from poezio.tabs import Tab
 
 
