@@ -1112,12 +1112,15 @@ class CommandCore:
     def invitations(self):
         """/invitations"""
         build = []
-        for invite in self.core.pending_invites:
+        for room, inviter in self.core.pending_invites.items():
             try:
-                bare = JID(self.core.pending_invites[invite]).bare
+                bare = JID(inviter).bare
             except InvalidJID:
-                self.core.information('Invalid JID found in /invitations: %s' % args[0], 'Error')
-            build.append('%s by %s' % (invite, bare))
+                self.core.information(
+                    f'Invalid JID found in /invitations: {inviter}',
+                    'Error'
+                )
+            build.append(f'{room} by {bare}')
         if build:
             message = 'You are invited to the following rooms:\n' + ','.join(build)
         else:
