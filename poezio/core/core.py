@@ -396,7 +396,9 @@ class Core:
         if value not in ('pep', 'privatexml'):
             return
         self.bookmarks.preferred = value
-        self.bookmarks.save(self.xmpp, core=self)
+        asyncio.ensure_future(
+            self.bookmarks.save(self.xmpp, core=self)
+        )
 
     def on_gaps_config_change(self, option, value):
         """
