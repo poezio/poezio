@@ -496,15 +496,15 @@ def unique_prefix_of(a: str, b: str) -> str:
     return a
 
 
-def to_utc(time: datetime) -> datetime:
+def to_utc(time_: datetime) -> datetime:
     """Convert a datetime-aware time zone into raw UTC"""
     tzone = datetime.now().astimezone().tzinfo
-    if time.tzinfo is not None:  # Convert to UTC
-        time = time.astimezone(tz=timezone.utc)
+    if time_.tzinfo is not None:  # Convert to UTC
+        time_ = time_.astimezone(tz=timezone.utc)
     else:  # Assume local tz, convert to URC
-        time = time.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
+        time = time_.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
     # Return an offset-naive datetime
-    return time.replace(tzinfo=None)
+    return time_.replace(tzinfo=None)
 
 
 # http://xmpp.org/extensions/xep-0045.html#errorstatus
