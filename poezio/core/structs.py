@@ -6,7 +6,7 @@ from typing import Any, Callable, List, Dict
 
 __all__ = [
     'Command',
-    'Completion'
+    'Completion',
     'POSSIBLE_SHOW',
     'Status',
 ]
