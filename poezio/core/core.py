@@ -1768,14 +1768,14 @@ class Core:
         self.refresh_window()
 
 
-class KeyDict(Dict[str, Callable[[str], Any]]):
+class KeyDict(dict):
     """
     A dict, with a wrapper for get() that will return a custom value
     if the key starts with _exc_
     """
     try_execute: Optional[Callable[[str], Any]]
 
-    def get(self, key: str, default: Optional[Callable] = None) -> Callable:
+    def get(self, key: str, default=None) -> Callable:
         if isinstance(key, str) and key.startswith('_exc_') and len(key) > 5:
             if self.try_execute is not None:
                 try_execute = self.try_execute
