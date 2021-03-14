@@ -507,7 +507,7 @@ def update_themes_dir(option: Optional[str] = None,
         load_path.append(default_dir)
 
     # import from the user-defined prefs
-    themes_dir_str = config.get('themes_dir')
+    themes_dir_str = config.getstr('themes_dir')
     themes_dir = Path(themes_dir_str).expanduser(
     ) if themes_dir_str else xdg.DATA_HOME / 'themes'
     try:
@@ -553,7 +553,7 @@ def prepare_ccolor_palette(theme: Theme) -> None:
 
 
 def reload_theme() -> Optional[str]:
-    theme_name = config.get('theme')
+    theme_name = config.getstr('theme')
     global theme
     if theme_name == 'default' or not theme_name.strip():
         theme = Theme()

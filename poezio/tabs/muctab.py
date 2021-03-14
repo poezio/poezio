@@ -433,7 +433,7 @@ class MucTab(ChatTab):
         return False
 
     def get_nick(self) -> str:
-        if config.get('show_muc_jid'):
+        if config.getbool('show_muc_jid'):
             return cast(str, self.jid.bare)
         bookmark = self.core.bookmarks[self.jid.bare]
         if bookmark is not None and bookmark.name:
@@ -463,7 +463,7 @@ class MucTab(ChatTab):
     def on_gain_focus(self) -> None:
         self.state = 'current'
         if (self.text_win.built_lines and self.text_win.built_lines[-1] is None
-                and not config.get('show_useless_separator')):
+                and not config.getbool('show_useless_separator')):
             self.text_win.remove_line_separator()
         curses.curs_set(1)
         if self.joined and config.get_by_tabname(
@@ -1245,7 +1245,7 @@ class MucTab(ChatTab):
         Resize the whole window. i.e. all its sub-windows
         """
         self.need_resize = False
-        if config.get('hide_user_list') or self.size.tab_degrade_x:
+        if config.getbool('hide_user_list') or self.size.tab_degrade_x:
             text_width = self.width
         else:
             text_width = (self.width // 10) * 9
@@ -1280,7 +1280,7 @@ class MucTab(ChatTab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s', self.__class__.__name__)
-        if config.get('hide_user_list') or self.size.tab_degrade_x:
+        if config.getbool('hide_user_list') or self.size.tab_degrade_x:
             display_user_list = False
         else:
             display_user_list = True
@@ -1302,7 +1302,7 @@ class MucTab(ChatTab):
     def on_info_win_size_changed(self) -> None:
         if self.core.information_win_size >= self.height - 3:
             return
-        if config.get("hide_user_list"):
+        if config.getbool("hide_user_list"):
             text_width = self.width
         else:
             text_width = (self.width // 10) * 9
@@ -1356,7 +1356,7 @@ class MucTab(ChatTab):
         if highlighted and self.joined and not corrected:
             if self.state != 'current':
                 self.state = 'highlight'
-            beep_on = cast(str, config.get('beep_on')).split()
+            beep_on = config.getlist('beep_on')
             if 'highlight' in beep_on and 'message' not in beep_on:
                 if not config.get_by_tabname('disable_beep', self.jid.bare):
                     curses.beep()
@@ -1506,7 +1506,7 @@ class MucTab(ChatTab):
         /close [msg]
         """
         self.leave_room(msg)
-        if config.get('synchronise_open_rooms'):
+        if config.getbool('synchronise_open_rooms'):
             if self.jid in self.core.bookmarks:
                 self.core.bookmarks[self.jid].autojoin = False
                 asyncio.ensure_future(
@@ -1806,14 +1806,14 @@ class MucTab(ChatTab):
         for user in sorted(self.users, key=COMPARE_USERS_LAST_TALKED, reverse=True):
             if user.nick != self.own_nick:
                 word_list.append(user.nick)
-        after = cast(str, config.get('after_completion')) + ' '
+        after = config.getstr('after_completion') + ' '
         input_pos = self.input.pos
         if ' ' not in self.input.get_text()[:input_pos] or (
                 self.input.last_completion and self.input.get_text()
             [:input_pos] == self.input.last_completion + after):
             add_after = after
         else:
-            if not config.get('add_space_after_completion'):
+            if not config.getbool('add_space_after_completion'):
                 add_after = ''
             else:
                 add_after = ' '
@@ -1850,7 +1850,7 @@ class MucTab(ChatTab):
         """Completion for /nick"""
         nicks_list = [
             os.environ.get('USER'),
-            cast(str, config.get('default_nick')),
+            config.getstr('default_nick'),
             self.core.get_bookmark_nickname(self.jid.bare)
         ]
         nicks = [i for i in nicks_list if i]

@@ -163,7 +163,7 @@ class Bookmark:
 class BookmarkList:
     def __init__(self):
         self.bookmarks: List[Bookmark] = []
-        preferred = config.get('use_bookmarks_method').lower()
+        preferred = config.getstr('use_bookmarks_method').lower()
         if preferred not in ('pep', 'privatexml'):
             preferred = 'privatexml'
         self.preferred = preferred
@@ -244,7 +244,7 @@ class BookmarkList:
     async def save(self, xmpp: ClientXMPP, core=None):
         """Save all the bookmarks."""
         self.save_local()
-        if config.get('use_remote_bookmarks'):
+        if config.getbool('use_remote_bookmarks'):
             try:
                 result = await self.save_remote(xmpp)
                 if core is not None:
@@ -292,10 +292,9 @@ class BookmarkList:
 
     def get_local(self):
         """Add the locally stored bookmarks to the list."""
-        rooms = config.get('rooms')
+        rooms = config.getlist('rooms')
         if not rooms:
             return
-        rooms = rooms.split(':')
         for room in rooms:
             try:
                 jid = JID(room)

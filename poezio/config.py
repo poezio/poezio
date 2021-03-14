@@ -19,7 +19,7 @@ import pkg_resources
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from pathlib import Path
 from shutil import copy2
-from typing import Callable, Dict, List, Optional, Union, Tuple
+from typing import Callable, Dict, List, Optional, Union, Tuple, cast
 
 from poezio.args import parse_args
 from poezio import xdg
@@ -208,19 +208,25 @@ class Config:
 
         try:
             if isinstance(default, bool):
-                res = self.getboolean(option, section)
+                res = self.configparser.getboolean(section, option)
             elif isinstance(default, int):
-                res = self.getint(option, section)
+                res = self.configparser.getint(section, option)
             elif isinstance(default, float):
-                res = self.getfloat(option, section)
+                res = self.configparser.getfloat(section, option)
             else:
-                res = self.getstr(option, section)
+                res = self.configparser.get(section, option)
         except (NoOptionError, NoSectionError, ValueError, AttributeError):
             return default if default is not None else ''
 
         if res is None:
             return default
         return res
+
+    def _get_default(self, option, section):
+        if self.default:
+            return self.default.get(section, {}).get(option)
+        else:
+            return ''
 
     def sections(self, *args, **kwargs):
         return self.configparser.sections(*args, **kwargs)
@@ -287,29 +293,45 @@ class Config:
         """
         return conv(self.__get(option, section, **kwargs))
 
-    def getstr(self, option, section=DEFSECTION):
+    def getstr(self, option, section=DEFSECTION) -> str:
         """
         get a value and returns it as a string
         """
-        return self.__get(option, section)
+        try:
+            return self.configparser.get(section, option)
+        except (NoOptionError, NoSectionError, ValueError, AttributeError):
+            return cast(str, self._get_default(option, section))
 
-    def getint(self, option, section=DEFSECTION):
+    def getint(self, option, section=DEFSECTION) -> int:
         """
         get a value and returns it as an int
         """
-        return self.configparser.getint(section, option)
+        try:
+            return self.configparser.getint(section, option)
+        except (NoOptionError, NoSectionError, ValueError, AttributeError):
+            return cast(int, self._get_default(option, section))
 
-    def getfloat(self, option, section=DEFSECTION):
+    def getfloat(self, option, section=DEFSECTION) -> float:
         """
         get a value and returns it as a float
         """
-        return self.configparser.getfloat(section, option)
+        try:
+            return self.configparser.getfloat(section, option)
+        except (NoOptionError, NoSectionError, ValueError, AttributeError):
+            return cast(float, self._get_default(option, section))
 
-    def getboolean(self, option, section=DEFSECTION):
+
+    def getbool(self, option, section=DEFSECTION) -> bool:
         """
         get a value and returns it as a boolean
         """
-        return self.configparser.getboolean(section, option)
+        try:
+            return self.configparser.getboolean(section, option)
+        except (NoOptionError, NoSectionError, ValueError, AttributeError):
+            return cast(bool, self._get_default(option, section))
+
+    def getlist(self, option, section=DEFSECTION) -> List[str]:
+        return self.getstr(option, section).split(':')
 
     def write_in_file(self, section: str, option: str,
                       value: ConfigValue) -> bool:
@@ -450,8 +472,8 @@ class Config:
         # Special case for a 'toggle' value. We take the current value
         # and set the opposite. Warning if the no current value exists
         # or it is not a bool.
-        if value == "toggle":
-            current = self.get(option, "", section)
+        if isinstance(value, str) and value == "toggle":
+            current = self.getbool(option, section)
             if isinstance(current, bool):
                 value = str(not current)
             else:
@@ -464,6 +486,7 @@ class Config:
                         'Could not toggle option: %s.'
                         ' Current value is %s.' % (option, current or "empty"),
                         'Warning')
+        value = str(value)
         if self.has_section(section):
             self.configparser.set(section, option, value)
         else:

@@ -95,9 +95,9 @@ class Core:
         self.connection_time = time.time()
         self.last_stream_error = None
         self.stdscr = None
-        status = config.get('status')
+        status = config.getstr('status')
         status = POSSIBLE_SHOW.get(status, None)
-        self.status = Status(show=status, message=config.get('status_message'))
+        self.status = Status(show=status, message=config.getstr('status_message'))
         self.running = True
         self.xmpp = connection.Connection()
         self.xmpp.core = self
@@ -115,7 +115,7 @@ class Core:
         self.information_buffer = TextBuffer()
         self.information_win_size = cast(
             int,
-            config.get('info_win_height', section='var'),
+            config.getint('info_win_height', section='var'),
         )
         self.information_win = windows.TextWin(300)
         self.information_buffer.add_window(self.information_win)
@@ -134,10 +134,10 @@ class Core:
         self.tabs = Tabs(self.events)
         self.previous_tab_nb = 0
 
-        own_nick = config.get('default_nick')
+        own_nick = config.getstr('default_nick')
         own_nick = own_nick or self.xmpp.boundjid.user
         own_nick = own_nick or os.environ.get('USER')
-        own_nick = own_nick or 'poezio'
+        own_nick = own_nick or 'poezio_user'
         self.own_nick = own_nick
 
         self.size = SizeManager(self)
@@ -292,12 +292,12 @@ class Core:
         for name, handler in xmpp_event_handlers:
             self.xmpp.add_event_handler(name, handler)
 
-        if config.get('enable_avatars'):
+        if config.getbool('enable_avatars'):
             self.xmpp.add_event_handler("vcard_avatar_update",
                                         self.handler.on_vcard_avatar)
             self.xmpp.add_event_handler("avatar_metadata_publish",
                                         self.handler.on_0084_avatar)
-        if config.get('enable_user_nick'):
+        if config.getbool('enable_user_nick'):
             self.xmpp.add_event_handler("user_nick_publish",
                                         self.handler.on_nick_received)
         all_stanzas = Callback('custom matcher', connection.MatchAll(None),
@@ -513,7 +513,7 @@ class Core:
         """
         Load the plugins on startup.
         """
-        plugins = config.get('plugins_autoload')
+        plugins = config.getstr('plugins_autoload')
         if ':' in plugins:
             for plugin in plugins.split(':'):
                 self.plugin_manager.load(plugin, unload_first=False)
@@ -609,7 +609,7 @@ class Core:
                     except ValueError:
                         pass
                     else:
-                        if self.tabs.current_tab.nb == nb and config.get(
+                        if self.tabs.current_tab.nb == nb and config.getbool(
                                 'go_to_previous_tab_on_alt_number'):
                             self.go_to_previous_tab()
                         else:
@@ -722,9 +722,9 @@ class Core:
         work. If you try to do anything else, your |, [, <<, etc will be
         interpreted as normal command arguments, not shell special tokens.
         """
-        if config.get('exec_remote'):
+        if config.getbool('exec_remote'):
             # We just write the command in the fifo
-            fifo_path = config.get('remote_fifo_path')
+            fifo_path = config.getstr('remote_fifo_path')
             filename = os.path.join(fifo_path, 'poezio.fifo')
             if not self.remote_fifo:
                 try:
@@ -818,7 +818,7 @@ class Core:
         or to use it when joining a new muc)
         """
         self.status = Status(show=pres, message=msg)
-        if config.get('save_status'):
+        if config.getbool('save_status'):
             ok = config.silent_set('status', pres if pres else '')
             msg = msg.replace('\n', '|') if msg else ''
             ok = ok and config.silent_set('status_message', msg)
@@ -1040,7 +1040,7 @@ class Core:
         returns False if it could not move the tab, True otherwise
         """
         return self.tabs.insert_tab(old_pos, new_pos,
-                                    config.get('create_gaps'))
+                                    config.getbool('create_gaps'))
 
     ### Move actions (e.g. go to next room) ###
 
@@ -1308,7 +1308,7 @@ class Core:
         tab.on_close()
         del tab.key_func  # Remove self references
         del tab.commands  # and make the object collectable
-        self.tabs.delete(tab, gap=config.get('create_gaps'))
+        self.tabs.delete(tab, gap=config.getbool('create_gaps'))
         logger.close(tab.name)
         if was_current:
             self.tabs.current_tab.on_gain_focus()
@@ -1342,13 +1342,13 @@ class Core:
         """
         Displays an informational message in the "Info" buffer
         """
-        filter_types = config.get('information_buffer_type_filter').split(':')
+        filter_types = config.getlist('information_buffer_type_filter')
         if typ.lower() in filter_types:
             log.debug(
                 'Did not show the message:\n\t%s> %s \n\tdue to '
                 'information_buffer_type_filter configuration', typ, msg)
             return False
-        filter_messages = config.get('filter_info_messages').split(':')
+        filter_messages = config.getlist('filter_info_messages')
         for words in filter_messages:
             if words and words in msg:
                 log.debug(
@@ -1364,11 +1364,11 @@ class Core:
                 nick_color=color
             )
         )
-        popup_on = config.get('information_buffer_popup_on').split()
+        popup_on = config.getlist('information_buffer_popup_on')
         if isinstance(self.tabs.current_tab, tabs.RosterInfoTab):
             self.refresh_window()
         elif typ != '' and typ.lower() in popup_on:
-            popup_time = config.get('popup_time') + (nb_lines - 1) * 2
+            popup_time = config.getint('popup_time') + (nb_lines - 1) * 2
             self._pop_information_win_up(nb_lines, popup_time)
         else:
             if self.information_win_size != 0:
@@ -1553,7 +1553,7 @@ class Core:
         """
         Enable/disable the left panel.
         """
-        enabled = config.get('enable_vertical_tab_list')
+        enabled = config.getbool('enable_vertical_tab_list')
         if not config.silent_set('enable_vertical_tab_list', str(not enabled)):
             self.information('Unable to write in the config file', 'Error')
         self.call_for_resize()
@@ -1576,14 +1576,14 @@ class Core:
         Resize the GlobalInfoBar only once at each resize
         """
         height, width = self.stdscr.getmaxyx()
-        if config.get('enable_vertical_tab_list'):
+        if config.getbool('enable_vertical_tab_list'):
 
             if self.size.core_degrade_x:
                 return
             try:
                 height, _ = self.stdscr.getmaxyx()
                 truncated_win = self.stdscr.subwin(
-                    height, config.get('vertical_tab_list_size'), 0, 0)
+                    height, config.getint('vertical_tab_list_size'), 0, 0)
             except:
                 log.error('Curses error on infobar resize', exc_info=True)
                 return
@@ -1609,11 +1609,13 @@ class Core:
         # the screen that they can occupy, and we draw the tab list on the
         # remaining space, on the left
         height, width = self.stdscr.getmaxyx()
-        if (config.get('enable_vertical_tab_list')
+        if (config.getbool('enable_vertical_tab_list')
                 and not self.size.core_degrade_x):
             try:
-                scr = self.stdscr.subwin(0,
-                                         config.get('vertical_tab_list_size'))
+                scr = self.stdscr.subwin(
+                    0,
+                    config.getint('vertical_tab_list_size')
+                )
             except:
                 log.error('Curses error on resize', exc_info=True)
                 return
@@ -1623,7 +1625,7 @@ class Core:
         self.resize_global_info_bar()
         self.resize_global_information_win()
         for tab in self.tabs:
-            if config.get('lazy_resize'):
+            if config.getbool('lazy_resize'):
                 tab.need_resize = True
             else:
                 tab.resize()
@@ -1691,7 +1693,7 @@ class Core:
     def join_initial_rooms(self, bookmarks: List[Bookmark]):
         """Join all rooms given in the iterator `bookmarks`"""
         for bm in bookmarks:
-            if not (bm.autojoin or config.get('open_all_bookmarks')):
+            if not (bm.autojoin or config.getbool('open_all_bookmarks')):
                 continue
             tab = self.tabs.by_name_and_class(bm.jid, tabs.MucTab)
             nick = bm.nick if bm.nick else self.own_nick
@@ -1710,7 +1712,7 @@ class Core:
         self.bookmarks.available_storage['private'] = private
         self.bookmarks.available_storage['pep'] = pep_
 
-        if not self.xmpp.anon and config.get('use_remote_bookmarks'):
+        if not self.xmpp.anon and config.getbool('use_remote_bookmarks'):
             try:
                 await self.bookmarks.get_remote(self.xmpp, self.information)
             except IqError as error:
@@ -1746,9 +1748,9 @@ class Core:
             msg = 'To provide a password in order to join the room, type "/join / password" (replace "password" by the real password)'
             tab.add_message(InfoMessage(msg), typ=2)
         if code == '409':
-            if config.get('alternative_nickname') != '':
+            if config.getstr('alternative_nickname') != '':
                 if not tab.joined:
-                    tab.own_nick += config.get('alternative_nickname')
+                    tab.own_nick += config.getstr('alternative_nickname')
                     tab.join()
             else:
                 if not tab.joined:

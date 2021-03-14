@@ -29,7 +29,7 @@ class TextWin(Win):
     def __init__(self, lines_nb_limit: Optional[int] = None) -> None:
         Win.__init__(self)
         if lines_nb_limit is None:
-            lines_nb_limit = config.get('max_lines_in_memory')
+            lines_nb_limit = config.getint('max_lines_in_memory')
         self.lines_nb_limit: int = lines_nb_limit
         self.pos = 0
         # Each new message is built and kept here.
@@ -119,8 +119,8 @@ class TextWin(Win):
             lines = self.built_lines[-self.height:]
         else:
             lines = self.built_lines[-self.height - self.pos:-self.pos]
-        with_timestamps = config.get("show_timestamps")
-        nick_size = config.get("max_nick_length")
+        with_timestamps = config.getbool("show_timestamps")
+        nick_size = config.getint("max_nick_length")
         self._win.move(0, 0)
         self._win.erase()
         offset = 0
@@ -167,8 +167,8 @@ class TextWin(Win):
 
     def rebuild_everything(self, room: TextBuffer) -> None:
         self.built_lines = []
-        with_timestamps = config.get('show_timestamps')
-        nick_size = config.get('max_nick_length')
+        with_timestamps = config.getbool('show_timestamps')
+        nick_size = config.getint('max_nick_length')
         for message in room.messages:
             self.build_new_message(
                 message,
@@ -310,8 +310,8 @@ class TextWin(Win):
         Find a message, and replace it with a new one
         (instead of rebuilding everything in order to correct a message)
         """
-        with_timestamps = config.get('show_timestamps')
-        nick_size = config.get('max_nick_length')
+        with_timestamps = config.getbool('show_timestamps')
+        nick_size = config.getint('max_nick_length')
         for i in range(len(self.built_lines) - 1, -1, -1):
             current = self.built_lines[i]
             if current is not None and current.msg.identifier == old_id:
