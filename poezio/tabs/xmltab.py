@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 
 import curses
 import os
+from typing import Union, Optional
 from slixmpp import JID, InvalidJID
 from slixmpp.xmlstream import matcher, StanzaBase
 from slixmpp.xmlstream.tostring import tostring
@@ -55,6 +56,7 @@ MATCHERS_MAPPINGS = {
 
 
 class XMLTab(Tab):
+    input: Optional[Union[windows.HelpText, windows.CommandInput]]
     def __init__(self, core):
         Tab.__init__(self, core)
         self.state = 'normal'

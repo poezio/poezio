@@ -5,17 +5,18 @@ This window is the one listing the current opened tabs in poezio.
 The GlobalInfoBar can be either horizontal or vertical
 (VerticalGlobalInfoBar).
 """
-import logging
-import itertools
-log = logging.getLogger(__name__)
-
 import curses
+import itertools
+import logging
+
+from typing import List, Optional
 
 from poezio.config import config
 from poezio.windows.base_wins import Win
 from poezio.theming import get_theme, to_curses_attr
 from poezio.common import unique_prefix_of
 
+log = logging.getLogger(__name__)
 
 class GlobalInfoBar(Win):
     __slots__ = ('core')
@@ -31,14 +32,14 @@ class GlobalInfoBar(Win):
         self.addstr(0, 0, "[",
                     to_curses_attr(theme.COLOR_INFORMATION_BAR))
 
-        show_names = config.getboom('show_tab_names')
+        show_names = config.getbool('show_tab_names')
         show_nums = config.getbool('show_tab_numbers')
         use_nicks = config.getbool('use_tab_nicks')
         show_inactive = config.getbool('show_inactive_tabs')
         unique_prefix_tab_names = config.getbool('unique_prefix_tab_names')
 
         if unique_prefix_tab_names:
-            unique_prefixes = [None] * len(self.core.tabs)
+            unique_prefixes: List[Optional[str]] = [None] * len(self.core.tabs)
             sorted_tab_indices = sorted(
                 (str(tab.name), i)
                 for i, tab in enumerate(self.core.tabs)

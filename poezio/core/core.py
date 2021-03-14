@@ -16,6 +16,7 @@ import time
 import uuid
 from collections import defaultdict
 from typing import (
+    Any,
     cast,
     Callable,
     Dict,
@@ -233,9 +234,9 @@ class Core:
             '_dnd': lambda: self.command.status('dnd'),
             '_xa': lambda: self.command.status('xa'),
             ##### Custom actions ########
-            '_exc_': self.try_execute,
         }
         self.key_func.update(key_func)
+        self.key_func.try_execute = self.try_execute
 
         # Add handlers
         xmpp_event_handlers = [
@@ -796,12 +797,14 @@ class Core:
 
     def remove_timed_event(self, event: DelayedEvent) -> None:
         """Remove an existing timed event"""
-        event.handler.cancel()
+        if event.handler is not None:
+            event.handler.cancel()
 
     def add_timed_event(self, event: DelayedEvent) -> None:
         """Add a new timed event"""
         event.handler = asyncio.get_event_loop().call_later(
-            event.delay, event.callback, *event.args)
+            event.delay, event.callback, *event.args
+        )
 
 ####################### XMPP-related actions ##################################
 
@@ -1174,6 +1177,7 @@ class Core:
         provided, we open a StaticConversationTab, else a
         DynamicConversationTab
         """
+        new_tab: tabs.ConversationTab
         if jid.resource:
             new_tab = tabs.StaticConversationTab(self, jid)
         else:
@@ -1196,19 +1200,19 @@ class Core:
                 self.tabs.set_current_tab(tab)
                 return tab
         # create the new tab
-        tab = self.tabs.by_name_and_class(room_name, tabs.MucTab)
-        if not tab:
+        muc_tab = self.tabs.by_name_and_class(room_name, tabs.MucTab)
+        if not muc_tab:
             return None
-        new_tab = tabs.PrivateTab(self, complete_jid, tab.own_nick)
+        tab = tabs.PrivateTab(self, complete_jid, muc_tab.own_nick)
         if hasattr(tab, 'directed_presence'):
-            new_tab.directed_presence = tab.directed_presence
+            tab.directed_presence = tab.directed_presence
         if not focus:
-            new_tab.state = "private"
+            tab.state = "private"
         # insert it in the tabs
-        self.add_tab(new_tab, focus)
+        self.add_tab(tab, focus)
         self.refresh_window()
-        tab.privates.append(new_tab)
-        return new_tab
+        muc_tab.privates.append(tab)
+        return tab
 
     def open_new_room(self,
                       room: str,
@@ -1764,16 +1768,21 @@ class Core:
         self.refresh_window()
 
 
-class KeyDict(dict):
+class KeyDict(Dict[str, Callable[[str], Any]]):
     """
     A dict, with a wrapper for get() that will return a custom value
     if the key starts with _exc_
     """
+    try_execute: Optional[Callable[[str], Any]]
 
     def get(self, key: str, default: Optional[Callable] = None) -> Callable:
         if isinstance(key, str) and key.startswith('_exc_') and len(key) > 5:
-            return lambda: dict.get(self, '_exc_')(key[5:])
+            if self.try_execute is not None:
+                try_execute = self.try_execute
+                return lambda: try_execute(key[5:])
+            raise ValueError("KeyDict not initialized")
         return dict.get(self, key, default)
+
 
 
 def replace_key_with_bound(key: str) -> str:
