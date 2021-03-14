@@ -156,21 +156,33 @@ DEFAULT_CONFIG = {
 }
 
 
-class Config(RawConfigParser):
+class PoezioConfigParser(RawConfigParser):
+
+    def optionxform(self, value) -> str:
+        return str(value)
+
+
+class Config:
     """
     load/save the config to a file
     """
 
+    configparser: PoezioConfigParser
+    file_name: Path
+    default: Dict[str, Dict[str, ConfigValue]]
+
     def __init__(self, file_name: Path, default=None) -> None:
-        RawConfigParser.__init__(self, None)
+        self.configparser = PoezioConfigParser()
         # make the options case sensitive
-        self.optionxform = lambda param: str(param)
         self.file_name = file_name
         self.read_file()
         self.default = default
 
+    def optionxform(self, value):
+        return str(value)
+
     def read_file(self):
-        RawConfigParser.read(self, str(self.file_name), encoding='utf-8')
+        self.configparser.read(str(self.file_name), encoding='utf-8')
         # Check config integrity and fix it if it’s wrong
         # only when the object is the main config
         if self.__class__ is Config:
@@ -181,7 +193,7 @@ class Config(RawConfigParser):
     def get(self,
             option: str,
             default: Optional[ConfigValue] = None,
-            section=DEFSECTION) -> ConfigValue:
+            section=DEFSECTION) -> Optional[ConfigValue]:
         """
         get a value from the config but return
         a default value if it is not found
@@ -209,6 +221,18 @@ class Config(RawConfigParser):
         if res is None:
             return default
         return res
+
+    def sections(self, *args, **kwargs):
+        return self.configparser.sections(*args, **kwargs)
+
+    def options(self, *args, **kwargs):
+        return self.configparser.options(*args, **kwargs)
+
+    def has_section(self, *args, **kwargs):
+        return self.configparser.has_section(*args, **kwargs)
+
+    def add_section(self, *args, **kwargs):
+        return self.configparser.add_section(*args, **kwargs)
 
     def get_by_tabname(self,
                        option,
@@ -255,7 +279,7 @@ class Config(RawConfigParser):
         """
         facility for RawConfigParser.get
         """
-        return RawConfigParser.get(self, section, option, **kwargs)
+        return self.configparser.get(section, option, **kwargs)
 
     def _get(self, section, conv, option, **kwargs):
         """
@@ -273,19 +297,19 @@ class Config(RawConfigParser):
         """
         get a value and returns it as an int
         """
-        return RawConfigParser.getint(self, section, option)
+        return self.configparser.getint(section, option)
 
     def getfloat(self, option, section=DEFSECTION):
         """
         get a value and returns it as a float
         """
-        return RawConfigParser.getfloat(self, section, option)
+        return self.configparser.getfloat(section, option)
 
     def getboolean(self, option, section=DEFSECTION):
         """
         get a value and returns it as a boolean
         """
-        return RawConfigParser.getboolean(self, section, option)
+        return self.configparser.getboolean(section, option)
 
     def write_in_file(self, section: str, option: str,
                       value: ConfigValue) -> bool:
@@ -441,10 +465,10 @@ class Config(RawConfigParser):
                         ' Current value is %s.' % (option, current or "empty"),
                         'Warning')
         if self.has_section(section):
-            RawConfigParser.set(self, section, option, value)
+            self.configparser.set(section, option, value)
         else:
             self.add_section(section)
-            RawConfigParser.set(self, section, option, value)
+            self.configparser.set(section, option, value)
         if not self.write_in_file(section, option, value):
             return ('Unable to write in the config file', 'Error')
         if isinstance(option, str) and 'password' in option and 'eval_password' not in option:
@@ -457,7 +481,7 @@ class Config(RawConfigParser):
         Remove an option and then save it the config file
         """
         if self.has_section(section):
-            RawConfigParser.remove_option(self, section, option)
+            self.configparser.remove_option(section, option)
         if not self.remove_in_file(section, option):
             return ('Unable to save the config file', 'Error')
         return ('Option %s deleted' % option, 'Info')
@@ -467,10 +491,10 @@ class Config(RawConfigParser):
         Set a value, save, and return True on success and False on failure
         """
         if self.has_section(section):
-            RawConfigParser.set(self, section, option, value)
+            self.configparser.set(section, option, value)
         else:
             self.add_section(section)
-            RawConfigParser.set(self, section, option, value)
+            self.configparser.set(section, option, value)
         return self.write_in_file(section, option, value)
 
     def set(self, option: str, value: ConfigValue, section=DEFSECTION):
@@ -478,7 +502,7 @@ class Config(RawConfigParser):
         Set the value of an option temporarily
         """
         try:
-            RawConfigParser.set(self, section, option, value)
+            self.configparser.set(section, option, value)
         except NoSectionError:
             pass
 
