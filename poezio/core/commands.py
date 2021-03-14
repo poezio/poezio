@@ -424,8 +424,8 @@ class CommandCore:
                 tab.password = password
                 tab.join()
 
-        if config.get('synchronise_open_rooms') and room not in self.core.bookmarks:
-            method = 'remote' if config.get(
+        if config.getbool('synchronise_open_rooms') and room not in self.core.bookmarks:
+            method = 'remote' if config.getbool(
                 'use_remote_bookmarks') else 'local'
             await self._add_bookmark(
                 room=room,
@@ -472,7 +472,7 @@ class CommandCore:
         room, nick = self._parse_join_jid(args[0] if args else '')
         password = args[2] if len(args) > 2 else None
 
-        method = 'remote' if config.get('use_remote_bookmarks') else 'local'
+        method = 'remote' if config.getbool('use_remote_bookmarks') else 'local'
         autojoin = (method == 'local' or
                     (len(args) > 1 and args[1].lower() == 'true'))
 

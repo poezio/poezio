@@ -143,7 +143,7 @@ class Tab:
         Returns 1 or 0, depending on if we are using the vertical tab list
         or not.
         """
-        if config.get('enable_vertical_tab_list'):
+        if config.getbool('enable_vertical_tab_list'):
             return 0
         return 1
 
@@ -332,7 +332,7 @@ class Tab:
             return False
 
     def refresh_tab_win(self) -> None:
-        if config.get('enable_vertical_tab_list'):
+        if config.getbool('enable_vertical_tab_list'):
             left_tab_win = self.core.left_tab_win
             if left_tab_win and not self.size.core_degrade_x:
                 left_tab_win.refresh()
@@ -621,7 +621,7 @@ class ChatTab(Tab):
             for word in txt.split():
                 if len(word) >= 4 and word not in words:
                     words.append(word)
-        words.extend([word for word in config.get('words').split(':') if word])
+        words.extend([word for word in config.getlist('words') if word])
         self.input.auto_completion(words, ' ', quotify=False)
 
     def on_enter(self):
@@ -800,8 +800,8 @@ class ChatTab(Tab):
         text_buffer = self._text_buffer
         built_lines = []
         message_count = 0
-        timestamp = config.get('show_timestamps')
-        nick_size = config.get('max_nick_length')
+        timestamp = config.getbool('show_timestamps')
+        nick_size = config.getint('max_nick_length')
         theme = get_theme()
         for message in text_buffer.messages:
             # Build lines of a message

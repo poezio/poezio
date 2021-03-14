@@ -38,24 +38,24 @@ class Connection(slixmpp.ClientXMPP):
     __init = False
 
     def __init__(self):
-        keyfile = config.get('keyfile')
-        certfile = config.get('certfile')
+        keyfile = config.getstr('keyfile')
+        certfile = config.getstr('certfile')
 
-        device_id = config.get('device_id')
+        device_id = config.getstr('device_id')
         if not device_id:
             rng = random.SystemRandom()
             device_id = base64.urlsafe_b64encode(
                 rng.getrandbits(24).to_bytes(3, 'little')).decode('ascii')
             config.set_and_save('device_id', device_id)
 
-        if config.get('jid'):
+        if config.getstr('jid'):
             # Field used to know if we are anonymous or not.
             # many features will be handled differently
             # depending on this setting
             self.anon = False
-            jid = config.get('jid')
-            password = config.get('password')
-            eval_password = config.get('eval_password')
+            jid = config.getstr('jid')
+            password = config.getstr('password')
+            eval_password = config.getstr('eval_password')
             if not password and not eval_password and not (keyfile
                                                            and certfile):
                 password = getpass.getpass()
@@ -79,7 +79,7 @@ class Connection(slixmpp.ClientXMPP):
                     '\n')
         else:  # anonymous auth
             self.anon = True
-            jid = config.get('server')
+            jid = config.getstr('server')
             password = None
         try:
             jid = JID(jid)
@@ -91,17 +91,17 @@ class Connection(slixmpp.ClientXMPP):
             device_id) if jid.resource else 'poezio-%s' % device_id
         # TODO: use the system language
         slixmpp.ClientXMPP.__init__(
-            self, jid, password, lang=config.get('lang'))
+            self, jid, password, lang=config.getstr('lang'))
 
-        force_encryption = config.get('force_encryption')
+        force_encryption = config.getbool('force_encryption')
         if force_encryption:
             self['feature_mechanisms'].unencrypted_plain = False
             self['feature_mechanisms'].unencrypted_digest = False
             self['feature_mechanisms'].unencrypted_cram = False
             self['feature_mechanisms'].unencrypted_scram = False
 
-        self.keyfile = config.get('keyfile')
-        self.certfile = config.get('certfile')
+        self.keyfile = keyfile
+        self.certfile = certfile
         if keyfile and not certfile:
             log.error(
                 'keyfile is present in configuration file without certfile')
@@ -110,15 +110,15 @@ class Connection(slixmpp.ClientXMPP):
                 'certfile is present in configuration file without keyfile')
 
         self.core = None
-        self.auto_reconnect = config.get('auto_reconnect')
+        self.auto_reconnect = config.getbool('auto_reconnect')
         self.auto_authorize = None
         # prosody defaults, lowest is AES128-SHA, it should be a minimum
         # for anything that came out after 2002
-        self.ciphers = config.get(
+        self.ciphers = config.getstr(
             'ciphers', 'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK'
             ':!SRP:!3DES:!aNULL')
-        self.ca_certs = config.get('ca_cert_path') or None
-        interval = config.get('whitespace_interval')
+        self.ca_certs = config.getstr('ca_cert_path') or None
+        interval = config.getint('whitespace_interval')
         if int(interval) > 0:
             self.whitespace_keepalive_interval = int(interval)
         else:
@@ -156,21 +156,21 @@ class Connection(slixmpp.ClientXMPP):
         # without a body
         XEP_0184._filter_add_receipt_request = fixes._filter_add_receipt_request
         self.register_plugin('xep_0184')
-        self.plugin['xep_0184'].auto_ack = config.get('ack_message_receipts')
-        self.plugin['xep_0184'].auto_request = config.get(
+        self.plugin['xep_0184'].auto_ack = config.getbool('ack_message_receipts')
+        self.plugin['xep_0184'].auto_request = config.getbool(
             'request_message_receipts')
 
         self.register_plugin('xep_0191')
-        if config.get('enable_smacks'):
+        if config.getbool('enable_smacks'):
             self.register_plugin('xep_0198')
         self.register_plugin('xep_0199')
 
-        if config.get('enable_user_nick'):
+        if config.getbool('enable_user_nick'):
             self.register_plugin('xep_0172')
 
-        if config.get('send_poezio_info'):
+        if config.getbool('send_poezio_info'):
             info = {'name': 'poezio', 'version': options.custom_version}
-            if config.get('send_os_info'):
+            if config.getbool('send_os_info'):
                 info['os'] = common.get_os_info()
             self.plugin['xep_0030'].set_identities(identities={('client',
                                                                 'console',
@@ -182,7 +182,7 @@ class Connection(slixmpp.ClientXMPP):
                                                                 'console',
                                                                 None, '')})
         self.register_plugin('xep_0092', pconfig=info)
-        if config.get('send_time'):
+        if config.getbool('send_time'):
             self.register_plugin('xep_0202')
         self.register_plugin('xep_0224')
         self.register_plugin('xep_0231')
@@ -216,8 +216,8 @@ class Connection(slixmpp.ClientXMPP):
             # Happens when we change the value with /set while we are not
             # connected. Do nothing in that case
             return
-        ping_interval = config.get('connection_check_interval')
-        timeout_delay = config.get('connection_timeout_delay')
+        ping_interval = config.getint('connection_check_interval')
+        timeout_delay = config.getint('connection_timeout_delay')
         if timeout_delay <= 0:
             # We help the stupid user (with a delay of 0, poezio will try to
             # reconnect immediately because the timeout is immediately
@@ -234,7 +234,7 @@ class Connection(slixmpp.ClientXMPP):
         """
         Connect and process events.
         """
-        custom_host = config.get('custom_host')
+        custom_host = config.getstr('custom_host')
         custom_port = config.get('custom_port', 5222)
         if custom_port == -1:
             custom_port = 5222

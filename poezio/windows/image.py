@@ -71,7 +71,7 @@ class ImageWin(Win):
     def __init__(self) -> None:
         self._image: Optional[Image.Image] = None
         Win.__init__(self)
-        if config.get('image_use_half_blocks'):
+        if config.getbool('image_use_half_blocks'):
             self._display_avatar: Callable[[int, int], None] = self._display_avatar_half_blocks
         else:
             self._display_avatar = self._display_avatar_full_blocks
