@@ -82,7 +82,7 @@ class CompletionCore:
 
     def theme(self, the_input):
         """ Completion for /theme"""
-        themes_dir = config.get('themes_dir')
+        themes_dir = config.getstr('themes_dir')
         themes_dir = Path(themes_dir).expanduser(
         ) if themes_dir else xdg.DATA_HOME / 'themes'
         try:
@@ -220,7 +220,7 @@ class CompletionCore:
             nicks = [tab.own_nick] if tab else []
             default = os.environ.get('USER') if os.environ.get(
                 'USER') else 'poezio'
-            nick = config.get('default_nick')
+            nick = config.getstr('default_nick')
             if not nick:
                 if default not in nicks:
                     nicks.append(default)
@@ -436,7 +436,7 @@ class CompletionCore:
             nicks = [tab.own_nick] if tab else []
             default = os.environ.get('USER') if os.environ.get(
                 'USER') else 'poezio'
-            nick = config.get('default_nick')
+            nick = config.getstr('default_nick')
             if not nick:
                 if default not in nicks:
                     nicks.append(default)

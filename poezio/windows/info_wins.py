@@ -172,7 +172,7 @@ class ConversationInfoWin(InfoWin):
         # resource can now be a Resource: user is in the roster and online
         # or resource is None: user is in the roster but offline
         self._win.erase()
-        if config.get('show_jid_in_conversations'):
+        if config.getbool('show_jid_in_conversations'):
             self.write_contact_jid(jid)
         self.write_contact_information(contact)
         self.write_resource_information(resource)

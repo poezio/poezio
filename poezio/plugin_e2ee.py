@@ -204,7 +204,7 @@ class E2EEPlugin(BasePlugin):
     def __load_encrypted_states(self) -> None:
         """Load previously stored encryption states for jids."""
         for section in config.sections():
-            value = config.get('encryption', section=section)
+            value = config.getstr('encryption', section=section)
             if value and value == self.encryption_short_name:
                 self._enabled_tabs[section] = self.encrypt
 
@@ -496,7 +496,7 @@ class E2EEPlugin(BasePlugin):
     def fetch_trust(self, jid: JID, fingerprint: str) -> str:
         """Fetch trust of a fingerprint and a jid."""
         option_name = '%s:%s' % (self.encryption_short_name, fingerprint)
-        return config.get(option=option_name, section=jid)
+        return config.getstr(option=option_name, section=jid)
 
     async def decrypt(self, message: Message, jid: Optional[JID], tab: ChatTab):
         """Decryption method

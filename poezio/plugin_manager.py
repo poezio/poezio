@@ -393,7 +393,7 @@ class PluginManager:
         """
         Create the plugins_conf_dir
         """
-        plugins_conf_dir = config.get('plugins_conf_dir')
+        plugins_conf_dir = config.getstr('plugins_conf_dir')
         self.plugins_conf_dir = Path(plugins_conf_dir).expanduser(
         ) if plugins_conf_dir else xdg.CONFIG_HOME / 'plugins'
         self.check_create_plugins_conf_dir()
@@ -418,7 +418,7 @@ class PluginManager:
         """
         Set the plugins_dir on start
         """
-        plugins_dir = config.get('plugins_dir')
+        plugins_dir = config.getstr('plugins_dir')
         self.plugins_dir = Path(plugins_dir).expanduser(
         ) if plugins_dir else xdg.DATA_HOME / 'plugins'
         self.check_create_plugins_dir()

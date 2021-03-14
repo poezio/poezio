@@ -57,7 +57,8 @@ class Roster:
         # on search, for example
         self.contact_filter = self.DEFAULT_FILTER
         self.folded_groups = set(
-            config.get('folded_roster_groups', section='var').split(':'))
+            config.getlist('folded_roster_groups', section='var')
+        )
         self.groups = {}
         self.contacts = {}
         self.length = 0

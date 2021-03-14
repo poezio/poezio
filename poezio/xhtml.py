@@ -313,7 +313,7 @@ class XHTMLHandler(sax.ContentHandler):
         self.force_ns = force_ns
 
         self.tmp_image_dir = Path(tmp_image_dir) if tmp_image_dir else None
-        self.enable_css_parsing = config.get('enable_css_parsing')
+        self.enable_css_parsing = config.getbool('enable_css_parsing')
 
     @property
     def result(self) -> str:

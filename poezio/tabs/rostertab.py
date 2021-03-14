@@ -517,7 +517,7 @@ class RosterInfoTab(Tab):
                 args[0]
             )
             self.core.information('Password updated', 'Account')
-            if config.get('password'):
+            if config.getstr('password'):
                 config.silent_set('password', args[0])
         except (IqError, IqTimeout):
             self.core.information('Unable to change the password',
@@ -868,7 +868,7 @@ class RosterInfoTab(Tab):
         Show or hide offline contacts
         """
         option = 'roster_show_offline'
-        value = config.get(option)
+        value = config.getbool(option)
         success = config.silent_set(option, str(not value))
         roster.modified()
         if not success:

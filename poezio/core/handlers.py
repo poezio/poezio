@@ -94,7 +94,7 @@ class HandlerCore:
         rostertab.check_saslexternal(features)
         rostertab.check_blocking(features)
         self.core.check_blocking(features)
-        if (config.get('enable_carbons')
+        if (config.getbool('enable_carbons')
                 and 'urn:xmpp:carbons:2' in features):
             self.core.xmpp.plugin['xep_0280'].enable()
         await self.core.check_bookmark_storage(features)
@@ -230,7 +230,7 @@ class HandlerCore:
         if password:
             msg += ". The password is \"%s\"." % password
         self.core.information(msg, 'Info')
-        if 'invite' in config.get('beep_on').split():
+        if 'invite' in config.getlist('beep_on'):
             curses.beep()
         logger.log_roster_change(inviter.full, 'invited you to %s' % jid.full)
         self.core.pending_invites[jid.bare] = inviter.full
@@ -261,7 +261,7 @@ class HandlerCore:
             msg += "\nreason: %s" % reason
 
         self.core.information(msg, 'Info')
-        if 'invite' in config.get('beep_on').split():
+        if 'invite' in config.getlist('beep_on'):
             curses.beep()
 
         self.core.pending_invites[room.bare] = inviter.full
@@ -353,7 +353,7 @@ class HandlerCore:
             if conv_jid.bare in roster:
                 remote_nick = roster[conv_jid.bare].name
             # check for a received nick
-            if not remote_nick and config.get('enable_user_nick'):
+            if not remote_nick and config.getbool('enable_user_nick'):
                 if message.xml.find(
                         '{http://jabber.org/protocol/nick}nick') is not None:
                     remote_nick = message['nick']['nick']
@@ -425,7 +425,7 @@ class HandlerCore:
                 typ=1,
             )
 
-        if not own and 'private' in config.get('beep_on').split():
+        if not own and 'private' in config.getlist('beep_on'):
             if not config.get_by_tabname('disable_beep', conv_jid.bare):
                 curses.beep()
         if self.core.tabs.current_tab is not conversation:
@@ -646,7 +646,7 @@ class HandlerCore:
                 current.input.refresh()
             self.core.doupdate()
 
-        if 'message' in config.get('beep_on').split():
+        if 'message' in config.getlist('beep_on'):
             if (not config.get_by_tabname('disable_beep', room_from)
                     and self.core.own_nick != message['from'].resource):
                 curses.beep()
@@ -731,7 +731,7 @@ class HandlerCore:
         else:
             tab.last_remote_message = datetime.now()
 
-        if not sent and 'private' in config.get('beep_on').split():
+        if not sent and 'private' in config.getlist('beep_on'):
             if not config.get_by_tabname('disable_beep', jid.full):
                 curses.beep()
         if tab is self.core.tabs.current_tab:
@@ -1095,14 +1095,14 @@ class HandlerCore:
         """
         When we are disconnected from remote server
         """
-        if 'disconnect' in config.get('beep_on').split():
+        if 'disconnect' in config.getlist('beep_on'):
             curses.beep()
         # Stop the ping plugin. It would try to send stanza on regular basis
         self.core.xmpp.plugin['xep_0199'].disable_keepalive()
         msg_typ = 'Error' if not self.core.legitimate_disconnect else 'Info'
         self.core.information("Disconnected from server%s." % (event and ": %s" % event or ""), msg_typ)
-        if self.core.legitimate_disconnect or not config.get(
-                'auto_reconnect', True):
+        if self.core.legitimate_disconnect or not config.getbool(
+                'auto_reconnect'):
             return
         if (self.core.last_stream_error
                 and self.core.last_stream_error[1]['condition'] in (
@@ -1166,7 +1166,7 @@ class HandlerCore:
             self.core.xmpp.get_roster()
             roster.update_contact_groups(self.core.xmpp.boundjid.bare)
             # send initial presence
-            if config.get('send_initial_presence'):
+            if config.getbool('send_initial_presence'):
                 pres = self.core.xmpp.make_presence()
                 pres['show'] = self.core.status.show
                 pres['status'] = self.core.status.message
@@ -1176,7 +1176,7 @@ class HandlerCore:
         # join all the available bookmarks. As of yet, this is just the local ones
         self.core.join_initial_rooms(self.core.bookmarks.local())
 
-        if config.get('enable_user_nick'):
+        if config.getbool('enable_user_nick'):
             self.core.xmpp.plugin['xep_0172'].publish_nick(
                 nick=self.core.own_nick, callback=dumb_callback)
         asyncio.ensure_future(self.core.xmpp.plugin['xep_0115'].update_caps())
@@ -1464,9 +1464,9 @@ class HandlerCore:
         """
         Check the server certificate using the slixmpp ssl_cert event
         """
-        if config.get('ignore_certificate'):
+        if config.getbool('ignore_certificate'):
             return
-        cert = config.get('certificate')
+        cert = config.getstr('certificate')
         # update the cert representation when it uses the old one
         if cert and ':' not in cert:
             cert = ':'.join(
@@ -1608,7 +1608,7 @@ def _composing_tab_state(tab, state):
     else:
         return  # should not happen
 
-    show = config.get('show_composing_tabs').lower()
+    show = config.getstr('show_composing_tabs').lower()
     show = show in values
 
     if tab.state != 'composing' and state == 'composing':
