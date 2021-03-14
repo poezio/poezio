@@ -240,6 +240,9 @@ class Config:
     def options(self, *args, **kwargs):
         return self.configparser.options(*args, **kwargs)
 
+    def has_option(self, *args, **kwargs):
+        return self.configparser.has_option(*args, **kwargs)
+
     def has_section(self, *args, **kwargs):
         return self.configparser.has_section(*args, **kwargs)
 
