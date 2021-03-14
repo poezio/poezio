@@ -1407,14 +1407,13 @@ class MucTab(ChatTab):
         self.leave_room(msg)
         self.join()
 
-    @command_args_parser.quoted(0, 1, [''])
-    def command_recolor(self, args: List[str]) -> None:
+    @command_args_parser.ignored
+    def command_recolor(self) -> None:
         """
         /recolor [random]
         Re-assigns color to the participants of the room
         """
-        random_colors = args[0] == 'random'
-        self.recolor(random_colors)
+        self.recolor()
 
     @command_args_parser.quoted(2, 2, [''])
     def command_color(self, args: List[str]) -> None:

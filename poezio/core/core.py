@@ -1048,13 +1048,13 @@ class Core:
         """
         rotate the rooms list to the right
         """
-        self.tabs.next()
+        self.tabs.next()  # pylint: disable=not-callable
 
     def rotate_rooms_left(self) -> None:
         """
         rotate the rooms list to the right
         """
-        self.tabs.prev()
+        self.tabs.prev()  # pylint: disable=not-callable
 
     def go_to_room_number(self) -> None:
         """
@@ -1713,9 +1713,9 @@ class Core:
         if not self.xmpp.anon and config.get('use_remote_bookmarks'):
             try:
                 await self.bookmarks.get_remote(self.xmpp, self.information)
-            except IqError as iq:
-                type_ = iq['error']['type']
-                condition = iq['error']['condition']
+            except IqError as error:
+                type_ = error.iq['error']['type']
+                condition = error.iq['error']['condition']
                 if not (type_ == 'cancel' and condition == 'item-not-found'):
                     self.information(
                         'Unable to fetch the remote'

@@ -66,8 +66,8 @@ class RefreshWrapper:
         returns True
         """
         def after(result: Any, args, kwargs) -> Any:
-            if self.core and result:
-                self.core.refresh_window()
+            if self.core is not None and result:
+                self.core.refresh_window()  # pylint: disable=no-member
             return result
 
         wrap = wrap_generic(func, after=after)
@@ -79,8 +79,8 @@ class RefreshWrapper:
         Decorator that refreshs the UI no matter what after the function
         """
         def after(result: Any, args, kwargs) -> Any:
-            if self.core:
-                self.core.refresh_window()
+            if self.core is not None:
+                self.core.refresh_window()  # pylint: disable=no-member
             return result
 
         wrap = wrap_generic(func, after=after)
@@ -92,8 +92,8 @@ class RefreshWrapper:
         """
 
         def after(result: Any, args, kwargs) -> Any:
-            if self.core:
-                self.core.doupdate()
+            if self.core is not None:
+                self.core.doupdate()  # pylint: disable=no-member
             return result
         wrap = wrap_generic(func, after=after)
         return cast(T, wrap)

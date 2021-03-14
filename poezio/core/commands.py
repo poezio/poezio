@@ -914,7 +914,7 @@ class CommandCore:
             return self.core.information('Invalid JID for /last_activity: %s' % args[0], 'Error')
 
         try:
-            await self.core.xmpp.plugin['xep_0012'].get_last_activity(jid)
+            iq = await self.core.xmpp.plugin['xep_0012'].get_last_activity(jid)
         except IqError as error:
             if error.etype == 'auth':
                 msg = 'You are not allowed to see the activity of %s' % jid
@@ -1112,12 +1112,15 @@ class CommandCore:
     def invitations(self):
         """/invitations"""
         build = []
-        for invite in self.core.pending_invites:
+        for room, inviter in self.core.pending_invites.items():
             try:
-                bare = JID(self.core.pending_invites[invite]).bare
+                bare = JID(inviter).bare
             except InvalidJID:
-                self.core.information('Invalid JID found in /invitations: %s' % args[0], 'Error')
-            build.append('%s by %s' % (invite, bare))
+                self.core.information(
+                    f'Invalid JID found in /invitations: {inviter}',
+                    'Error'
+                )
+            build.append(f'{room} by {bare}')
         if build:
             message = 'You are invited to the following rooms:\n' + ','.join(build)
         else:

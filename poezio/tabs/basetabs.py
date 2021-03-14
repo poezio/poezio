@@ -22,6 +22,7 @@ from copy import copy
 from math import ceil, log10
 from datetime import datetime
 from xml.etree import ElementTree as ET
+from xml.sax import SAXParseException
 from typing import (
     Any,
     Callable,
@@ -648,7 +649,7 @@ class ChatTab(Tab):
             body = xhtml.clean_text(
                 xhtml.xhtml_to_poezio_colors(arg, force=True))
             ET.fromstring(arg)
-        except xml.sax._exceptions.SAXParseException:
+        except SAXParseException:
             self.core.information('Could not send custom xhtml', 'Error')
             log.error('/xhtml: Unable to send custom xhtml')
             return
