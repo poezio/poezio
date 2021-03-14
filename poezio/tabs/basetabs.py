@@ -26,6 +26,7 @@ from xml.sax import SAXParseException
 from typing import (
     Any,
     Callable,
+    cast,
     Dict,
     List,
     Optional,
@@ -48,6 +49,7 @@ from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme, dump_tuple
 from poezio.ui.funcs import truncate_nick
 from poezio.ui.types import BaseMessage, InfoMessage, Message
+from poezio.timed_events import DelayedEvent
 
 from slixmpp import JID, InvalidJID, Message as SMessage
 
@@ -117,6 +119,10 @@ class Tab:
     # Placeholder values, set on resize
     height = 1
     width = 1
+    core: Core
+    input: Optional[windows.Input]
+    key_func: Dict[str, Callable[[], Any]]
+    commands: Dict[str, Command]
 
     def __init__(self, core: Core):
         self.core = core
@@ -234,7 +240,7 @@ class Tab:
                          *,
                          desc='',
                          shortdesc='',
-                         completion: Optional[Callable] = None,
+                         completion: Optional[Callable[[windows.Input], Completion]] = None,
                          usage=''):
         """
         Add a command
@@ -286,7 +292,6 @@ class Tab:
                 comp = command.comp(the_input)
                 if comp:
                     return comp.run()
-                return comp
         return False
 
     def execute_command(self, provided_text: str) -> bool:
@@ -294,8 +299,10 @@ class Tab:
         Execute the command in the input and return False if
         the input didn't contain a command
         """
+        if self.input is None:
+            raise NotImplementedError
         txt = provided_text or self.input.key_enter()
-        if txt.startswith('/') and not txt.startswith('//') and\
+        if txt and txt.startswith('/') and not txt.startswith('//') and\
                 not txt.startswith('/me '):
             command = txt.strip().split()[0][1:]
             arg = txt[2 + len(command):]  # jump the '/' and the ' '
@@ -461,6 +468,9 @@ class Tab:
 
 
 class GapTab(Tab):
+    def __init__(self, core: Optional[Core], *args, **kwargs):
+        super().__init__(core, **args, **kwargs)
+
     def __bool__(self):
         return False
 
@@ -485,7 +495,10 @@ class ChatTab(Tab):
     """
     plugin_commands: Dict[str, Command] = {}
     plugin_keys: Dict[str, Callable] = {}
+    last_sent_message: Optional[SMessage]
     message_type = 'chat'
+    timed_event_paused: Optional[DelayedEvent]
+    timed_event_not_paused: Optional[DelayedEvent]
 
     def __init__(self, core, jid: Union[JID, str]):
         Tab.__init__(self, core)
@@ -507,7 +520,7 @@ class ChatTab(Tab):
         self.timed_event_paused = None
         self.timed_event_not_paused = None
         # Keeps the last sent message to complete it easily in completion_correct, and to replace it.
-        self.last_sent_message = {}
+        self.last_sent_message = None
         self.key_func['M-v'] = self.move_separator
         self.key_func['M-h'] = self.scroll_separator
         self.key_func['M-/'] = self.last_words_completion
@@ -625,6 +638,8 @@ class ChatTab(Tab):
         self.input.auto_completion(words, ' ', quotify=False)
 
     def on_enter(self):
+        if self.input is None:
+            raise NotImplementedError
         txt = self.input.key_enter()
         if txt:
             if not self.execute_command(txt):
@@ -740,16 +755,18 @@ class ChatTab(Tab):
         if self.timed_event_paused is not None:
             self.core.remove_timed_event(self.timed_event_paused)
             self.timed_event_paused = None
-            self.core.remove_timed_event(self.timed_event_not_paused)
-            self.timed_event_not_paused = None
+            if self.timed_event_not_paused is not None:
+                self.core.remove_timed_event(self.timed_event_not_paused)
+                self.timed_event_not_paused = None
 
     def set_last_sent_message(self, msg: SMessage, correct: bool = False) -> None:
         """Ensure last_sent_message is set with the correct attributes"""
         if correct:
             # XXX: Is the copy needed. Is the object passed here reused
             # afterwards? Who knows.
-            msg = copy(msg)
-            msg['id'] = self.last_sent_message['id']
+            msg = cast(SMessage, copy(msg))
+            if self.last_sent_message is not None:
+                msg['id'] = self.last_sent_message['id']
         self.last_sent_message = msg
 
     @command_args_parser.raw
@@ -783,7 +800,8 @@ class ChatTab(Tab):
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
         self.text_win.refresh()
-        self.input.refresh()
+        if self.input:
+            self.input.refresh()
 
     def get_conversation_messages(self):
         return self._text_buffer.messages

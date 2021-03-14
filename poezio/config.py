@@ -19,16 +19,19 @@ import pkg_resources
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from pathlib import Path
 from shutil import copy2
-from typing import Callable, Dict, List, Optional, Union, Tuple, cast
+from typing import Callable, Dict, List, Optional, Union, Tuple, cast, TypeVar
 
 from poezio.args import parse_args
 from poezio import xdg
 
+
 ConfigValue = Union[str, int, float, bool]
+
+ConfigDict = Dict[str, Dict[str, ConfigValue]]
 
 DEFSECTION = "Poezio"
 
-DEFAULT_CONFIG = {
+DEFAULT_CONFIG: ConfigDict = {
     'Poezio': {
         'ack_message_receipts': True,
         'add_space_after_completion': True,
@@ -155,9 +158,10 @@ DEFAULT_CONFIG = {
     'muc_colors': {}
 }
 
+T = TypeVar('T', bool, int, float, str)
+
 
 class PoezioConfigParser(RawConfigParser):
-
     def optionxform(self, value) -> str:
         return str(value)
 
@@ -169,14 +173,14 @@ class Config:
 
     configparser: PoezioConfigParser
     file_name: Path
-    default: Dict[str, Dict[str, ConfigValue]]
+    default: ConfigDict
 
-    def __init__(self, file_name: Path, default=None) -> None:
+    def __init__(self, file_name: Path, default: Optional[ConfigDict] = None) -> None:
         self.configparser = PoezioConfigParser()
         # make the options case sensitive
         self.file_name = file_name
         self.read_file()
-        self.default = default
+        self.default = default or {}
 
     def optionxform(self, value):
         return str(value)
@@ -192,8 +196,8 @@ class Config:
 
     def get(self,
             option: str,
-            default: Optional[ConfigValue] = None,
-            section=DEFSECTION) -> Optional[ConfigValue]:
+            default: Optional[T] = None,
+            section=DEFSECTION) -> Optional[T]:
         """
         get a value from the config but return
         a default value if it is not found
@@ -201,22 +205,24 @@ class Config:
         returned
         """
         if default is None:
-            if self.default:
-                default = self.default.get(section, {}).get(option)
-            else:
-                default = ''
+            section = self.default.get('section')
+            if section is not None:
+                option = section.get(option)
+                if option is not None:
+                    default = cast(T, option)
 
+        res: T
         try:
             if isinstance(default, bool):
                 res = self.configparser.getboolean(section, option)
-            elif isinstance(default, int):
-                res = self.configparser.getint(section, option)
             elif isinstance(default, float):
                 res = self.configparser.getfloat(section, option)
+            elif isinstance(default, int):
+                res = self.configparser.getint(section, option)
             else:
                 res = self.configparser.get(section, option)
         except (NoOptionError, NoSectionError, ValueError, AttributeError):
-            return default if default is not None else ''
+            return default
 
         if res is None:
             return default
@@ -514,26 +520,26 @@ class Config:
         Set a value, save, and return True on success and False on failure
         """
         if self.has_section(section):
-            self.configparser.set(section, option, value)
+            self.configparser.set(section, option, str(value))
         else:
             self.add_section(section)
-            self.configparser.set(section, option, value)
-        return self.write_in_file(section, option, value)
+            self.configparser.set(section, option, str(value))
+        return self.write_in_file(section, option, str(value))
 
     def set(self, option: str, value: ConfigValue, section=DEFSECTION):
         """
         Set the value of an option temporarily
         """
         try:
-            self.configparser.set(section, option, value)
+            self.configparser.set(section, option, str(value))
         except NoSectionError:
             pass
 
-    def to_dict(self) -> Dict[str, Dict[str, ConfigValue]]:
+    def to_dict(self) -> Dict[str, Dict[str, Optional[ConfigValue]]]:
         """
         Returns a dict of the form {section: {option: value, option: value}, …}
         """
-        res = {}  # Dict[str, Dict[str, ConfigValue]]
+        res: Dict[str, Dict[str, Optional[ConfigValue]]] = {}
         for section in self.sections():
             res[section] = {}
             for option in self.options(section):
@@ -567,10 +573,10 @@ def file_ok(filepath: Path) -> bool:
     return bool(val)
 
 
-def get_image_cache() -> Path:
+def get_image_cache() -> Optional[Path]:
     if not config.get('extract_inline_images'):
         return None
-    tmp_dir = config.get('tmp_image_dir')
+    tmp_dir = config.getstr('tmp_image_dir')
     if tmp_dir:
         return Path(tmp_dir)
     return xdg.CACHE_HOME / 'images'
@@ -727,7 +733,7 @@ firstrun = False
 config = None  # type: Config
 
 # The logger object for this module
-log = None  # type: Optional[logging.Logger]
+log = logging.getLogger(__name__) # type: logging.Logger
 
 # The command-line options
 options = None

@@ -20,7 +20,7 @@ from pathlib import Path
 
 from io import BytesIO
 from xml import sax
-from xml.sax import saxutils
+from xml.sax import saxutils, ContentHandler
 from typing import List, Dict, Optional, Union, Tuple
 
 from slixmpp.xmlstream import ET
@@ -299,7 +299,7 @@ def get_hash(data: bytes) -> str:
         b'/', b'-').decode()
 
 
-class XHTMLHandler(sax.ContentHandler):
+class XHTMLHandler(ContentHandler):
     def __init__(self, force_ns=False,
                  tmp_image_dir: Optional[Path] = None) -> None:
         self.builder: List[str] = []

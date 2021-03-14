@@ -250,7 +250,7 @@ class BookmarkList:
                 if core is not None:
                     core.information('Bookmarks saved', 'Info')
                 return result
-            except (IqError, IqTimeout) as iq:
+            except (IqError, IqTimeout):
                 if core is not None:
                     core.information(
                         'Could not save remote bookmarks.',
@@ -318,7 +318,7 @@ class BookmarkList:
             self.append(b)
 
 
-def stanza_storage(bookmarks: BookmarkList) -> Bookmarks:
+def stanza_storage(bookmarks: Union[BookmarkList, List[Bookmark]]) -> Bookmarks:
     """Generate a <storage/> stanza with the conference elements."""
     storage = Bookmarks()
     for b in (b for b in bookmarks if b.method == 'remote'):

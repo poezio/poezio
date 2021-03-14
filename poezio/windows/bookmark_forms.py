@@ -384,5 +384,8 @@ class BookmarksWin(Win):
 
     def save(self) -> None:
         for line in self.lines:
-            for item in line:
-                item.save()
+            line[0].save()
+            line[1].save()
+            line[2].save()
+            line[3].save()
+            line[4].save()

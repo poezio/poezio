@@ -34,8 +34,8 @@ class BookmarksTab(Tab):
         self.new_bookmarks: List[Bookmark] = []
         self.removed_bookmarks: List[Bookmark] = []
         self.header_win = windows.ColumnHeaderWin(
-            ('name', 'room@server/nickname', 'password', 'autojoin',
-             'storage'))
+            ['name', 'room@server/nickname', 'password', 'autojoin',
+             'storage'])
         self.bookmarks_win = windows.BookmarksWin(
             self.bookmarks, self.height - 4, self.width, 1, 0)
         self.help_win = windows.HelpText('Ctrl+Y: save, Ctrl+G: cancel, '

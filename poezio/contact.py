@@ -45,15 +45,18 @@ class Resource:
 
     @property
     def priority(self) -> int:
-        return self._data.get('priority') or 0
+        try:
+            return int(self._data.get('priority', 0))
+        except Exception:
+            return 0
 
     @property
     def presence(self) -> str:
-        return self._data.get('show') or ''
+        return str(self._data.get('show')) or ''
 
     @property
     def status(self) -> str:
-        return self._data.get('status') or ''
+        return str(self._data.get('status')) or ''
 
     def __repr__(self) -> str:
         return '<%s>' % self._jid
