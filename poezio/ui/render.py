@@ -10,6 +10,7 @@ from functools import singledispatch
 from math import ceil, log10
 from typing import (
     List,
+    Optional,
     Tuple,
     TYPE_CHECKING,
 )
@@ -52,7 +53,8 @@ class Line:
 
 LinePos = Tuple[int, int]
 
-def generate_lines(lines: List[LinePos], msg: BaseMessage, default_color: str = '') -> List[Line]: 
+
+def generate_lines(lines: List[LinePos], msg: BaseMessage, default_color: str = '') -> List[Line]:
     line_objects = []
     attrs: List[str] = []
     prepend = default_color if default_color else ''
@@ -131,6 +133,7 @@ def write_pre_message(msg: Message, win: Win, with_timestamps: bool, nick_size: 
         - nick (with a "* " for /me)
         - LMC number if present
     """
+    color: Optional[Tuple]
     offset = 0
     if with_timestamps:
         offset += PreMessageHelpers.write_time(win, msg.history, msg.time)

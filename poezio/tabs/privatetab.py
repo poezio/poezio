@@ -109,7 +109,7 @@ class PrivateTab(OneToOneTab):
         if not isinstance(msg, Message):
             return
         if not logger.log_message(
-                self.jid.full, msg.nickname, msg.txt, date=msg.time, typ=typ):
+                self.jid.full, msg.nickname or '', msg.txt or '', date=msg.time, typ=typ):
             self.core.information('Unable to write in the log file', 'Error')
 
     def on_close(self):
@@ -160,7 +160,7 @@ class PrivateTab(OneToOneTab):
         self.core.events.trigger('private_say', msg, self)
         if not msg['body']:
             return
-        if correct or msg['replace']['id']:
+        if correct or msg['replace']['id'] and self.last_sent_message:
             msg['replace']['id'] = self.last_sent_message['id']
         else:
             del msg['replace']

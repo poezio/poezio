@@ -1,8 +1,12 @@
 """
 Module defining structures useful to the core class and related methods
 """
+from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any, Callable, List, Dict
+from typing import Any, Callable, List, TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from poezio import windows
 
 __all__ = [
     'Command',
@@ -34,6 +38,7 @@ class Completion:
     A completion result essentially currying the input completion call.
     """
     __slots__ = ['func', 'args', 'kwargs', 'comp_list']
+
     def __init__(
         self,
         func: Callable[..., Any],
@@ -49,11 +54,12 @@ class Completion:
     def run(self):
         return self.func(self.comp_list, *self.args, **self.kwargs)
 
+
 @dataclass
 class Command:
     __slots__ = ('func', 'desc', 'comp', 'short_desc', 'usage')
     func: Callable[..., Any]
     desc: str
-    comp: Callable[['windows.Input'], Completion]
+    comp: Optional[Callable[['windows.Input'], Completion]]
     short_desc: str
     usage: str

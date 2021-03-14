@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, Union
 import curses
 import hashlib
 import math
@@ -15,6 +15,9 @@ K_B = 1 - K_R - K_G
 
 def ncurses_color_to_rgb(color: int) -> Tuple[float, float, float]:
     if color <= 15:
+        r: Union[int, float]
+        g: Union[int, float]
+        b: Union[int, float]
         try:
             (r, g, b) = curses.color_content(color)
         except:  # fallback in faulty terminals (e.g. xterm)
@@ -82,6 +85,9 @@ def ccg_palette_lookup(palette: Palette, angle: float) -> int:
         if metric < best_metric:
             best_metric = metric
             best = color
+
+    if best is None:
+        raise ValueError("No color in palette")
 
     return best
 

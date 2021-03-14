@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from poezio.core.core import Core
-    from poezio.tabs import Tab
+    from poezio.tabs import MucTab
 
 
 def change_show(
@@ -79,7 +79,7 @@ def join_groupchat(
     status: Optional[str] = None,
     show: Optional[str] = None,
     seconds: Optional[int] = None,
-    tab: Optional[Tab] = None
+    tab: Optional['MucTab'] = None
 ) -> None:
     xmpp = core.xmpp
     stanza = xmpp.make_presence(

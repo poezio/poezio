@@ -166,6 +166,7 @@ class MucTab(ChatTab):
         """
         Join the room
         """
+        seconds: Optional[int]
         status = self.core.get_status()
         if self.last_connection:
             delta = to_utc(datetime.now()) - to_utc(self.last_connection)
@@ -725,7 +726,7 @@ class MucTab(ChatTab):
         new_nick = presence.xml.find(
             '{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)
         ).attrib['nick']
-        old_color = user.color
+        old_color_tuple = user.color
         if user.nick == self.own_nick:
             self.own_nick = new_nick
             # also change our nick in all private discussions of this room
@@ -741,7 +742,7 @@ class MucTab(ChatTab):
         if config.get_by_tabname('display_user_color_in_join_part',
                                  self.general_jid):
             color = dump_tuple(user.color)
-            old_color = dump_tuple(old_color)
+            old_color = dump_tuple(old_color_tuple)
         else:
             old_color = color = "3"
         info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)

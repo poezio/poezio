@@ -10,7 +10,16 @@
     Interface for E2EE (End-to-end Encryption) plugins.
 """
 
-from typing import Callable, Dict, List, Optional, Union, Tuple, Set
+from typing import (
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Union,
+    Tuple,
+    Set,
+    Type,
+)
 
 from slixmpp import InvalidJID, JID, Message
 from slixmpp.xmlstream import StanzaBase
@@ -117,7 +126,7 @@ class E2EEPlugin(BasePlugin):
     _enabled_tabs: Dict[JID, Callable] = {}
 
     # Tabs that support this encryption mechanism
-    supported_tab_types: Tuple[ChatTabs] = tuple()
+    supported_tab_types: Tuple[Type[ChatTabs], ...] = tuple()
 
     # States for each remote entity
     trust_states: Dict[str, Set[str]] = {'accepted': set(), 'rejected': set()}
@@ -224,7 +233,7 @@ class E2EEPlugin(BasePlugin):
         except InvalidJID:
             return ""
 
-        if self._encryption_enabled(jid):
+        if self._encryption_enabled(jid) and self.encryption_short_name:
             return " " + self.encryption_short_name
         return ""
 
@@ -238,7 +247,7 @@ class E2EEPlugin(BasePlugin):
                 '{} encryption disabled for {}'.format(self.encryption_name, jid),
                 'Info',
             )
-        else:
+        elif self.encryption_short_name:
             self._enabled_tabs[jid] = self.encrypt
             config.set_and_save('encryption', self.encryption_short_name, section=jid)
             self.api.information(
@@ -368,9 +377,9 @@ class E2EEPlugin(BasePlugin):
         # comes from a semi-anonymous MUC for example. Some plugins might be
         # fine with this so let them handle it.
         jid = message['from']
-        muctab = tab
 
-        if isinstance(muctab, PrivateTab):
+        muctab = None
+        if isinstance(tab, PrivateTab):
             muctab = tab.parent_muc
             jid = None
 
@@ -386,7 +395,7 @@ class E2EEPlugin(BasePlugin):
         log.debug('Decrypted %s message: %r', self.encryption_name, message['body'])
         return None
 
-    async def _encrypt(self, stanza: StanzaBase) -> Optional[StanzaBase]:
+    async def _encrypt(self, stanza: StanzaBase, passthrough: bool = True) -> Optional[StanzaBase]:
         if not isinstance(stanza, Message) or stanza['type'] not in ('normal', 'chat', 'groupchat'):
             raise NothingToEncrypt()
         message = stanza
