@@ -293,7 +293,7 @@ class Tabs:
     def _validate_current_index(self):
         if not 0 <= self._current_index < len(
                 self._tabs) or not self.current_tab:
-            self.prev()
+            self.prev()  # pylint: disable=not-callable
 
     def _collect_trailing_gaptabs(self):
         """Remove trailing gap tabs if any"""

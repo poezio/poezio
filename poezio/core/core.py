@@ -1048,13 +1048,13 @@ class Core:
         """
         rotate the rooms list to the right
         """
-        self.tabs.next()
+        self.tabs.next()  # pylint: disable=not-callable
 
     def rotate_rooms_left(self) -> None:
         """
         rotate the rooms list to the right
         """
-        self.tabs.prev()
+        self.tabs.prev()  # pylint: disable=not-callable
 
     def go_to_room_number(self) -> None:
         """
