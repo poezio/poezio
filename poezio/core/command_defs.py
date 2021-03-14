@@ -21,6 +21,7 @@ CommandDict = TypedDict(
         "func": Callable,
         "shortdesc": str,
         "desc": str,
+        "usage": str,
         "completion": Callable,
     },
     total=False,
