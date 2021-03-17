@@ -3,12 +3,11 @@
 A simple script to parse and output logs from a poezio logfile
 """
 
-from poezio.logger import LogInfo, LogMessage, parse_log_line
-from functools import singledispatch
-from poezio import poopt
 import argparse
-import datetime
-import sys
+from functools import singledispatch
+from typing import List, Optional, IO
+from poezio import poopt
+from poezio.logger import LogInfo, LogMessage, parse_log_line
 
 INFO_COLOR = '\033[35;2m'
 NICK_COLOR = '\033[36;2m'
@@ -18,12 +17,17 @@ TIME_COLOR = '\033[33;2m'
 SHOW_INFO = True
 SHOW_TIME = True
 
+
 @singledispatch
-def print_log(log_object, additional_lines=None):
+def print_log(log_object: LogMessage,
+              additional_lines: Optional[List[str]] = None):
     time = log_object.time.strftime('%Y-%m-%d %H:%M:%S')
 
     nick = log_object.nick
-    offset = ((poopt.wcswidth(time) +1) if SHOW_TIME else 0) + 2 + poopt.wcswidth(nick)
+    offset = ((
+        (poopt.wcswidth(time) + 1) if SHOW_TIME else 0)
+        + 2 + poopt.wcswidth(nick)
+    )
     pad = ' ' * offset
 
     if additional_lines:
@@ -32,17 +36,29 @@ def print_log(log_object, additional_lines=None):
         more = ''
 
     if SHOW_TIME:
-        print(('%s%s%s %s%s%s> %s\n' % (TIME_COLOR, time, NO_COLOR, NICK_COLOR, nick, NO_COLOR, log_object.text)) + more, end='')
+        print(
+            f'{TIME_COLOR}{time}{NO_COLOR} {NICK_COLOR}{nick}{NO_COLOR}> '
+            f'{log_object.text}\n' + more,
+            end='',
+        )
     else:
-        print(('%s%s%s> %s\n' % (NICK_COLOR, nick, NO_COLOR, log_object.text)) + more, end='')
+        print(
+            f'{NICK_COLOR}{nick}{NO_COLOR}> '
+            f'{log_object.text}\n' + more,
+            end='',
+        )
+
 
 @print_log.register(type(None))
-def _(log_object, additional_lines=None):
+def print_log_none(log_object, additional_lines=None):
     return
 
+
 @print_log.register(LogInfo)
-def _(log_object, additional_lines=None):
-    if not SHOW_INFO: return
+def print_log_loginfo(log_object: LogInfo,
+                      additional_lines: Optional[List[str]] = None):
+    if not SHOW_INFO:
+        return
     time = log_object.time.strftime('%Y-%m-%d %H:%M:%S') + ' '
 
     offset = (poopt.wcswidth(time) + 1) if SHOW_TIME else 0
@@ -54,13 +70,17 @@ def _(log_object, additional_lines=None):
         more = ''
 
     if SHOW_TIME:
-        print(('%s%s%s %s%s\n' % (TIME_COLOR, time, NO_COLOR, INFO_COLOR, log_object.text)) + more, end='')
+        print(
+            f'{TIME_COLOR}{time}{NO_COLOR}{log_object.text}\n' + more,
+            end=''
+        )
     else:
-        print(('%s%s\n' % (INFO_COLOR, log_object.text)) + more, end='')
+        print(f'{INFO_COLOR}{log_object.text}\n' + more, end='')
 
-def parse_messages(fd):
+
+def parse_messages(fd: IO[str]):
     in_text = False
-    more_lines = []
+    more_lines: List[str] = []
     current_log = None
     for line in fd:
         if in_text and not line.startswith(' '):
@@ -71,9 +91,10 @@ def parse_messages(fd):
         elif in_text:
             more_lines.append(line[1:])
             continue
-        current_log = parse_log_line(line)
+        current_log = parse_log_line(line, fd.name)
         in_text = True
     print_log(current_log, more_lines)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('poezio_logs', description="""
