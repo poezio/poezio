@@ -1072,7 +1072,7 @@ class MucTab(ChatTab):
         """
         return self.topic.replace('\n', '|')
 
-    def log_message(self, msg: Message, typ: int = 1) -> None:
+    def log_message(self, msg: BaseMessage, typ: int = 1) -> None:
         """
         Log the messages in the archives, if it needs
         to be
