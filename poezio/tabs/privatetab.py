@@ -161,7 +161,7 @@ class PrivateTab(OneToOneTab):
         if not msg['body']:
             return
         if correct or msg['replace']['id'] and self.last_sent_message:
-            msg['replace']['id'] = self.last_sent_message['id']
+            msg['replace']['id'] = self.last_sent_message['id']  # type: ignore
         else:
             del msg['replace']
 
