@@ -1366,13 +1366,13 @@ class MucTab(ChatTab):
 ########################## COMMANDS ####################################
 
     @command_args_parser.quoted(1, 1, [''])
-    def command_invite(self, args: List[str]) -> None:
+    async def command_invite(self, args: List[str]) -> None:
         """/invite <jid> [reason]"""
         if args is None:
             self.core.command.help('invite')
             return
         jid, reason = args
-        self.core.command.invite('%s %s "%s"' % (jid, self.jid.bare, reason))
+        await self.core.command.invite('%s %s "%s"' % (jid, self.jid.bare, reason))
 
     @command_args_parser.quoted(1)
     def command_info(self, args: List[str]) -> None:
