@@ -20,7 +20,8 @@ from pathlib import Path
 
 from io import BytesIO
 from xml import sax
-from xml.sax import saxutils, ContentHandler
+from xml.sax import saxutils
+from xml.sax.handler import ContentHandler
 from typing import List, Dict, Optional, Union, Tuple
 
 from slixmpp.xmlstream import ET
