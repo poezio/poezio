@@ -808,7 +808,7 @@ class ChatTab(Tab):
             self.state = 'scrolled'
 
     @command_args_parser.raw
-    def command_say(self, line, correct=False):
+    def command_say(self, line: str, attention: bool = False, correct: bool = False):
         pass
 
     def goto_build_lines(self, new_date):
@@ -1063,7 +1063,7 @@ class OneToOneTab(ChatTab):
             msg.send()
 
     @command_args_parser.raw
-    def command_say(self, line, correct=False, attention=False):
+    def command_say(self, line: str, attention: bool = False, correct: bool = False):
         pass
 
     @command_args_parser.ignored
