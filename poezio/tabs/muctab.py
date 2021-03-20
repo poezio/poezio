@@ -1709,7 +1709,7 @@ class MucTab(ChatTab):
         return None
 
     @command_args_parser.raw
-    def command_say(self, line: str, correct: bool = False) -> None:
+    def command_say(self, line: str, attention: bool = False, correct: bool = False):
         """
         /say <message>
         Or normal input + enter
