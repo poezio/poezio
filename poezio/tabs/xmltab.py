@@ -318,8 +318,9 @@ class XMLTab(Tab):
 
     def execute_slash_command(self, txt: str) -> bool:
         if txt.startswith('/'):
-            self.input.key_enter()
-            self.execute_command(txt)
+            if isinstance(self.input, windows.CommandInput):
+                self.input.key_enter()
+                self.execute_command(txt)
         return self.reset_help_message()
 
     def completion(self):
