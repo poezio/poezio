@@ -585,7 +585,7 @@ class ChatTab(Tab):
     def general_jid(self) -> JID:
         raise NotImplementedError
 
-    def log_message(self, message: BaseMessage, typ=1):
+    def log_message(self, message: BaseMessage, typ: int = 1):
         """
         Log the messages in the archives.
         """
