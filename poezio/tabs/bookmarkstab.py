@@ -36,8 +36,7 @@ class BookmarksTab(Tab):
         self.header_win = windows.ColumnHeaderWin(
             ['name', 'room@server/nickname', 'password', 'autojoin',
              'storage'])
-        self.bookmarks_win = windows.BookmarksWin(
-            self.bookmarks, self.height - 4, self.width, 1, 0)
+        self.bookmarks_win = windows.BookmarksWin(self.bookmarks)
         self.help_win = windows.HelpText('Ctrl+Y: save, Ctrl+G: cancel, '
                                          '↑↓: change lines, tab: change '
                                          'column, M-a: add bookmark, C-k'
