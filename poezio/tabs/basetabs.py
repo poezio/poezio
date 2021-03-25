@@ -47,6 +47,7 @@ from poezio.decorators import command_args_parser, refresh_wrapper
 from poezio.logger import logger
 from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme, dump_tuple
+from poezio.user import User
 from poezio.ui.funcs import truncate_nick
 from poezio.ui.types import BaseMessage, InfoMessage, Message
 from poezio.timed_events import DelayedEvent
@@ -603,14 +604,18 @@ class ChatTab(Tab):
         self._text_buffer.add_message(message)
 
     def modify_message(self,
-                       txt,
-                       old_id,
-                       new_id,
-                       user=None,
-                       jid=None,
-                       nickname=None):
+                       txt: str,
+                       old_id: str,
+                       new_id: str,
+                       time: Optional[datetime],
+                       delayed: bool = False,
+                       nickname: Optional[str] = None,
+                       user: Optional[User] = None,
+                       jid: Optional[JID] = None,
+                       ) -> bool:
         message = self._text_buffer.modify_message(
-            txt, old_id, new_id, user=user, jid=jid)
+            txt, old_id, new_id, user=user, jid=jid, time=time
+        )
         if message:
             self.log_message(message, typ=1)
             self.text_win.modify_message(message.identifier, message)
