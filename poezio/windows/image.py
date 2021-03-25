@@ -9,7 +9,7 @@ try:
     from PIL import Image
     HAS_PIL = True
 except ImportError:
-    class Image:
+    class Image:  # type: ignore
         class Image:
             pass
     HAS_PIL = False
