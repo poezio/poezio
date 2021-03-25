@@ -245,6 +245,9 @@ class Config:
     def add_section(self, *args, **kwargs):
         return self.configparser.add_section(*args, **kwargs)
 
+    def remove_section(self, *args, **kwargs):
+        return self.configparser.remove_section(*args, **kwargs)
+
     def get_by_tabname(self,
                        option,
                        tabname: str,
