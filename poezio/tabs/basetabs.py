@@ -128,8 +128,8 @@ class Tab:
     def __init__(self, core: Core):
         self.core = core
         self.nb = 0
-        if not hasattr(self, 'name'):
-            self.name = self.__class__.__name__
+        if not hasattr(self, '_name'):
+            self._name = self.__class__.__name__
         self.input = None
         self.closed = False
         self._state = 'normal'
@@ -139,6 +139,12 @@ class Tab:
         self.key_func = {}  # each tab should add their keys in there
         # and use them in on_input
         self.commands = {}  # and their own commands
+
+    @property
+    def name(self) -> str:
+        if hasattr(self, '_name'):
+            return self._name
+        return ''
 
     @property
     def size(self) -> SizeManager:
@@ -510,7 +516,7 @@ class ChatTab(Tab):
         self._jid = jid
         #: Is the tab currently requesting MAM data?
         self.query_status = False
-        self._name: Optional[str] = jid.full
+        self._name = jid.full
         self.text_win = windows.TextWin()
         self.directed_presence = None
         self._text_buffer = TextBuffer()
