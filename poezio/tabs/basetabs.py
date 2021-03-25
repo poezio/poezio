@@ -468,6 +468,9 @@ class Tab:
 
 
 class GapTab(Tab):
+    def __init__(self):
+        return
+
     def __bool__(self):
         return False
 

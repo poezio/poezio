@@ -257,7 +257,7 @@ class Tabs:
             return
 
         if gap:
-            self._tabs[tab.nb] = tabs.GapTab(None)
+            self._tabs[tab.nb] = tabs.GapTab()
         else:
             self._tabs.remove(tab)
 
@@ -346,16 +346,16 @@ class Tabs:
             if new_pos < len(self._tabs):
                 old_tab = self._tabs[old_pos]
                 self._tabs[new_pos], self._tabs[
-                    old_pos] = old_tab, tabs.GapTab(None)
+                    old_pos] = old_tab, tabs.GapTab()
             else:
                 self._tabs.append(self._tabs[old_pos])
-                self._tabs[old_pos] = tabs.GapTab(None)
+                self._tabs[old_pos] = tabs.GapTab()
         else:
             if new_pos > old_pos:
                 self._tabs.insert(new_pos, tab)
-                self._tabs[old_pos] = tabs.GapTab(None)
+                self._tabs[old_pos] = tabs.GapTab()
             elif new_pos < old_pos:
-                self._tabs[old_pos] = tabs.GapTab(None)
+                self._tabs[old_pos] = tabs.GapTab()
                 self._tabs.insert(new_pos, tab)
             else:
                 return False
