@@ -29,7 +29,7 @@ class BookmarksTab(Tab):
 
     def __init__(self, core, bookmarks: BookmarkList):
         Tab.__init__(self, core)
-        self.name = "Bookmarks"
+        self._name = "Bookmarks"
         self.bookmarks = bookmarks
         self.new_bookmarks: List[Bookmark] = []
         self.removed_bookmarks: List[Bookmark] = []
