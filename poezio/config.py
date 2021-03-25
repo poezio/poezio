@@ -19,7 +19,7 @@ import pkg_resources
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from pathlib import Path
 from shutil import copy2
-from typing import Callable, Dict, List, Optional, Union, Tuple, cast, TypeVar
+from typing import Callable, Dict, List, Optional, Union, Tuple, cast, Any
 
 from poezio.args import parse_args
 from poezio import xdg
@@ -158,8 +158,6 @@ DEFAULT_CONFIG: ConfigDict = {
     'muc_colors': {}
 }
 
-T = TypeVar('T', bool, int, float, str)
-
 
 class PoezioConfigParser(RawConfigParser):
     def optionxform(self, value) -> str:
@@ -196,8 +194,8 @@ class Config:
 
     def get(self,
             option: str,
-            default: Optional[T] = None,
-            section=DEFSECTION) -> Optional[T]:
+            default: Optional[ConfigValue] = None,
+            section: str = DEFSECTION) -> Any:
         """
         get a value from the config but return
         a default value if it is not found
@@ -205,20 +203,18 @@ class Config:
         returned
         """
         if default is None:
-            section = self.default.get('section')
-            if section is not None:
-                option = section.get(option)
-                if option is not None:
-                    default = cast(T, option)
+            section_val = self.default.get(section)
+            if section_val is not None:
+                default = section_val.get(option)
 
-        res: T
+        res: Optional[ConfigValue]
         try:
             if isinstance(default, bool):
                 res = self.configparser.getboolean(section, option)
-            elif isinstance(default, float):
-                res = self.configparser.getfloat(section, option)
             elif isinstance(default, int):
                 res = self.configparser.getint(section, option)
+            elif isinstance(default, float):
+                res = self.configparser.getfloat(section, option)
             else:
                 res = self.configparser.get(section, option)
         except (NoOptionError, NoSectionError, ValueError, AttributeError):
@@ -732,11 +728,11 @@ LOGGING_CONFIG = {
 # some help in the info buffer
 firstrun = False
 
-# Global config object. Is setup in poezio.py
-config = None  # type: Config
+# Global config object. Is setup for real in poezio.py
+config = Config(Path('/dev/null'))
 
 # The logger object for this module
-log = logging.getLogger(__name__) # type: logging.Logger
+log: logging.Logger = logging.getLogger(__name__)
 
 # The command-line options
 options = None
