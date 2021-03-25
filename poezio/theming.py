@@ -574,7 +574,7 @@ def reload_theme() -> Optional[str]:
         return 'Failed to load theme: %s' % exc
 
     if hasattr(new_theme, 'theme'):
-        theme = new_theme.theme
+        theme = new_theme.theme  # type: ignore
         prepare_ccolor_palette(theme)
         return None
     return 'No theme present in the theme file'
