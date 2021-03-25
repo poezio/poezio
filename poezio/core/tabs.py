@@ -187,7 +187,7 @@ class Tabs:
             for cls in _get_tab_types(tab):
                 self._tab_types[cls].append(tab)
             if hasattr(tab, 'jid'):
-                self._tab_jids[tab.jid] = tab
+                self._tab_jids[tab.jid] = tab  # type: ignore
             self._tab_names[tab.name] = tab
         self._update_numbers()
 
@@ -248,7 +248,7 @@ class Tabs:
         for cls in _get_tab_types(tab):
             self._tab_types[cls].append(tab)
         if hasattr(tab, 'jid'):
-            self._tab_jids[tab.jid] = tab
+            self._tab_jids[tab.jid] = tab  # type: ignore
         self._tab_names[tab.name] = tab
 
     def delete(self, tab: tabs.Tab, gap=False):
@@ -266,7 +266,7 @@ class Tabs:
         for cls in _get_tab_types(tab):
             self._tab_types[cls].remove(tab)
         if hasattr(tab, 'jid'):
-            del self._tab_jids[tab.jid]
+            del self._tab_jids[tab.jid]  # type: ignore
         del self._tab_names[tab.name]
 
         if gap:
