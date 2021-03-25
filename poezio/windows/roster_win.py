@@ -171,7 +171,7 @@ class RosterWin(Win):
                 group = item.name
             elif isinstance(item, Contact):
                 self.draw_contact_line(y, item, draw_selected, group,
-                                       **options)
+                                       **options)  # type: ignore
             elif isinstance(item, Resource):
                 self.draw_resource_line(y, item, draw_selected)
 
