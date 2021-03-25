@@ -17,7 +17,6 @@ import uuid
 from collections import defaultdict
 from typing import (
     Any,
-    cast,
     Callable,
     Dict,
     List,
@@ -28,7 +27,6 @@ from typing import (
     TypeVar,
 )
 from xml.etree import ElementTree as ET
-from functools import partial
 
 from slixmpp import JID, InvalidJID
 from slixmpp.util import FileSystemPerJidCache
@@ -38,9 +36,7 @@ from slixmpp.exceptions import IqError, IqTimeout
 from poezio import connection
 from poezio import decorators
 from poezio import events
-from poezio import multiuserchat as muc
 from poezio import tabs
-from poezio import mam
 from poezio import theming
 from poezio import timed_events
 from poezio import windows
@@ -114,15 +110,8 @@ class Core:
         # that are displayed in almost all tabs, in an
         # information window.
         self.information_buffer = TextBuffer()
-        self.information_win_size = cast(
-            int,
-            config.getint('info_win_height', section='var'),
-        )
-        self.information_win = windows.TextWin(300)
-        self.information_buffer.add_window(self.information_win)
-        self.left_tab_win = None
+        self.information_win_size = config.getint('info_win_height', section='var')
 
-        self.tab_win = windows.GlobalInfoBar(self)
         # Whether the XML tab is opened
         self.xml_tab = None
         self.xml_buffer = TextBuffer()
@@ -349,6 +338,13 @@ class Core:
         for option, handler in config_handlers:
             self.add_configuration_handler(option, handler)
 
+    def _create_windows(self):
+        """Create the windows (delayed after curses init)"""
+        self.information_win = windows.TextWin(300)
+        self.information_buffer.add_window(self.information_win)
+        self.left_tab_win = None
+        self.tab_win = windows.GlobalInfoBar(self)
+
     def on_tab_change(self, old_tab: tabs.Tab, new_tab: tabs.Tab):
         """Whenever the current tab changes, change focus and refresh"""
         old_tab.on_lose_focus()
@@ -529,6 +525,8 @@ class Core:
         """
         self.stdscr = curses.initscr()
         self._init_curses(self.stdscr)
+        windows.base_wins.TAB_WIN = self.stdscr
+        self._create_windows()
         self.call_for_resize()
         default_tab = tabs.RosterInfoTab(self)
         default_tab.on_gain_focus()
