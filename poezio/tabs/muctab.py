@@ -1734,7 +1734,7 @@ class MucTab(ChatTab):
         if config.get_by_tabname('send_chat_states', self.general_jid):
             msg['chat_state'] = needed
         if correct:
-            msg['replace']['id'] = self.last_sent_message['id']
+            msg['replace']['id'] = self.last_sent_message['id']  # type: ignore
         self.cancel_paused_delay()
         self.core.events.trigger('muc_say_after', msg, self)
         if not msg['body']:
