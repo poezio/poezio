@@ -123,7 +123,7 @@ class ConversationTab(OneToOneTab):
             return
         replaced = False
         if correct or msg['replace']['id']:
-            msg['replace']['id'] = self.last_sent_message['id']
+            msg['replace']['id'] = self.last_sent_message['id']  # type: ignore
         else:
             del msg['replace']
         if msg['body'].find('\x19') != -1:
