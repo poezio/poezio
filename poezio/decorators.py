@@ -209,7 +209,7 @@ class CommandArgParser:
 command_args_parser = CommandArgParser()
 
 
-def deny_anonymous(func: Callable) -> Callable:
+def deny_anonymous(func: T) -> T:
     """Decorator to disable commands when using an anonymous account."""
 
     def before(args: Any, kwargs: Any) -> Any:
