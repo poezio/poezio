@@ -602,7 +602,11 @@ class ChatTab(Tab):
         name = self.jid.bare
         if not isinstance(message, Message):
             return
-        if not logger.log_message(name, message.nickname, message.txt, date=message.time, typ=typ):
+        was_logged = logger.log_message(
+            name, message.nickname or '', message.txt,
+            date=message.time, typ=typ
+        )
+        if not was_logged:
             self.core.information('Unable to write in the log file', 'Error')
 
     def add_message(self, message: BaseMessage, typ=1):
