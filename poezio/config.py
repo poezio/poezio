@@ -203,9 +203,7 @@ class Config:
         returned
         """
         if default is None:
-            section_val = self.default.get(section)
-            if section_val is not None:
-                default = section_val.get(option)
+            default = self.default.get(section, {}).get(option, '')
 
         res: Optional[ConfigValue]
         try:
@@ -483,7 +481,7 @@ class Config:
         if isinstance(value, str) and value == "toggle":
             current = self.getbool(option, section)
             if isinstance(current, bool):
-                value = str(not current)
+                value = str(not current).lower()
             else:
                 if current.lower() == "false":
                     value = "true"
