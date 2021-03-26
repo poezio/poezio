@@ -22,8 +22,10 @@ class VerticalSeparator(Win):
     __slots__ = ()
 
     def rewrite_line(self) -> None:
-        self._win.vline(0, 0, curses.ACS_VLINE, self.height,
-                        to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR))
+        self._win.vline(
+            0, 0, curses.ACS_VLINE, self.height,
+            to_curses_attr(get_theme().COLOR_VERTICAL_SEPARATOR)
+        )  # type: ignore
         self._refresh()
 
     def refresh(self) -> None:
