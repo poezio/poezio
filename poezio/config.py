@@ -735,7 +735,7 @@ firstrun = False
 config = Config(Path('/dev/null'))
 
 # The logger object for this module
-log: logging.Logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)  # type: logging.Logger
 
 # The command-line options
 options = None
