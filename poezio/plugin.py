@@ -4,7 +4,7 @@ These are used in the plugin system added in poezio 0.7.5
 (see plugin_manager.py)
 """
 
-from typing import Any, Dict, Set
+from typing import Any, Dict, Set, Optional
 from asyncio import iscoroutinefunction
 from functools import partial
 from configparser import RawConfigParser
@@ -404,7 +404,7 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
     # Internal use only
     _unloading = False
 
-    default_config = None
+    default_config: Optional[Dict[Any, Any]] = None
     dependencies: Set[str] = set()
     # This dict will get populated when the plugin is initialized
     refs: Dict[str, Any] = {}

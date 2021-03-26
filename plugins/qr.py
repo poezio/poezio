@@ -3,7 +3,8 @@
 import io
 import logging
 import qrcode
-import sys
+
+from typing import Dict, Callable
 
 from poezio import windows
 from poezio.tabs import Tab

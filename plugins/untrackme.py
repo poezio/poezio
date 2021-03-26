@@ -49,7 +49,7 @@ def proxy(service: str) -> Callable[[str], str]:
 class Plugin(BasePlugin):
     """UntrackMe"""
 
-    default_config: Dict[str, str] = {
+    default_config: Dict[str, Dict[str, Union[str, bool]]] = {
         'default': {
             'cleanup': True,
             'redirect': True,
