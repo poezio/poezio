@@ -43,10 +43,10 @@ DEFAULT_CONFIG = {
 # overload if this is not how your stuff
 # is configured
 try:
-    LOGIN = os.getlogin()
+    LOGIN = os.getlogin() or ''
     LOGIN_TMUX = os.getuid()
 except Exception:
-    LOGIN = os.getenv('USER')
+    LOGIN = os.getenv('USER') or ''
     LOGIN_TMUX = os.getuid()
 
 SCREEN_DIR = '/var/run/screens/S-%s' % LOGIN

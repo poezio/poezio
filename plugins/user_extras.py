@@ -369,6 +369,8 @@ class Plugin(BasePlugin):
                 return
             if activity[0]:
                 general = ACTIVITIES.get(activity[0])
+                if general is None:
+                    return
                 s = general['category']
                 if activity[1]:
                     s = s + '/' + general.get(activity[1], 'other')

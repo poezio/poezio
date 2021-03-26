@@ -21,10 +21,12 @@ import os
 import re
 
 from poezio.plugin import BasePlugin
+from typing import Dict
+
 
 class Plugin(BasePlugin):
-    emoji_to_ascii = {}
-    ascii_to_emoji = {}
+    emoji_to_ascii: Dict[str, str] = {}
+    ascii_to_emoji: Dict[str, str] = {}
     emoji_pattern = None
     alias_pattern = None
 
