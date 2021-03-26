@@ -56,7 +56,6 @@ MATCHERS_MAPPINGS = {
 
 
 class XMLTab(Tab):
-    input: Optional[Union[windows.HelpText, windows.CommandInput]]
     def __init__(self, core):
         Tab.__init__(self, core)
         self.state = 'normal'
@@ -122,7 +121,7 @@ class XMLTab(Tab):
             usage='<filename>',
             desc='Writes the content of the XML buffer into a file.',
             shortdesc='Write in a file.')
-        self.input = self.default_help_message
+        self.input = self.default_help_message  # type: ignore
         self.key_func['^T'] = self.close
         self.key_func['^I'] = self.completion
         self.key_func["KEY_DOWN"] = self.on_scroll_down
