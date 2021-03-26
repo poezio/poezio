@@ -73,7 +73,7 @@ class QrTab(Tab):
         Tab.__init__(self, core)
         self.state = 'highlight'
         self.text = qr
-        self.name = qr
+        self._name = qr
         self.topic_win = windows.Topic()
         self.topic_win.set_message(qr)
         self.qr_win = QrWindow(qr)

@@ -59,7 +59,7 @@ class XMLTab(Tab):
     def __init__(self, core):
         Tab.__init__(self, core)
         self.state = 'normal'
-        self.name = 'XMLTab'
+        self._name = 'XMLTab'
         self.filters = []
 
         self.core_buffer = self.core.xml_buffer
