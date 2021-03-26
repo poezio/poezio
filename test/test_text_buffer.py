@@ -20,6 +20,7 @@ from poezio.ui.types import (
 def buf2048():
     return TextBuffer(2048)
 
+
 @fixture(scope='function')
 def msgs_nojoin():
     msg1 = Message('1', 'q')
@@ -35,6 +36,7 @@ def msgs_noleave():
     msg4 = Message('4', 'f')
     return [join, msg3, msg4]
 
+
 @fixture(scope='function')
 def msgs_doublejoin():
     join = MucOwnJoinMessage('join')
@@ -42,6 +44,7 @@ def msgs_doublejoin():
     msg2 = Message('2', 'f')
     join2 = MucOwnJoinMessage('join')
     return [join, msg1, msg2, join2]
+
 
 def test_last_message(buf2048):
     msg = BaseMessage('toto')
@@ -195,4 +198,3 @@ def test_add_history_empty(buf2048):
     buf2048.add_message(msg1)
     buf2048.add_history_messages([msg2, msg3, msg4])
     assert buf2048.messages == [msg2, msg3, msg4, msg1]
-

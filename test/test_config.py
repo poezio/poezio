@@ -10,6 +10,7 @@ import pytest
 
 from poezio import config
 
+
 @pytest.fixture(scope="module")
 def config_obj():
     file_ = tempfile.NamedTemporaryFile(delete=False)
@@ -17,6 +18,7 @@ def config_obj():
     yield conf
     del conf
     os.unlink(file_.name)
+
 
 class TestConfigSimple(object):
     def test_get_set(self, config_obj):

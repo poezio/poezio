@@ -5,15 +5,19 @@ Test the completions methods on an altered input object.
 import string
 import pytest
 import random
+from poezio import config
+from poezio.windows import Input
+
 
 class ConfigShim(object):
     def get(self, *args, **kwargs):
         return ''
+    def getbool(self, *args, **kwargs):
+        return False
 
-from poezio import config
+
 config.config = ConfigShim()
 
-from poezio.windows import Input
 
 class SubInput(Input):
     def resize(self, *args, **kwargs):
@@ -26,6 +30,8 @@ class SubInput(Input):
 
 @pytest.fixture(scope="function")
 def input_obj():
+    from poezio.windows import base_wins
+    base_wins.TAB_WIN = True
     obj = SubInput()
     obj.reset_completion()
     return obj

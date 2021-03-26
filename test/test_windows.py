@@ -1,21 +1,31 @@
 import pytest
+from poezio.windows import Input, HistoryInput, MessageInput
+from poezio import config
 
-class ConfigShim(object):
+
+class ConfigShim:
     def get(self, *args, **kwargs):
         return ''
 
-from poezio import config
+    def getbool(self, *args, **kwargs):
+        return True
+
+
 config.config = ConfigShim()
 
-from poezio.windows import Input, HistoryInput, MessageInput
 
 class SubInput(Input):
+
     def rewrite_text(self, *args, **kwargs):
         return None
 
+
 @pytest.fixture
 def input():
+    from poezio.windows import base_wins
+    base_wins.TAB_WIN = True  # The value is not relevant
     return SubInput()
+
 
 class TestInput(object):
 
@@ -29,9 +39,9 @@ class TestInput(object):
         assert input.text == 'acoucou'
 
     def test_empty(self, input):
-        assert input.is_empty() == True
+        assert input.is_empty()
         input.do_command('a')
-        assert input.is_empty() == False
+        assert not input.is_empty()
 
     def test_key_left(self, input):
         for char in 'this is a line':
