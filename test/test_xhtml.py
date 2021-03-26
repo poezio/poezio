@@ -8,11 +8,15 @@ import poezio.xhtml
 from poezio.xhtml import (poezio_colors_to_html, xhtml_to_poezio_colors,
                    _parse_css as parse_css, clean_text)
 
-class ConfigShim(object):
+
+class ConfigShim:
     def __init__(self):
         self.value = True
     def get(self, *args, **kwargs):
         return self.value
+    def getbool(self, *args, **kwargs):
+        return self.value
+
 
 config = ConfigShim()
 poezio.xhtml.config = config

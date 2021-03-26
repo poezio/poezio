@@ -12,8 +12,16 @@ class DummyTab(Tab):
     count = 0
 
     def __init__(self):
-        self.name = 'dummy%s' % self.count
+        self._name = 'dummy%s' % self.count
         DummyTab.count += 1
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     @staticmethod
     def reset():
