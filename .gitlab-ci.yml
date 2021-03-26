@@ -93,7 +93,7 @@ pylint-plugins:
 mypyc:
   stage: lint
   image: python:3
-  allow_failure: true
   script:
-    - pip3 install mypy
+    - pip3 install https://lab.louiz.org/mathieui/poezio/-/raw/mypy-custom-build/mypy-0.820+dev.ceca581e385f5438bcb7d7c3e8f94aadb7085f77-py3-none-any.whl
     - mypyc --ignore-missing-imports ./poezio
+    - mypyc --ignore-missing-imports ./plugins
