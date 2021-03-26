@@ -43,7 +43,7 @@ class RosterInfoTab(Tab):
 
     def __init__(self, core):
         Tab.__init__(self, core)
-        self.name = "Roster"
+        self._name = "Roster"
         self.v_separator = windows.VerticalSeparator()
         self.information_win = windows.TextWin()
         self.core.information_buffer.add_window(self.information_win)
