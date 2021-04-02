@@ -65,14 +65,14 @@ class UserList(Win):
 
     def refresh(self, users: List[User]) -> None:
         log.debug('Refresh: %s', self.__class__.__name__)
-        if config.get('hide_user_list'):
+        if config.getbool('hide_user_list'):
             return  # do not refresh if this win is hidden.
         if len(users) < self.height:
             self.pos = 0
         elif self.pos >= len(users) - self.height and self.pos != 0:
             self.pos = len(users) - self.height
         self._win.erase()
-        asc_sort = (config.get('user_list_sort').lower() == 'asc')
+        asc_sort = (config.getstr('user_list_sort').lower() == 'asc')
         if asc_sort:
             y, _ = self._win.getmaxyx()
             y -= 1

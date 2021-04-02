@@ -166,6 +166,7 @@ class MucTab(ChatTab):
         """
         Join the room
         """
+        seconds: Optional[int]
         status = self.core.get_status()
         if self.last_connection:
             delta = to_utc(datetime.now()) - to_utc(self.last_connection)
@@ -433,7 +434,7 @@ class MucTab(ChatTab):
         return False
 
     def get_nick(self) -> str:
-        if config.get('show_muc_jid'):
+        if config.getbool('show_muc_jid'):
             return cast(str, self.jid.bare)
         bookmark = self.core.bookmarks[self.jid.bare]
         if bookmark is not None and bookmark.name:
@@ -463,7 +464,7 @@ class MucTab(ChatTab):
     def on_gain_focus(self) -> None:
         self.state = 'current'
         if (self.text_win.built_lines and self.text_win.built_lines[-1] is None
-                and not config.get('show_useless_separator')):
+                and not config.getbool('show_useless_separator')):
             self.text_win.remove_line_separator()
         curses.curs_set(1)
         if self.joined and config.get_by_tabname(
@@ -725,7 +726,7 @@ class MucTab(ChatTab):
         new_nick = presence.xml.find(
             '{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)
         ).attrib['nick']
-        old_color = user.color
+        old_color_tuple = user.color
         if user.nick == self.own_nick:
             self.own_nick = new_nick
             # also change our nick in all private discussions of this room
@@ -741,7 +742,7 @@ class MucTab(ChatTab):
         if config.get_by_tabname('display_user_color_in_join_part',
                                  self.general_jid):
             color = dump_tuple(user.color)
-            old_color = dump_tuple(old_color)
+            old_color = dump_tuple(old_color_tuple)
         else:
             old_color = color = "3"
         info_col = dump_tuple(get_theme().COLOR_INFORMATION_TEXT)
@@ -1071,7 +1072,7 @@ class MucTab(ChatTab):
         """
         return self.topic.replace('\n', '|')
 
-    def log_message(self, msg: Message, typ: int = 1) -> None:
+    def log_message(self, msg: BaseMessage, typ: int = 1) -> None:
         """
         Log the messages in the archives, if it needs
         to be
@@ -1245,7 +1246,7 @@ class MucTab(ChatTab):
         Resize the whole window. i.e. all its sub-windows
         """
         self.need_resize = False
-        if config.get('hide_user_list') or self.size.tab_degrade_x:
+        if config.getbool('hide_user_list') or self.size.tab_degrade_x:
             text_width = self.width
         else:
             text_width = (self.width // 10) * 9
@@ -1280,7 +1281,7 @@ class MucTab(ChatTab):
         if self.need_resize:
             self.resize()
         log.debug('  TAB   Refresh: %s', self.__class__.__name__)
-        if config.get('hide_user_list') or self.size.tab_degrade_x:
+        if config.getbool('hide_user_list') or self.size.tab_degrade_x:
             display_user_list = False
         else:
             display_user_list = True
@@ -1302,7 +1303,7 @@ class MucTab(ChatTab):
     def on_info_win_size_changed(self) -> None:
         if self.core.information_win_size >= self.height - 3:
             return
-        if config.get("hide_user_list"):
+        if config.getbool("hide_user_list"):
             text_width = self.width
         else:
             text_width = (self.width // 10) * 9
@@ -1356,7 +1357,7 @@ class MucTab(ChatTab):
         if highlighted and self.joined and not corrected:
             if self.state != 'current':
                 self.state = 'highlight'
-            beep_on = cast(str, config.get('beep_on')).split()
+            beep_on = config.getlist('beep_on')
             if 'highlight' in beep_on and 'message' not in beep_on:
                 if not config.get_by_tabname('disable_beep', self.jid.bare):
                     curses.beep()
@@ -1506,7 +1507,7 @@ class MucTab(ChatTab):
         /close [msg]
         """
         self.leave_room(msg)
-        if config.get('synchronise_open_rooms'):
+        if config.getbool('synchronise_open_rooms'):
             if self.jid in self.core.bookmarks:
                 self.core.bookmarks[self.jid].autojoin = False
                 asyncio.ensure_future(
@@ -1708,7 +1709,7 @@ class MucTab(ChatTab):
         return None
 
     @command_args_parser.raw
-    def command_say(self, line: str, correct: bool = False) -> None:
+    def command_say(self, line: str, attention: bool = False, correct: bool = False):
         """
         /say <message>
         Or normal input + enter
@@ -1733,7 +1734,7 @@ class MucTab(ChatTab):
         if config.get_by_tabname('send_chat_states', self.general_jid):
             msg['chat_state'] = needed
         if correct:
-            msg['replace']['id'] = self.last_sent_message['id']
+            msg['replace']['id'] = self.last_sent_message['id']  # type: ignore
         self.cancel_paused_delay()
         self.core.events.trigger('muc_say_after', msg, self)
         if not msg['body']:
@@ -1806,14 +1807,14 @@ class MucTab(ChatTab):
         for user in sorted(self.users, key=COMPARE_USERS_LAST_TALKED, reverse=True):
             if user.nick != self.own_nick:
                 word_list.append(user.nick)
-        after = cast(str, config.get('after_completion')) + ' '
+        after = config.getstr('after_completion') + ' '
         input_pos = self.input.pos
         if ' ' not in self.input.get_text()[:input_pos] or (
                 self.input.last_completion and self.input.get_text()
             [:input_pos] == self.input.last_completion + after):
             add_after = after
         else:
-            if not config.get('add_space_after_completion'):
+            if not config.getbool('add_space_after_completion'):
                 add_after = ''
             else:
                 add_after = ' '
@@ -1850,7 +1851,7 @@ class MucTab(ChatTab):
         """Completion for /nick"""
         nicks_list = [
             os.environ.get('USER'),
-            cast(str, config.get('default_nick')),
+            config.getstr('default_nick'),
             self.core.get_bookmark_nickname(self.jid.bare)
         ]
         nicks = [i for i in nicks_list if i]

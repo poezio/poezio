@@ -99,13 +99,13 @@ class RosterWin(Win):
         # This is a search
         if roster.contact_filter is not roster.DEFAULT_FILTER:
             self.roster_cache = []
-            sort = config.get('roster_sort', 'jid:show') or 'jid:show'
+            sort = config.getstr('roster_sort') or 'jid:show'
             for contact in roster.get_contacts_sorted_filtered(sort):
                 self.roster_cache.append(contact)
         else:
-            show_offline = config.get('roster_show_offline')
-            sort = config.get('roster_sort') or 'jid:show'
-            group_sort = config.get('roster_group_sort') or 'name'
+            show_offline = config.getbool('roster_show_offline')
+            sort = config.getstr('roster_sort') or 'jid:show'
+            group_sort = config.getstr('roster_group_sort') or 'name'
             self.roster_cache = []
             # build the cache
             for group in roster.get_groups(group_sort):
@@ -155,9 +155,9 @@ class RosterWin(Win):
                                         self.height]
 
         options = {
-            'show_roster_sub': config.get('show_roster_subscriptions'),
-            'show_s2s_errors': config.get('show_s2s_errors'),
-            'show_roster_jids': config.get('show_roster_jids')
+            'show_roster_sub': config.getbool('show_roster_subscriptions'),
+            'show_s2s_errors': config.getbool('show_s2s_errors'),
+            'show_roster_jids': config.getbool('show_roster_jids')
         }
 
         for item in roster_view:
@@ -171,7 +171,7 @@ class RosterWin(Win):
                 group = item.name
             elif isinstance(item, Contact):
                 self.draw_contact_line(y, item, draw_selected, group,
-                                       **options)
+                                       **options)  # type: ignore
             elif isinstance(item, Resource):
                 self.draw_resource_line(y, item, draw_selected)
 

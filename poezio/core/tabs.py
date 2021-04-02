@@ -187,7 +187,7 @@ class Tabs:
             for cls in _get_tab_types(tab):
                 self._tab_types[cls].append(tab)
             if hasattr(tab, 'jid'):
-                self._tab_jids[tab.jid] = tab
+                self._tab_jids[tab.jid] = tab  # type: ignore
             self._tab_names[tab.name] = tab
         self._update_numbers()
 
@@ -248,7 +248,7 @@ class Tabs:
         for cls in _get_tab_types(tab):
             self._tab_types[cls].append(tab)
         if hasattr(tab, 'jid'):
-            self._tab_jids[tab.jid] = tab
+            self._tab_jids[tab.jid] = tab  # type: ignore
         self._tab_names[tab.name] = tab
 
     def delete(self, tab: tabs.Tab, gap=False):
@@ -257,7 +257,7 @@ class Tabs:
             return
 
         if gap:
-            self._tabs[tab.nb] = tabs.GapTab(None)
+            self._tabs[tab.nb] = tabs.GapTab()
         else:
             self._tabs.remove(tab)
 
@@ -266,7 +266,7 @@ class Tabs:
         for cls in _get_tab_types(tab):
             self._tab_types[cls].remove(tab)
         if hasattr(tab, 'jid'):
-            del self._tab_jids[tab.jid]
+            del self._tab_jids[tab.jid]  # type: ignore
         del self._tab_names[tab.name]
 
         if gap:
@@ -346,16 +346,16 @@ class Tabs:
             if new_pos < len(self._tabs):
                 old_tab = self._tabs[old_pos]
                 self._tabs[new_pos], self._tabs[
-                    old_pos] = old_tab, tabs.GapTab(None)
+                    old_pos] = old_tab, tabs.GapTab()
             else:
                 self._tabs.append(self._tabs[old_pos])
-                self._tabs[old_pos] = tabs.GapTab(None)
+                self._tabs[old_pos] = tabs.GapTab()
         else:
             if new_pos > old_pos:
                 self._tabs.insert(new_pos, tab)
-                self._tabs[old_pos] = tabs.GapTab(None)
+                self._tabs[old_pos] = tabs.GapTab()
             elif new_pos < old_pos:
-                self._tabs[old_pos] = tabs.GapTab(None)
+                self._tabs[old_pos] = tabs.GapTab()
                 self._tabs.insert(new_pos, tab)
             else:
                 return False

@@ -21,6 +21,7 @@ from pathlib import Path
 from io import BytesIO
 from xml import sax
 from xml.sax import saxutils
+from xml.sax.handler import ContentHandler
 from typing import List, Dict, Optional, Union, Tuple
 
 from slixmpp.xmlstream import ET
@@ -299,7 +300,7 @@ def get_hash(data: bytes) -> str:
         b'/', b'-').decode()
 
 
-class XHTMLHandler(sax.ContentHandler):
+class XHTMLHandler(ContentHandler):
     def __init__(self, force_ns=False,
                  tmp_image_dir: Optional[Path] = None) -> None:
         self.builder: List[str] = []
@@ -313,7 +314,7 @@ class XHTMLHandler(sax.ContentHandler):
         self.force_ns = force_ns
 
         self.tmp_image_dir = Path(tmp_image_dir) if tmp_image_dir else None
-        self.enable_css_parsing = config.get('enable_css_parsing')
+        self.enable_css_parsing = config.getbool('enable_css_parsing')
 
     @property
     def result(self) -> str:

@@ -104,7 +104,7 @@ class ConversationTab(OneToOneTab):
 
     @refresh_wrapper.always
     @command_args_parser.raw
-    def command_say(self, line, attention=False, correct=False):
+    def command_say(self, line: str, attention: bool = False, correct: bool = False):
         msg = self.core.xmpp.make_message(
             mto=self.get_dest_jid(),
             mfrom=self.core.xmpp.boundjid
@@ -123,7 +123,7 @@ class ConversationTab(OneToOneTab):
             return
         replaced = False
         if correct or msg['replace']['id']:
-            msg['replace']['id'] = self.last_sent_message['id']
+            msg['replace']['id'] = self.last_sent_message['id']  # type: ignore
         else:
             del msg['replace']
         if msg['body'].find('\x19') != -1:

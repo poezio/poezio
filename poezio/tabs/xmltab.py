@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 
 import curses
 import os
+from typing import Union, Optional
 from slixmpp import JID, InvalidJID
 from slixmpp.xmlstream import matcher, StanzaBase
 from slixmpp.xmlstream.tostring import tostring
@@ -58,7 +59,7 @@ class XMLTab(Tab):
     def __init__(self, core):
         Tab.__init__(self, core)
         self.state = 'normal'
-        self.name = 'XMLTab'
+        self._name = 'XMLTab'
         self.filters = []
 
         self.core_buffer = self.core.xml_buffer
@@ -120,7 +121,7 @@ class XMLTab(Tab):
             usage='<filename>',
             desc='Writes the content of the XML buffer into a file.',
             shortdesc='Write in a file.')
-        self.input = self.default_help_message
+        self.input = self.default_help_message  # type: ignore
         self.key_func['^T'] = self.close
         self.key_func['^I'] = self.completion
         self.key_func["KEY_DOWN"] = self.on_scroll_down
@@ -316,8 +317,9 @@ class XMLTab(Tab):
 
     def execute_slash_command(self, txt: str) -> bool:
         if txt.startswith('/'):
-            self.input.key_enter()
-            self.execute_command(txt)
+            if isinstance(self.input, windows.CommandInput):
+                self.input.key_enter()
+                self.execute_command(txt)
         return self.reset_help_message()
 
     def completion(self):

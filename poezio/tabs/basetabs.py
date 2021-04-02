@@ -26,6 +26,7 @@ from xml.sax import SAXParseException
 from typing import (
     Any,
     Callable,
+    cast,
     Dict,
     List,
     Optional,
@@ -46,8 +47,10 @@ from poezio.decorators import command_args_parser, refresh_wrapper
 from poezio.logger import logger
 from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme, dump_tuple
+from poezio.user import User
 from poezio.ui.funcs import truncate_nick
 from poezio.ui.types import BaseMessage, InfoMessage, Message
+from poezio.timed_events import DelayedEvent
 
 from slixmpp import JID, InvalidJID, Message as SMessage
 
@@ -117,12 +120,16 @@ class Tab:
     # Placeholder values, set on resize
     height = 1
     width = 1
+    core: Core
+    input: Optional[windows.Input]
+    key_func: Dict[str, Callable[[], Any]]
+    commands: Dict[str, Command]
 
     def __init__(self, core: Core):
         self.core = core
         self.nb = 0
-        if not hasattr(self, 'name'):
-            self.name = self.__class__.__name__
+        if not hasattr(self, '_name'):
+            self._name = self.__class__.__name__
         self.input = None
         self.closed = False
         self._state = 'normal'
@@ -134,6 +141,12 @@ class Tab:
         self.commands = {}  # and their own commands
 
     @property
+    def name(self) -> str:
+        if hasattr(self, '_name'):
+            return self._name
+        return ''
+
+    @property
     def size(self) -> SizeManager:
         return self.core.size
 
@@ -143,7 +156,7 @@ class Tab:
         Returns 1 or 0, depending on if we are using the vertical tab list
         or not.
         """
-        if config.get('enable_vertical_tab_list'):
+        if config.getbool('enable_vertical_tab_list'):
             return 0
         return 1
 
@@ -234,7 +247,7 @@ class Tab:
                          *,
                          desc='',
                          shortdesc='',
-                         completion: Optional[Callable] = None,
+                         completion: Optional[Callable[[windows.Input], Completion]] = None,
                          usage=''):
         """
         Add a command
@@ -286,7 +299,6 @@ class Tab:
                 comp = command.comp(the_input)
                 if comp:
                     return comp.run()
-                return comp
         return False
 
     def execute_command(self, provided_text: str) -> bool:
@@ -294,8 +306,10 @@ class Tab:
         Execute the command in the input and return False if
         the input didn't contain a command
         """
+        if self.input is None:
+            raise NotImplementedError
         txt = provided_text or self.input.key_enter()
-        if txt.startswith('/') and not txt.startswith('//') and\
+        if txt and txt.startswith('/') and not txt.startswith('//') and\
                 not txt.startswith('/me '):
             command = txt.strip().split()[0][1:]
             arg = txt[2 + len(command):]  # jump the '/' and the ' '
@@ -332,7 +346,7 @@ class Tab:
             return False
 
     def refresh_tab_win(self) -> None:
-        if config.get('enable_vertical_tab_list'):
+        if config.getbool('enable_vertical_tab_list'):
             left_tab_win = self.core.left_tab_win
             if left_tab_win and not self.size.core_degrade_x:
                 left_tab_win.refresh()
@@ -461,6 +475,9 @@ class Tab:
 
 
 class GapTab(Tab):
+    def __init__(self):
+        return
+
     def __bool__(self):
         return False
 
@@ -485,7 +502,10 @@ class ChatTab(Tab):
     """
     plugin_commands: Dict[str, Command] = {}
     plugin_keys: Dict[str, Callable] = {}
+    last_sent_message: Optional[SMessage]
     message_type = 'chat'
+    timed_event_paused: Optional[DelayedEvent]
+    timed_event_not_paused: Optional[DelayedEvent]
 
     def __init__(self, core, jid: Union[JID, str]):
         Tab.__init__(self, core)
@@ -496,7 +516,7 @@ class ChatTab(Tab):
         self._jid = jid
         #: Is the tab currently requesting MAM data?
         self.query_status = False
-        self._name: Optional[str] = jid.full
+        self._name = jid.full
         self.text_win = windows.TextWin()
         self.directed_presence = None
         self._text_buffer = TextBuffer()
@@ -507,7 +527,7 @@ class ChatTab(Tab):
         self.timed_event_paused = None
         self.timed_event_not_paused = None
         # Keeps the last sent message to complete it easily in completion_correct, and to replace it.
-        self.last_sent_message = {}
+        self.last_sent_message = None
         self.key_func['M-v'] = self.move_separator
         self.key_func['M-h'] = self.scroll_separator
         self.key_func['M-/'] = self.last_words_completion
@@ -575,14 +595,18 @@ class ChatTab(Tab):
     def general_jid(self) -> JID:
         raise NotImplementedError
 
-    def log_message(self, message: BaseMessage, typ=1):
+    def log_message(self, message: BaseMessage, typ: int = 1):
         """
         Log the messages in the archives.
         """
         name = self.jid.bare
         if not isinstance(message, Message):
             return
-        if not logger.log_message(name, message.nickname, message.txt, date=message.time, typ=typ):
+        was_logged = logger.log_message(
+            name, message.nickname or '', message.txt,
+            date=message.time, typ=typ
+        )
+        if not was_logged:
             self.core.information('Unable to write in the log file', 'Error')
 
     def add_message(self, message: BaseMessage, typ=1):
@@ -590,14 +614,18 @@ class ChatTab(Tab):
         self._text_buffer.add_message(message)
 
     def modify_message(self,
-                       txt,
-                       old_id,
-                       new_id,
-                       user=None,
-                       jid=None,
-                       nickname=None):
+                       txt: str,
+                       old_id: str,
+                       new_id: str,
+                       time: Optional[datetime],
+                       delayed: bool = False,
+                       nickname: Optional[str] = None,
+                       user: Optional[User] = None,
+                       jid: Optional[JID] = None,
+                       ) -> bool:
         message = self._text_buffer.modify_message(
-            txt, old_id, new_id, user=user, jid=jid)
+            txt, old_id, new_id, user=user, jid=jid, time=time
+        )
         if message:
             self.log_message(message, typ=1)
             self.text_win.modify_message(message.identifier, message)
@@ -621,10 +649,12 @@ class ChatTab(Tab):
             for word in txt.split():
                 if len(word) >= 4 and word not in words:
                     words.append(word)
-        words.extend([word for word in config.get('words').split(':') if word])
+        words.extend([word for word in config.getlist('words') if word])
         self.input.auto_completion(words, ' ', quotify=False)
 
     def on_enter(self):
+        if self.input is None:
+            raise NotImplementedError
         txt = self.input.key_enter()
         if txt:
             if not self.execute_command(txt):
@@ -740,16 +770,18 @@ class ChatTab(Tab):
         if self.timed_event_paused is not None:
             self.core.remove_timed_event(self.timed_event_paused)
             self.timed_event_paused = None
-            self.core.remove_timed_event(self.timed_event_not_paused)
-            self.timed_event_not_paused = None
+            if self.timed_event_not_paused is not None:
+                self.core.remove_timed_event(self.timed_event_not_paused)
+                self.timed_event_not_paused = None
 
     def set_last_sent_message(self, msg: SMessage, correct: bool = False) -> None:
         """Ensure last_sent_message is set with the correct attributes"""
         if correct:
             # XXX: Is the copy needed. Is the object passed here reused
             # afterwards? Who knows.
-            msg = copy(msg)
-            msg['id'] = self.last_sent_message['id']
+            msg = cast(SMessage, copy(msg))
+            if self.last_sent_message is not None:
+                msg['id'] = self.last_sent_message['id']
         self.last_sent_message = msg
 
     @command_args_parser.raw
@@ -783,7 +815,8 @@ class ChatTab(Tab):
         self.text_win.remove_line_separator()
         self.text_win.add_line_separator(self._text_buffer)
         self.text_win.refresh()
-        self.input.refresh()
+        if self.input:
+            self.input.refresh()
 
     def get_conversation_messages(self):
         return self._text_buffer.messages
@@ -793,15 +826,15 @@ class ChatTab(Tab):
             self.state = 'scrolled'
 
     @command_args_parser.raw
-    def command_say(self, line, correct=False):
+    def command_say(self, line: str, attention: bool = False, correct: bool = False):
         pass
 
     def goto_build_lines(self, new_date):
         text_buffer = self._text_buffer
         built_lines = []
         message_count = 0
-        timestamp = config.get('show_timestamps')
-        nick_size = config.get('max_nick_length')
+        timestamp = config.getbool('show_timestamps')
+        nick_size = config.getint('max_nick_length')
         theme = get_theme()
         for message in text_buffer.messages:
             # Build lines of a message
@@ -1048,7 +1081,7 @@ class OneToOneTab(ChatTab):
             msg.send()
 
     @command_args_parser.raw
-    def command_say(self, line, correct=False, attention=False):
+    def command_say(self, line: str, attention: bool = False, correct: bool = False):
         pass
 
     @command_args_parser.ignored

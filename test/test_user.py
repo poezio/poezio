@@ -11,13 +11,13 @@ from poezio.user import User
 @pytest.fixture
 def user1():
     return User(
-        'nick1',
-        'member',
-        'xa',
-        'My Status!',
-        'moderator',
-        JID('foo@muc/nick1'),
-        'red',
+        nick='nick1',
+        affiliation='member',
+        show='xa',
+        status='My Status!',
+        role='moderator',
+        jid=JID('foo@muc/nick1'),
+        color='red',
     )
 
 

@@ -163,7 +163,7 @@ class Bookmark:
 class BookmarkList:
     def __init__(self):
         self.bookmarks: List[Bookmark] = []
-        preferred = config.get('use_bookmarks_method').lower()
+        preferred = config.getstr('use_bookmarks_method').lower()
         if preferred not in ('pep', 'privatexml'):
             preferred = 'privatexml'
         self.preferred = preferred
@@ -244,13 +244,13 @@ class BookmarkList:
     async def save(self, xmpp: ClientXMPP, core=None):
         """Save all the bookmarks."""
         self.save_local()
-        if config.get('use_remote_bookmarks'):
+        if config.getbool('use_remote_bookmarks'):
             try:
                 result = await self.save_remote(xmpp)
                 if core is not None:
                     core.information('Bookmarks saved', 'Info')
                 return result
-            except (IqError, IqTimeout) as iq:
+            except (IqError, IqTimeout):
                 if core is not None:
                     core.information(
                         'Could not save remote bookmarks.',
@@ -292,10 +292,9 @@ class BookmarkList:
 
     def get_local(self):
         """Add the locally stored bookmarks to the list."""
-        rooms = config.get('rooms')
+        rooms = config.getlist('rooms')
         if not rooms:
             return
-        rooms = rooms.split(':')
         for room in rooms:
             try:
                 jid = JID(room)
@@ -319,7 +318,7 @@ class BookmarkList:
             self.append(b)
 
 
-def stanza_storage(bookmarks: BookmarkList) -> Bookmarks:
+def stanza_storage(bookmarks: Union[BookmarkList, List[Bookmark]]) -> Bookmarks:
     """Generate a <storage/> stanza with the conference elements."""
     storage = Bookmarks()
     for b in (b for b in bookmarks if b.method == 'remote'):

@@ -13,20 +13,19 @@ from typing import (
     List,
     Optional,
     TypeVar,
-    TYPE_CHECKING,
 )
 
 from poezio import common
 
-if TYPE_CHECKING:
-    from poezio.tabs import RosterInfoTab
 
 T = TypeVar('T', bound=Callable[..., Any])
 
-BeforeFunc = Callable[[List[Any], Dict[str, Any]], Any]
-AfterFunc = Callable[[List[Any], Dict[str, Any]], Any]
 
-def wrap_generic(func: Callable, before: BeforeFunc=None, after: AfterFunc=None):
+BeforeFunc = Optional[Callable[[List[Any], Dict[str, Any]], Any]]
+AfterFunc = Optional[Callable[[Any, List[Any], Dict[str, Any]], Any]]
+
+
+def wrap_generic(func: Callable, before: BeforeFunc = None, after: AfterFunc = None):
     """
     Generic wrapper which can both wrap coroutines and normal functions.
     """
@@ -210,7 +209,7 @@ class CommandArgParser:
 command_args_parser = CommandArgParser()
 
 
-def deny_anonymous(func: Callable) -> Callable:
+def deny_anonymous(func: T) -> T:
     """Decorator to disable commands when using an anonymous account."""
 
     def before(args: Any, kwargs: Any) -> Any:

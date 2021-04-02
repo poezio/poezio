@@ -74,7 +74,7 @@ except ImportError:
 import curses
 import functools
 import os
-from typing import Dict, List, Union, Tuple, Optional
+from typing import Dict, List, Union, Tuple, Optional, cast
 from pathlib import Path
 from os import path
 from poezio import colors, xdg
@@ -450,6 +450,7 @@ def to_curses_attr(
     returns a valid curses attr that can be passed directly to attron() or attroff()
     """
     # extract the color from that tuple
+    colors: Union[Tuple[int, int], Tuple[int, int, str]]
     if len(color_tuple) == 3:
         colors = (color_tuple[0], color_tuple[1])
     else:
@@ -475,7 +476,7 @@ def to_curses_attr(
         curses_colors_dict[colors] = pair
     curses_pair = curses.color_pair(pair)
     if len(color_tuple) == 3:
-        additional_val = color_tuple[2]
+        _, _, additional_val = cast(Tuple[int, int, str], color_tuple)
         if 'b' in additional_val or bold is True:
             curses_pair = curses_pair | curses.A_BOLD
         if 'u' in additional_val:
@@ -507,7 +508,7 @@ def update_themes_dir(option: Optional[str] = None,
         load_path.append(default_dir)
 
     # import from the user-defined prefs
-    themes_dir_str = config.get('themes_dir')
+    themes_dir_str = config.getstr('themes_dir')
     themes_dir = Path(themes_dir_str).expanduser(
     ) if themes_dir_str else xdg.DATA_HOME / 'themes'
     try:
@@ -553,7 +554,7 @@ def prepare_ccolor_palette(theme: Theme) -> None:
 
 
 def reload_theme() -> Optional[str]:
-    theme_name = config.get('theme')
+    theme_name = config.getstr('theme')
     global theme
     if theme_name == 'default' or not theme_name.strip():
         theme = Theme()
@@ -561,10 +562,10 @@ def reload_theme() -> Optional[str]:
     new_theme = None
     exc = None
     try:
-        loader = finder.find_module(theme_name, load_path)
-        if not loader:
+        spec = finder.find_spec(theme_name, path=load_path)
+        if not spec or not spec.loader:
             return 'Failed to load the theme %s' % theme_name
-        new_theme = loader.load_module()
+        new_theme = spec.loader.load_module(theme_name)
     except Exception as e:
         log.error('Failed to load the theme %s', theme_name, exc_info=True)
         exc = e
@@ -573,7 +574,7 @@ def reload_theme() -> Optional[str]:
         return 'Failed to load theme: %s' % exc
 
     if hasattr(new_theme, 'theme'):
-        theme = new_theme.theme
+        theme = new_theme.theme  # type: ignore
         prepare_ccolor_palette(theme)
         return None
     return 'No theme present in the theme file'

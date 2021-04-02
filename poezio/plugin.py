@@ -4,7 +4,7 @@ These are used in the plugin system added in poezio 0.7.5
 (see plugin_manager.py)
 """
 
-from typing import Any, Dict, Set
+from typing import Any, Dict, Set, Optional
 from asyncio import iscoroutinefunction
 from functools import partial
 from configparser import RawConfigParser
@@ -45,7 +45,7 @@ class PluginConfig(config.Config):
 
     def read(self):
         """Read the config file"""
-        RawConfigParser.read(self, str(self.file_name))
+        RawConfigParser.read(self.configparser, str(self.file_name))
         if not self.has_section(self.module_name):
             self.add_section(self.module_name)
 
@@ -64,7 +64,7 @@ class PluginConfig(config.Config):
         """Write the config to the disk"""
         try:
             with self.file_name.open('w') as fp:
-                RawConfigParser.write(self, fp)
+                RawConfigParser.write(self.configparser, fp)
             return True
         except IOError:
             return False
@@ -404,7 +404,7 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
     # Internal use only
     _unloading = False
 
-    default_config = None
+    default_config: Optional[Dict[Any, Any]] = None
     dependencies: Set[str] = set()
     # This dict will get populated when the plugin is initialized
     refs: Dict[str, Any] = {}

@@ -4,17 +4,13 @@ Can be locked, scrolled, has a separator, etc…
 """
 
 import logging
-import curses
-from math import ceil, log10
 from typing import Optional, List, Union
 
-from poezio.windows.base_wins import Win, FORMAT_CHAR
-from poezio.ui.funcs import truncate_nick, parse_attrs
+from poezio.windows.base_wins import Win
 from poezio.text_buffer import TextBuffer
 
-from poezio import poopt
 from poezio.config import config
-from poezio.theming import to_curses_attr, get_theme, dump_tuple
+from poezio.theming import to_curses_attr, get_theme
 from poezio.ui.types import Message, BaseMessage
 from poezio.ui.render import Line, build_lines, write_pre
 
@@ -26,10 +22,12 @@ class TextWin(Win):
                  'separator_after', 'highlights', 'hl_pos',
                  'nb_of_highlights_after_separator')
 
+    hl_pos: Optional[int]
+
     def __init__(self, lines_nb_limit: Optional[int] = None) -> None:
         Win.__init__(self)
         if lines_nb_limit is None:
-            lines_nb_limit = config.get('max_lines_in_memory')
+            lines_nb_limit = config.getint('max_lines_in_memory')
         self.lines_nb_limit: int = lines_nb_limit
         self.pos = 0
         # Each new message is built and kept here.
@@ -38,14 +36,14 @@ class TextWin(Win):
 
         self.lock = False
         self.lock_buffer: List[Union[None, Line]] = []
-        self.separator_after: Optional[Line] = None
+        self.separator_after: Optional[BaseMessage] = None
         # the Lines of the highlights in that buffer
         self.highlights: List[Line] = []
         # the current HL position in that list NaN means that we’re not on
         # an hl. -1 is a valid position (it's before the first hl of the
         # list. i.e the separator, in the case where there’s no hl before
         # it.)
-        self.hl_pos = float('nan')
+        self.hl_pos = None
 
         # Keep track of the number of hl after the separator.
         # This is useful to make “go to next highlight“ work after a “move to separator”.
@@ -119,8 +117,8 @@ class TextWin(Win):
             lines = self.built_lines[-self.height:]
         else:
             lines = self.built_lines[-self.height - self.pos:-self.pos]
-        with_timestamps = config.get("show_timestamps")
-        nick_size = config.get("max_nick_length")
+        with_timestamps = config.getbool("show_timestamps")
+        nick_size = config.getint("max_nick_length")
         self._win.move(0, 0)
         self._win.erase()
         offset = 0
@@ -149,6 +147,7 @@ class TextWin(Win):
         self.addstr_colored(txt, y, x)
 
     def resize(self, height: int, width: int, y: int, x: int, room: TextBuffer=None) -> None:
+        old_width: Optional[int]
         if hasattr(self, 'width'):
             old_width = self.width
         else:
@@ -167,8 +166,8 @@ class TextWin(Win):
 
     def rebuild_everything(self, room: TextBuffer) -> None:
         self.built_lines = []
-        with_timestamps = config.get('show_timestamps')
-        nick_size = config.get('max_nick_length')
+        with_timestamps = config.getbool('show_timestamps')
+        nick_size = config.getint('max_nick_length')
         for message in room.messages:
             self.build_new_message(
                 message,
@@ -202,7 +201,6 @@ class TextWin(Win):
             if room and room.messages:
                 self.separator_after = room.messages[-1]
 
-
     def write_line_separator(self, y) -> None:
         theme = get_theme()
         char = theme.CHAR_NEW_TEXT_SEPARATOR
@@ -222,13 +220,13 @@ class TextWin(Win):
         highlights, scroll to the end of the buffer.
         """
         log.debug('Going to the next highlight…')
-        if (not self.highlights or self.hl_pos != self.hl_pos
+        if (not self.highlights or self.hl_pos is None
                 or self.hl_pos >= len(self.highlights) - 1):
-            self.hl_pos = float('nan')
+            self.hl_pos = None
             self.pos = 0
             return
         hl_size = len(self.highlights) - 1
-        if self.hl_pos < hl_size:
+        if self.hl_pos is not None and self.hl_pos < hl_size:
             self.hl_pos += 1
         else:
             self.hl_pos = hl_size
@@ -239,9 +237,10 @@ class TextWin(Win):
             try:
                 pos = self.built_lines.index(hl)
             except ValueError:
-                del self.highlights[self.hl_pos]
+                if isinstance(self.hl_pos, int):
+                    del self.highlights[self.hl_pos]
                 if not self.highlights:
-                    self.hl_pos = float('nan')
+                    self.hl_pos = None
                     self.pos = 0
                     return
                 self.hl_pos = 0
@@ -258,11 +257,11 @@ class TextWin(Win):
         highlights, scroll to the end of the buffer.
         """
         log.debug('Going to the previous highlight…')
-        if not self.highlights or self.hl_pos <= 0:
-            self.hl_pos = float('nan')
+        if not self.highlights or self.hl_pos and self.hl_pos <= 0:
+            self.hl_pos = None
             self.pos = 0
             return
-        if self.hl_pos != self.hl_pos:
+        if self.hl_pos is None:
             self.hl_pos = len(self.highlights) - 1
         else:
             self.hl_pos -= 1
@@ -273,9 +272,10 @@ class TextWin(Win):
             try:
                 pos = self.built_lines.index(hl)
             except ValueError:
-                del self.highlights[self.hl_pos]
+                if self.hl_pos is not None:
+                    del self.highlights[self.hl_pos]
                 if not self.highlights:
-                    self.hl_pos = float('nan')
+                    self.hl_pos = None
                     self.pos = 0
                     return
                 self.hl_pos = 0
@@ -310,8 +310,8 @@ class TextWin(Win):
         Find a message, and replace it with a new one
         (instead of rebuilding everything in order to correct a message)
         """
-        with_timestamps = config.get('show_timestamps')
-        nick_size = config.get('max_nick_length')
+        with_timestamps = config.getbool('show_timestamps')
+        nick_size = config.getint('max_nick_length')
         for i in range(len(self.built_lines) - 1, -1, -1):
             current = self.built_lines[i]
             if current is not None and current.msg.identifier == old_id:

@@ -167,7 +167,7 @@ class Plugin(BasePlugin):
         for pos in sorted(tabs_spec):
             if create_gaps and pos > last + 1:
                 new_tabs += [
-                    tabs.GapTab(self.core) for i in range(pos - last - 1)
+                    tabs.GapTab() for i in range(pos - last - 1)
                 ]
             cls, jid = tabs_spec[pos]
             try:
@@ -183,11 +183,11 @@ class Plugin(BasePlugin):
                         new_tab = cls(self.core, jid)
                         new_tabs.append(new_tab)
                     else:
-                        new_tabs.append(tabs.GapTab(self.core))
+                        new_tabs.append(tabs.GapTab())
             except:
                 self.api.information('Failed to create tab \'%s\'.' % jid, 'Error')
                 if create_gaps:
-                    new_tabs.append(tabs.GapTab(self.core))
+                    new_tabs.append(tabs.GapTab())
             finally:
                 last = pos
 

@@ -9,41 +9,35 @@ A Tab (see the poezio.tabs module) is composed of multiple Windows
 
 from __future__ import annotations
 
-TAB_WIN: _CursesWindow = None
-
-import logging
-log = logging.getLogger(__name__)
-
 import curses
+import logging
 import string
 
 from contextlib import contextmanager
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import Optional, Tuple, TYPE_CHECKING, cast
 
 from poezio.theming import to_curses_attr, read_tuple
 
 from poezio.ui.consts import FORMAT_CHAR
 
+log = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
     from _curses import _CursesWindow  # pylint: disable=E0611
-
-
-class DummyWin:
-    def __getattribute__(self, name: str):
-        if name != '__bool__':
-            return lambda *args, **kwargs: (0, 0)
-        else:
-            return object.__getattribute__(self, name)
-
-    def __bool__(self) -> bool:
-        return False
 
 
 class Win:
     __slots__ = ('_win', 'height', 'width', 'y', 'x')
 
+    width: int
+    height: int
+    x: int
+    y: int
+
     def __init__(self) -> None:
-        self._win: _CursesWindow = None
+        if TAB_WIN is None:
+            raise ValueError
+        self._win: _CursesWindow = TAB_WIN
         self.height, self.width = 0, 0
 
     def _resize(self, height: int, width: int, y: int, x: int) -> None:
@@ -52,11 +46,11 @@ class Win:
             return
         self.height, self.width, self.x, self.y = height, width, x, y
         try:
+            if TAB_WIN is None:
+                raise ValueError('TAB_WIN is None')
             self._win = TAB_WIN.derwin(height, width, y, x)
         except:
             log.debug('DEBUG: mvwin returned ERR. Please investigate')
-            if self._win is None:
-                self._win = DummyWin()
 
     def resize(self, height: int, width: int, y: int, x: int) -> None:
         """
@@ -85,12 +79,14 @@ class Win:
         if color is None and attr is None:
             yield None
             return
+        mode: int
         if color is not None:
             mode = to_curses_attr(color)
             if attr is not None:
                 mode = mode | attr
         else:
-            mode = attr
+            # attr cannot be none here
+            mode = cast(int, attr)
         self._win.attron(mode)
         yield None
         self._win.attroff(mode)
@@ -179,3 +175,6 @@ class Win:
             self.addnstr(' ' * size, size, to_curses_attr(color))
         else:
             self.addnstr(' ' * size, size)
+
+
+TAB_WIN: Optional[_CursesWindow] = None

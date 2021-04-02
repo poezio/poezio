@@ -1,4 +1,4 @@
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 from poezio.core.commands import CommandCore
 from poezio.core.completions import CompletionCore
@@ -21,7 +21,8 @@ CommandDict = TypedDict(
         "func": Callable,
         "shortdesc": str,
         "desc": str,
-        "completion": Callable,
+        "usage": str,
+        "completion": Optional[Callable],
     },
     total=False,
 )

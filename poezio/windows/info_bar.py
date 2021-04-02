@@ -5,17 +5,18 @@ This window is the one listing the current opened tabs in poezio.
 The GlobalInfoBar can be either horizontal or vertical
 (VerticalGlobalInfoBar).
 """
-import logging
-import itertools
-log = logging.getLogger(__name__)
-
 import curses
+import itertools
+import logging
+
+from typing import List, Optional
 
 from poezio.config import config
 from poezio.windows.base_wins import Win
 from poezio.theming import get_theme, to_curses_attr
 from poezio.common import unique_prefix_of
 
+log = logging.getLogger(__name__)
 
 class GlobalInfoBar(Win):
     __slots__ = ('core')
@@ -31,14 +32,14 @@ class GlobalInfoBar(Win):
         self.addstr(0, 0, "[",
                     to_curses_attr(theme.COLOR_INFORMATION_BAR))
 
-        show_names = config.get('show_tab_names')
-        show_nums = config.get('show_tab_numbers')
-        use_nicks = config.get('use_tab_nicks')
-        show_inactive = config.get('show_inactive_tabs')
-        unique_prefix_tab_names = config.get('unique_prefix_tab_names')
+        show_names = config.getbool('show_tab_names')
+        show_nums = config.getbool('show_tab_numbers')
+        use_nicks = config.getbool('use_tab_nicks')
+        show_inactive = config.getbool('show_inactive_tabs')
+        unique_prefix_tab_names = config.getbool('unique_prefix_tab_names')
 
         if unique_prefix_tab_names:
-            unique_prefixes = [None] * len(self.core.tabs)
+            unique_prefixes: List[Optional[str]] = [None] * len(self.core.tabs)
             sorted_tab_indices = sorted(
                 (str(tab.name), i)
                 for i, tab in enumerate(self.core.tabs)
@@ -110,13 +111,13 @@ class VerticalGlobalInfoBar(Win):
         self._win.erase()
         sorted_tabs = [tab for tab in self.core.tabs if tab]
         theme = get_theme()
-        if not config.get('show_inactive_tabs'):
+        if not config.getbool('show_inactive_tabs'):
             sorted_tabs = [
                 tab for tab in sorted_tabs
                 if tab.vertical_color != theme.COLOR_VERTICAL_TAB_NORMAL
             ]
         nb_tabs = len(sorted_tabs)
-        use_nicks = config.get('use_tab_nicks')
+        use_nicks = config.getbool('use_tab_nicks')
         if nb_tabs >= height:
             # TODO: As sorted_tabs filters out gap tabs this ensures pos is
             # always set, preventing UnboundLocalError. Now is this how this
@@ -133,7 +134,7 @@ class VerticalGlobalInfoBar(Win):
                 sorted_tabs = sorted_tabs[-height:]
             else:
                 sorted_tabs = sorted_tabs[pos - height // 2:pos + height // 2]
-        asc_sort = (config.get('vertical_tab_list_sort') == 'asc')
+        asc_sort = (config.getstr('vertical_tab_list_sort') == 'asc')
         for y, tab in enumerate(sorted_tabs):
             color = tab.vertical_color
             if asc_sort:

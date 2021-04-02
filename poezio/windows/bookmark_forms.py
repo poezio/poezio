@@ -155,8 +155,8 @@ class BookmarksWin(Win):
     __slots__ = ('scroll_pos', '_current_input', 'current_horizontal_input',
                  '_bookmarks', 'lines')
 
-    def __init__(self, bookmarks: BookmarkList, height: int, width: int, y: int, x: int) -> None:
-        self._win = base_wins.TAB_WIN.derwin(height, width, y, x)
+    def __init__(self, bookmarks: BookmarkList) -> None:
+        Win.__init__(self)
         self.scroll_pos = 0
         self._current_input = 0
         self.current_horizontal_input = 0
@@ -214,9 +214,7 @@ class BookmarksWin(Win):
         return bm
 
     def resize(self, height: int, width: int, y: int, x: int) -> None:
-        self.height = height
-        self.width = width
-        self._win = base_wins.TAB_WIN.derwin(height, width, y, x)
+        super().resize(height, width, y, x)
         # Adjust the scroll position, if resizing made the window too small
         # for the cursor to be visible
         while self.current_input - self.scroll_pos > self.height - 1:
@@ -384,5 +382,8 @@ class BookmarksWin(Win):
 
     def save(self) -> None:
         for line in self.lines:
-            for item in line:
-                item.save()
+            line[0].save()
+            line[1].save()
+            line[2].save()
+            line[3].save()
+            line[4].save()
