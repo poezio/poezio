@@ -100,8 +100,8 @@ def main():
     from poezio import theming
     theming.update_themes_dir()
 
-    from poezio import logger
-    logger.create_logger()
+    from poezio.logger import logger
+    logger.log_dir = config.LOG_DIR
 
     from poezio import roster
     roster.roster.reset()

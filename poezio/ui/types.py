@@ -7,7 +7,6 @@ from poezio import poopt
 from poezio.user import User
 from poezio.theming import dump_tuple, get_theme
 
-
 class BaseMessage:
     __slots__ = ('txt', 'time', 'identifier')
 
@@ -34,11 +33,20 @@ class InfoMessage(BaseMessage):
         super().__init__(txt=txt, identifier=identifier, time=time)
 
 
-class MucOwnLeaveMessage(InfoMessage):
+class LoggableTrait:
+    """Trait for classes of messages that should go through the logger"""
+    pass
+
+
+class PersistentInfoMessage(InfoMessage, LoggableTrait):
+    pass
+
+
+class MucOwnLeaveMessage(InfoMessage, LoggableTrait):
     """Status message displayed on our room leave/kick/ban"""
 
 
-class MucOwnJoinMessage(InfoMessage):
+class MucOwnJoinMessage(InfoMessage, LoggableTrait):
     """Status message displayed on our room join"""
 
 
@@ -93,7 +101,7 @@ class StatusMessage(BaseMessage):
         self.txt = self.format_string.format(**real_args)
 
 
-class Message(BaseMessage):
+class Message(BaseMessage, LoggableTrait):
     __slots__ = ('nick_color', 'nickname', 'user', 'delayed', 'history',
                  'top', 'highlight', 'me', 'old_message', 'revisions',
                  'jid', 'ack')
