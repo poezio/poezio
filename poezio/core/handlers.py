@@ -236,7 +236,7 @@ class HandlerCore:
         if password:
             msg += ". The password is \"%s\"." % password
         self.core.information(msg, 'Info')
-        if 'invite' in config.getlist('beep_on'):
+        if 'invite' in config.getstr('beep_on').split():
             curses.beep()
         logger.log_roster_change(inviter.full, 'invited you to %s' % jid.full)
         self.core.pending_invites[jid.bare] = inviter.full
@@ -267,7 +267,7 @@ class HandlerCore:
             msg += "\nreason: %s" % reason
 
         self.core.information(msg, 'Info')
-        if 'invite' in config.getlist('beep_on'):
+        if 'invite' in config.getstr('beep_on').split():
             curses.beep()
 
         self.core.pending_invites[room.bare] = inviter.full
@@ -430,7 +430,7 @@ class HandlerCore:
                 )
             )
 
-        if not own and 'private' in config.getlist('beep_on'):
+        if not own and 'private' in config.getstr('beep_on').split():
             if not config.get_by_tabname('disable_beep', conv_jid.bare):
                 curses.beep()
         if self.core.tabs.current_tab is not conversation:
@@ -651,7 +651,7 @@ class HandlerCore:
                 current.input.refresh()
             self.core.doupdate()
 
-        if 'message' in config.getlist('beep_on'):
+        if 'message' in config.getstr('beep_on').split():
             if (not config.get_by_tabname('disable_beep', room_from)
                     and self.core.own_nick != message['from'].resource):
                 curses.beep()
@@ -735,7 +735,7 @@ class HandlerCore:
         else:
             tab.last_remote_message = datetime.now()
 
-        if not sent and 'private' in config.getlist('beep_on'):
+        if not sent and 'private' in config.getstr('beep_on').split():
             if not config.get_by_tabname('disable_beep', jid.full):
                 curses.beep()
         if tab is self.core.tabs.current_tab:
@@ -1099,7 +1099,7 @@ class HandlerCore:
         """
         When we are disconnected from remote server
         """
-        if 'disconnect' in config.getlist('beep_on'):
+        if 'disconnect' in config.getstr('beep_on').split():
             curses.beep()
         # Stop the ping plugin. It would try to send stanza on regular basis
         self.core.xmpp.plugin['xep_0199'].disable_keepalive()
