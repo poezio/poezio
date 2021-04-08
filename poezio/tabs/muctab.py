@@ -1346,7 +1346,7 @@ class MucTab(ChatTab):
         if highlighted and self.joined and not corrected:
             if self.state != 'current':
                 self.state = 'highlight'
-            beep_on = config.getlist('beep_on')
+            beep_on = config.getstr('beep_on').split()
             if 'highlight' in beep_on and 'message' not in beep_on:
                 if not config.get_by_tabname('disable_beep', self.jid.bare):
                     curses.beep()
