@@ -88,12 +88,15 @@ class Logger:
     _roster_logfile: Optional[IO[str]]
     log_dir: Path
     _fds: Dict[str, IO[str]]
+    _busy_fds: Dict[str, bool]
 
     def __init__(self):
         self.log_dir = Path()
         self._roster_logfile = None
         # a dict of 'groupchatname': file-object (opened)
         self._fds = {}
+        self._busy_fds = {}
+        self._buffered_fds = {}
 
     def __del__(self):
         """Close all fds on exit"""
@@ -107,6 +110,35 @@ class Logger:
             self._roster_logfile.close()
         except Exception:
             pass
+
+    def get_file_path(self, jid: str) -> Path:
+        """Return the log path for a specific jid"""
+        jidstr = str(jid).replace('/', '\\')
+        return self.log_dir / jidstr
+
+    def fd_busy(self, jid: str) -> None:
+        """Signal to the logger that this logfile is busy elsewhere.
+        And that the messages should be queued to be logged later.
+
+        :param jid: file name
+        """
+        self._busy_fds[jid] = True
+        self._buffered_fds[jid] = []
+
+    def fd_available(self, jid: str) -> None:
+        """Signal to the logger that this logfile is no longer busy.
+        And write messages to the end.
+
+        :param jid: file name
+        """
+        if jid in self._busy_fds:
+            del self._busy_fds[jid]
+        if jid in self._buffered_fds:
+            msgs = ''.join(self._buffered_fds.pop(jid))
+            if jid in self._fds:
+                self._fds[jid].close()
+                del self._fds[jid]
+            self.log_raw(jid, msgs)
 
     def close(self, jid: str) -> None:
         """Close the log file for a JID."""
@@ -192,6 +224,16 @@ class Logger:
         logged_msg = build_log_message(nick, txt, date=date, prefix=typ)
         if not logged_msg:
             return True
+        return self.log_raw(jid, logged_msg)
+
+    def log_raw(self, jid: str, logged_msg: str, force: bool = False) -> bool:
+        """Log a raw string.
+
+        :param jid: filename
+        :param logged_msg: string to log
+        :param force: Bypass the buffered fd check
+        :returns: True if no error was encountered
+        """
         jid = str(jid).replace('/', '\\')
         if jid in self._fds.keys():
             fd = self._fds[jid]
@@ -202,6 +244,9 @@ class Logger:
             fd = option_fd
         filename = self.log_dir / jid
         try:
+            if not force and self._busy_fds.get(jid):
+                self._buffered_fds[jid].append(logged_msg)
+                return True
             fd.write(logged_msg)
         except OSError:
             log.error(
