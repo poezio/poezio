@@ -63,7 +63,7 @@ class LogMessage(LogItem):
         self.nick = nick
 
 
-def parse_log_line(msg: str, jid: str) -> Optional[LogItem]:
+def parse_log_line(msg: str, jid: str = '') -> Optional[LogItem]:
     """Parse a log line.
 
     :param msg: The message ligne
@@ -309,7 +309,7 @@ def _get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
     return lines
 
 
-def parse_log_lines(lines: List[str], jid: str) -> List[Dict[str, Any]]:
+def parse_log_lines(lines: List[str], jid: str = '') -> List[Dict[str, Any]]:
     """
     Parse raw log lines into poezio log objects
 
