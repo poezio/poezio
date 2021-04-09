@@ -409,11 +409,13 @@ def parse_log_lines(lines: List[str], jid: str = '') -> List[Dict[str, Any]]:
         message_lines = []
         message = {
             'history': True,
-            'time': common.get_local_time(log_item.time)
+            'time': common.get_local_time(log_item.time),
+            'type': 'message',
         }
         size = log_item.nb_lines
         if isinstance(log_item, LogInfo):
             message_lines.append(log_item.text)
+            message['type'] = 'info'
         elif isinstance(log_item, LogMessage):
             message['nickname'] = log_item.nick
             message_lines.append(log_item.text)
