@@ -289,6 +289,36 @@ def build_log_message(nick: str,
     return logged_msg + ''.join(' %s\n' % line for line in lines)
 
 
+def iterate_messages_reverse(filepath: Path):
+    """Get the latest messages from the log file, one at a time.
+
+    :param fd: the file descriptor
+    """
+    try:
+        with open(filepath, 'rb') as fd:
+            with mmap.mmap(fd.fileno(), 0, prot=mmap.PROT_READ) as m:
+                # start of messages begin with MI or MR, after a \n
+                pos = m.rfind(b"\nM") + 1
+                lines = parse_log_lines(
+                    m[pos:-1].decode(errors='replace').splitlines()
+                )
+                if lines:
+                    yield lines[0]
+                # number of message found so far
+                count = 0
+                while pos > 0:
+                    count += 1
+                    old_pos = pos
+                    pos = m.rfind(b"\nM", 0, pos) + 1
+                    lines = parse_log_lines(
+                        m[pos:old_pos].decode(errors='replace').splitlines()
+                    )
+                    if lines:
+                        yield lines[0]
+    except OSError:
+        pass
+
+
 def _get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
     """
     Get the last log lines from a fileno with mmap
