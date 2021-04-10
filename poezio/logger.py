@@ -334,6 +334,19 @@ def build_log_message(nick: str,
     return logged_msg + ''.join(' %s\n' % line for line in lines)
 
 
+def last_message_in_archive(filepath: Path) -> Optional[Dict]:
+    """Get the last message from the local archive.
+
+    :param filepath: the log file path
+    """
+    last_msg = None
+    for msg in iterate_messages_reverse(filepath):
+        if msg['type'] == 'message':
+            last_msg = msg
+            break
+    return last_msg
+
+
 def iterate_messages_reverse(filepath: Path):
     """Get the latest messages from the log file, one at a time.
 
