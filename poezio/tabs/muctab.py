@@ -39,7 +39,6 @@ from slixmpp.exceptions import IqError, IqTimeout
 from poezio.tabs import ChatTab, Tab, SHOW_NAME
 
 from poezio import common
-from poezio import mam
 from poezio import multiuserchat as muc
 from poezio import timed_events
 from poezio import windows
@@ -49,6 +48,7 @@ from poezio.config import config
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper, command_args_parser
 from poezio.logger import logger
+from poezio.log_loader import LogLoader
 from poezio.roster import roster
 from poezio.theming import get_theme, dump_tuple
 from poezio.user import User
@@ -604,7 +604,9 @@ class MucTab(ChatTab):
                     },
                 ),
             )
-        mam.schedule_tab_open(self)
+        asyncio.ensure_future(
+            LogLoader(logger, self).tab_open(),
+        )
 
     def handle_presence_joined(self, presence: Presence, status_codes: Set[int]) -> None:
         """
