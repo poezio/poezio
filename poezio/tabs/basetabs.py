@@ -967,7 +967,7 @@ class ChatTab(Tab):
         if not self.query_status:
             from poezio.log_loader import LogLoader
             asyncio.ensure_future(
-                LogLoader(logger, self).scroll_requested()
+                LogLoader(logger, self, config.get('use_log')).scroll_requested()
             )
         return self.text_win.scroll_up(self.text_win.height - 1)
 
