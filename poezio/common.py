@@ -498,11 +498,11 @@ def unique_prefix_of(a: str, b: str) -> str:
 
 def to_utc(time_: datetime) -> datetime:
     """Convert a datetime-aware time zone into raw UTC"""
-    tzone = datetime.now().astimezone().tzinfo
     if time_.tzinfo is not None:  # Convert to UTC
         time_ = time_.astimezone(tz=timezone.utc)
-    else:  # Assume local tz, convert to URC
-        time = time_.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
+    else:  # Assume local tz, convert to UTC
+        tzone = datetime.now().astimezone().tzinfo
+        time_ = time_.replace(tzinfo=tzone).astimezone(tz=timezone.utc)
     # Return an offset-naive datetime
     return time_.replace(tzinfo=None)
 
