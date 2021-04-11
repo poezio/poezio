@@ -387,7 +387,7 @@ def iterate_messages_reverse(filepath: Path) -> Generator[LogDict, None, None]:
                     )
                     if lines:
                         yield lines[0]
-    except OSError:
+    except (OSError, ValueError):
         pass
 
 
