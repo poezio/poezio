@@ -181,7 +181,8 @@ class MucTab(ChatTab):
         use_log = config.get_by_tabname('mam_sync', self.general_jid)
         mam_sync = config.get_by_tabname('mam_sync', self.general_jid)
         if self.mam_filler is None and use_log and mam_sync:
-            self.mam_filler = MAMFiller(logger, self)
+            limit = config.get_by_tabname('mam_sync_limit', self.jid)
+            self.mam_filler = MAMFiller(logger, self, limit)
         muc.join_groupchat(
             self.core,
             self.jid.bare,

@@ -265,14 +265,15 @@ class MAMFiller:
     logger: Logger
     future: asyncio.Future
     done: asyncio.Event
-    max_msgs: int = 2000
+    limit: int
 
-    def __init__(self, logger: Logger, tab: tabs.ChatTab):
+    def __init__(self, logger: Logger, tab: tabs.ChatTab, limit: int = 2000):
         self.tab = tab
         self.logger = logger
         logger.fd_busy(tab.jid)
         self.future = asyncio.ensure_future(self.fetch_routine())
         self.done = asyncio.Event()
+        self.limit = limit
 
     def cancel(self) -> None:
         """Cancel the routine and signal the end."""
@@ -292,7 +293,7 @@ class MAMFiller:
                 messages = await fetch_history(
                     self.tab,
                     start=last_msg_time,
-                    amount=self.max_msgs,
+                    amount=self.limit,
                 )
                 log.debug(
                     'Fetched %s messages to fill local logs for %s',
