@@ -442,4 +442,11 @@ def get_commands(commands: CommandCore, completions: CompletionCore, plugin_mana
             "shortdesc": "Reload the config. You can achieve the same by "
             "sending SIGUSR1 to poezio.",
         },
+        {
+            "name": "debug",
+            "func": commands.debug,
+            "usage": "[debug_filename]",
+            "shortdesc": "Enable or disable debug logging according to the "
+            "presence of [debug_filename].",
+        },
     ]

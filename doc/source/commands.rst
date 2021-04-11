@@ -34,6 +34,12 @@ These commands work in *any* tab.
         available commands. If it has a valid command as an argument, this command
         will show the usage and the help for the given command.
 
+    /debug
+        **Usage:** ``/debug [filename]
+
+        Reset logging and enable debugging to ``[filename]``. If the filename
+        is empty, debug logging will be disabled.
+
     /join
         **Usage:** ``/join [room_name][@server][/nick] [password]``
 
