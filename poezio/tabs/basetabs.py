@@ -1014,7 +1014,8 @@ class OneToOneTab(ChatTab):
         use_log = config.get_by_tabname('use_log', self.jid)
         mam_sync = config.get_by_tabname('mam_sync', self.jid)
         if use_log and mam_sync:
-            self.mam_filler = MAMFiller(logger, self)
+            limit = config.get_by_tabname('mam_sync_limit', self.jid)
+            self.mam_filler = MAMFiller(logger, self, limit)
         asyncio.ensure_future(
             LogLoader(logger, self, use_log).tab_open()
         )
