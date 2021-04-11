@@ -11,7 +11,7 @@ conversations and roster changes
 
 import mmap
 import re
-from typing import List, Dict, Optional, IO, Any, Union
+from typing import List, Dict, Optional, IO, Any, Union, Generator
 from datetime import datetime
 from pathlib import Path
 
@@ -19,6 +19,8 @@ from poezio import common
 from poezio.config import config
 from poezio.xhtml import clean_text
 from poezio.ui.types import Message, BaseMessage, LoggableTrait
+from slixmpp import JID
+from poezio.types import TypedDict
 
 import logging
 
@@ -63,7 +65,17 @@ class LogMessage(LogItem):
         self.nick = nick
 
 
-def parse_log_line(msg: str, jid: str) -> Optional[LogItem]:
+LogDict = TypedDict(
+    'LogDict',
+    {
+        'type': str, 'txt': str, 'time': datetime,
+        'history': bool, 'nickname': str
+    },
+    total=False,
+)
+
+
+def parse_log_line(msg: str, jid: str = '') -> Optional[LogItem]:
     """Parse a log line.
 
     :param msg: The message ligne
@@ -88,12 +100,15 @@ class Logger:
     _roster_logfile: Optional[IO[str]]
     log_dir: Path
     _fds: Dict[str, IO[str]]
+    _busy_fds: Dict[str, bool]
 
     def __init__(self):
         self.log_dir = Path()
         self._roster_logfile = None
         # a dict of 'groupchatname': file-object (opened)
         self._fds = {}
+        self._busy_fds = {}
+        self._buffered_fds = {}
 
     def __del__(self):
         """Close all fds on exit"""
@@ -107,6 +122,37 @@ class Logger:
             self._roster_logfile.close()
         except Exception:
             pass
+
+    def get_file_path(self, jid: Union[str, JID]) -> Path:
+        """Return the log path for a specific jid"""
+        jidstr = str(jid).replace('/', '\\')
+        return self.log_dir / jidstr
+
+    def fd_busy(self, jid: Union[str, JID]) -> None:
+        """Signal to the logger that this logfile is busy elsewhere.
+        And that the messages should be queued to be logged later.
+
+        :param jid: file name
+        """
+        jidstr = str(jid).replace('/', '\\')
+        self._busy_fds[jidstr] = True
+        self._buffered_fds[jidstr] = []
+
+    def fd_available(self, jid: Union[str, JID]) -> None:
+        """Signal to the logger that this logfile is no longer busy.
+        And write messages to the end.
+
+        :param jid: file name
+        """
+        jidstr = str(jid).replace('/', '\\')
+        if jidstr in self._busy_fds:
+            del self._busy_fds[jidstr]
+        if jidstr in self._buffered_fds:
+            msgs = ''.join(self._buffered_fds.pop(jidstr))
+            if jidstr in self._fds:
+                self._fds[jidstr].close()
+                del self._fds[jidstr]
+            self.log_raw(jid, msgs)
 
     def close(self, jid: str) -> None:
         """Close the log file for a JID."""
@@ -192,6 +238,16 @@ class Logger:
         logged_msg = build_log_message(nick, txt, date=date, prefix=typ)
         if not logged_msg:
             return True
+        return self.log_raw(jid, logged_msg)
+
+    def log_raw(self, jid: Union[str, JID], logged_msg: str, force: bool = False) -> bool:
+        """Log a raw string.
+
+        :param jid: filename
+        :param logged_msg: string to log
+        :param force: Bypass the buffered fd check
+        :returns: True if no error was encountered
+        """
         jid = str(jid).replace('/', '\\')
         if jid in self._fds.keys():
             fd = self._fds[jid]
@@ -202,6 +258,9 @@ class Logger:
             fd = option_fd
         filename = self.log_dir / jid
         try:
+            if not force and self._busy_fds.get(jid):
+                self._buffered_fds[jid].append(logged_msg)
+                return True
             fd.write(logged_msg)
         except OSError:
             log.error(
@@ -289,6 +348,49 @@ def build_log_message(nick: str,
     return logged_msg + ''.join(' %s\n' % line for line in lines)
 
 
+def last_message_in_archive(filepath: Path) -> Optional[LogDict]:
+    """Get the last message from the local archive.
+
+    :param filepath: the log file path
+    """
+    last_msg = None
+    for msg in iterate_messages_reverse(filepath):
+        if msg['type'] == 'message':
+            last_msg = msg
+            break
+    return last_msg
+
+
+def iterate_messages_reverse(filepath: Path) -> Generator[LogDict, None, None]:
+    """Get the latest messages from the log file, one at a time.
+
+    :param fd: the file descriptor
+    """
+    try:
+        with open(filepath, 'rb') as fd:
+            with mmap.mmap(fd.fileno(), 0, prot=mmap.PROT_READ) as m:
+                # start of messages begin with MI or MR, after a \n
+                pos = m.rfind(b"\nM") + 1
+                lines = parse_log_lines(
+                    m[pos:-1].decode(errors='replace').splitlines()
+                )
+                if lines:
+                    yield lines[0]
+                # number of message found so far
+                count = 0
+                while pos > 0:
+                    count += 1
+                    old_pos = pos
+                    pos = m.rfind(b"\nM", 0, pos) + 1
+                    lines = parse_log_lines(
+                        m[pos:old_pos].decode(errors='replace').splitlines()
+                    )
+                    if lines:
+                        yield lines[0]
+    except (OSError, ValueError):
+        pass
+
+
 def _get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
     """
     Get the last log lines from a fileno with mmap
@@ -309,7 +411,7 @@ def _get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
     return lines
 
 
-def parse_log_lines(lines: List[str], jid: str) -> List[Dict[str, Any]]:
+def parse_log_lines(lines: List[str], jid: str = '') -> List[LogDict]:
     """
     Parse raw log lines into poezio log objects
 
@@ -332,13 +434,15 @@ def parse_log_lines(lines: List[str], jid: str) -> List[Dict[str, Any]]:
             log.debug('wrong log format? %s', log_item)
             continue
         message_lines = []
-        message = {
+        message = LogDict({
             'history': True,
-            'time': common.get_local_time(log_item.time)
-        }
+            'time': common.get_local_time(log_item.time),
+            'type': 'message',
+        })
         size = log_item.nb_lines
         if isinstance(log_item, LogInfo):
             message_lines.append(log_item.text)
+            message['type'] = 'info'
         elif isinstance(log_item, LogMessage):
             message['nickname'] = log_item.nick
             message_lines.append(log_item.text)

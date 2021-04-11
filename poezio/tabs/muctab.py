@@ -39,7 +39,6 @@ from slixmpp.exceptions import IqError, IqTimeout
 from poezio.tabs import ChatTab, Tab, SHOW_NAME
 
 from poezio import common
-from poezio import mam
 from poezio import multiuserchat as muc
 from poezio import timed_events
 from poezio import windows
@@ -49,6 +48,7 @@ from poezio.config import config
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper, command_args_parser
 from poezio.logger import logger
+from poezio.log_loader import LogLoader, MAMFiller
 from poezio.roster import roster
 from poezio.theming import get_theme, dump_tuple
 from poezio.user import User
@@ -59,7 +59,6 @@ from poezio.ui.types import (
     Message,
     MucOwnJoinMessage,
     MucOwnLeaveMessage,
-    StatusMessage,
     PersistentInfoMessage,
 )
 
@@ -83,7 +82,7 @@ class MucTab(ChatTab):
     plugin_commands: Dict[str, Command] = {}
     plugin_keys: Dict[str, Callable[..., Any]] = {}
     additional_information: Dict[str, Callable[[str], str]] = {}
-    lagged = False
+    lagged: bool = False
 
     def __init__(self, core: Core, jid: JID, nick: str, password: Optional[str] = None) -> None:
         ChatTab.__init__(self, core, jid)
@@ -179,6 +178,11 @@ class MucTab(ChatTab):
             seconds = None
             if last_message is not None:
                 seconds = (datetime.now() - last_message.time).seconds
+        use_log = config.get_by_tabname('mam_sync', self.general_jid)
+        mam_sync = config.get_by_tabname('mam_sync', self.general_jid)
+        if self.mam_filler is None and use_log and mam_sync:
+            limit = config.get_by_tabname('mam_sync_limit', self.jid)
+            self.mam_filler = MAMFiller(logger, self, limit)
         muc.join_groupchat(
             self.core,
             self.jid.bare,
@@ -604,7 +608,9 @@ class MucTab(ChatTab):
                     },
                 ),
             )
-        mam.schedule_tab_open(self)
+        asyncio.ensure_future(LogLoader(
+            logger, self, config.get_by_tabname('use_log', self.general_jid)
+        ).tab_open())
 
     def handle_presence_joined(self, presence: Presence, status_codes: Set[int]) -> None:
         """

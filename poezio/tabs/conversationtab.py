@@ -11,6 +11,7 @@ There are two different instances of a ConversationTab:
     the time.
 
 """
+import asyncio
 import curses
 import logging
 from typing import Dict, Callable
@@ -25,7 +26,6 @@ from poezio.config import config
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper
 from poezio.roster import roster
-from poezio.text_buffer import CorrectionError
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 from poezio.ui.types import InfoMessage
@@ -454,6 +454,10 @@ class StaticConversationTab(ConversationTab):
         self.resize()
         self.update_commands()
         self.update_keys()
+
+    def init_logs(self) -> None:
+        # Disable local logs because…
+        pass
 
     def get_info_header(self):
         return self.info_header

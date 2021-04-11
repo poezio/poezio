@@ -23,12 +23,9 @@ from poezio import xhtml
 from poezio.config import config
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper
-from poezio.logger import logger
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 from poezio.ui.types import (
-    BaseMessage,
-    InfoMessage,
     Message,
     PersistentInfoMessage,
 )

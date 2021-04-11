@@ -106,6 +106,6 @@ def test_log_and_parse_messages():
     assert built_msg2 == 'MR %s 001 <toto>  coucou\n coucou\n' % (msg2_utc.strftime('%Y%m%dT%H:%M:%SZ'))
 
     assert parse_log_lines((built_msg1 + built_msg2).split('\n'), 'user@domain') == [
-        {'time': msg1['date'], 'history': True, 'txt': 'coucou', 'nickname': 'toto'},
-        {'time': msg2['date'], 'history': True, 'txt': 'coucou\ncoucou', 'nickname': 'toto'},
+            {'time': msg1['date'], 'history': True, 'txt': 'coucou', 'nickname': 'toto', 'type': 'message'},
+        {'time': msg2['date'], 'history': True, 'txt': 'coucou\ncoucou', 'nickname': 'toto', 'type': 'message'},
     ]

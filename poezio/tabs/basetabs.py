@@ -45,6 +45,7 @@ from poezio.core.structs import Command, Completion, Status
 from poezio.config import config
 from poezio.decorators import command_args_parser, refresh_wrapper
 from poezio.logger import logger
+from poezio.log_loader import MAMFiller, LogLoader
 from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme, dump_tuple
 from poezio.user import User
@@ -511,6 +512,7 @@ class ChatTab(Tab):
     message_type = 'chat'
     timed_event_paused: Optional[DelayedEvent]
     timed_event_not_paused: Optional[DelayedEvent]
+    mam_filler: Optional[MAMFiller]
 
     def __init__(self, core, jid: Union[JID, str]):
         Tab.__init__(self, core)
@@ -526,6 +528,7 @@ class ChatTab(Tab):
         self.directed_presence = None
         self._text_buffer = TextBuffer()
         self._text_buffer.add_window(self.text_win)
+        self.mam_filler = None
         self.chatstate = None  # can be "active", "composing", "paused", "gone", "inactive"
         # We keep a reference of the event that will set our chatstate to "paused", so that
         # we can delete it or change it if we need to
@@ -965,8 +968,10 @@ class ChatTab(Tab):
 
     def on_scroll_up(self):
         if not self.query_status:
-            from poezio import mam
-            mam.schedule_scroll_up(tab=self)
+            from poezio.log_loader import LogLoader
+            asyncio.ensure_future(
+                LogLoader(logger, self, config.getbool('use_log')).scroll_requested()
+            )
         return self.text_win.scroll_up(self.text_win.height - 1)
 
     def on_scroll_down(self):
@@ -1003,6 +1008,17 @@ class OneToOneTab(ChatTab):
             shortdesc='Request the attention.',
             desc='Attention: Request the attention of the contact.  Can also '
             'send a message along with the attention.')
+        self.init_logs()
+
+    def init_logs(self) -> None:
+        use_log = config.get_by_tabname('use_log', self.jid)
+        mam_sync = config.get_by_tabname('mam_sync', self.jid)
+        if use_log and mam_sync:
+            limit = config.get_by_tabname('mam_sync_limit', self.jid)
+            self.mam_filler = MAMFiller(logger, self, limit)
+        asyncio.ensure_future(
+            LogLoader(logger, self, use_log).tab_open()
+        )
 
     def remote_user_color(self):
         return dump_tuple(get_theme().COLOR_REMOTE_USER)

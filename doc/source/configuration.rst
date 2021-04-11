@@ -861,6 +861,21 @@ Options related to logging.
 
         Set to ``false`` if you don’t want to write any message to the disk.
 
+    mam_sync
+
+        **Default value:** ``true``
+
+        If ``true``, will try to fill local logs with missing MAM history
+        when opening a tab or joining a room.
+
+    mam_sync_limit
+
+        **Default value:** ``2000``
+
+        Maximum number of messages to fetch on a MAM sync. Will affect
+        performance when joining rooms with a huge backlog for the first time
+        or after a long period.
+
 Plugins
 ~~~~~~~
 
