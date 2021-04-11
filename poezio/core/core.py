@@ -73,7 +73,6 @@ from poezio.core.structs import (
 
 from poezio.ui.types import (
     Message,
-    InfoMessage,
     PersistentInfoMessage,
 )
 
@@ -81,12 +80,15 @@ log = logging.getLogger(__name__)
 
 T = TypeVar('T', bound=tabs.Tab)
 
+
 class Core:
     """
     “Main” class of poezion
     """
 
-    def __init__(self):
+    custom_version: str
+
+    def __init__(self, custom_version: str):
         self.completion = CompletionCore(self)
         self.command = CommandCore(self)
         self.handler = HandlerCore(self)
@@ -100,7 +102,8 @@ class Core:
         status = POSSIBLE_SHOW.get(status, None)
         self.status = Status(show=status, message=config.getstr('status_message'))
         self.running = True
-        self.xmpp = connection.Connection()
+        self.custom_version = custom_version
+        self.xmpp = connection.Connection(custom_version)
         self.xmpp.core = self
         self.keyboard = keyboard.Keyboard()
         roster.set_node(self.xmpp.client_roster)

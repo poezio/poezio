@@ -18,7 +18,7 @@ from poezio import common
 from poezio import tabs
 from poezio import multiuserchat as muc
 from poezio.bookmarks import Bookmark
-from poezio.config import config, DEFAULT_CONFIG, options as config_opts
+from poezio.config import config, DEFAULT_CONFIG
 from poezio.contact import Contact, Resource
 from poezio.decorators import deny_anonymous
 from poezio.plugin import PluginConfig
@@ -1346,7 +1346,7 @@ class CommandCore:
         info = ('Your JID is %s\nYour current status is "%s" (%s)'
                 '\nYour default nickname is %s\nYou are running poezio %s' %
                 (jid, message if message else '', show
-                 if show else 'available', nick, config_opts.custom_version))
+                 if show else 'available', nick, self.core.custom_version))
         self.core.information(info, 'Info')
 
     @command_args_parser.ignored

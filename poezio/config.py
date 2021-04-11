@@ -12,16 +12,12 @@ to remove our ugly custom I/O methods.
 
 import logging.config
 import os
-import stat
 import sys
-import pkg_resources
 
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from pathlib import Path
-from shutil import copy2
 from typing import Callable, Dict, List, Optional, Union, Tuple, cast, Any
 
-from poezio.args import parse_args
 from poezio import xdg
 
 
@@ -617,43 +613,11 @@ def check_config():
             print('    \033[31m%s\033[0m' % option)
 
 
-def run_cmdline_args():
-    "Parse the command line arguments"
-    global options
-    options = parse_args(xdg.CONFIG_HOME)
-
-    # Copy a default file if none exists
-    if not options.filename.is_file():
-        try:
-            options.filename.parent.mkdir(parents=True, exist_ok=True)
-        except OSError as e:
-            sys.stderr.write(
-                'Poezio was unable to create the config directory: %s\n' % e)
-            sys.exit(1)
-        default = Path(__file__).parent / '..' / 'data' / 'default_config.cfg'
-        other = Path(
-            pkg_resources.resource_filename('poezio', 'default_config.cfg'))
-        if default.is_file():
-            copy2(str(default), str(options.filename))
-        elif other.is_file():
-            copy2(str(other), str(options.filename))
-
-        # Inside the nixstore and possibly other distributions, the reference
-        # file is readonly, so is the copy.
-        # Make it writable by the user who just created it.
-        if options.filename.exists():
-            options.filename.chmod(options.filename.stat().st_mode
-                                   | stat.S_IWUSR)
-
-        global firstrun
-        firstrun = True
-
-
-def create_global_config():
+def create_global_config(filename):
     "Create the global config object, or crash"
     try:
         global config
-        config = Config(options.filename, DEFAULT_CONFIG)
+        config = Config(filename, DEFAULT_CONFIG)
     except:
         import traceback
         sys.stderr.write('Poezio was unable to read or'
@@ -662,11 +626,13 @@ def create_global_config():
         sys.exit(1)
 
 
-def setup_logging():
+def setup_logging(debug_file=''):
     "Change the logging config according to the cmdline options and config"
     global LOG_DIR
     LOG_DIR = config.get('log_dir')
     LOG_DIR = Path(LOG_DIR).expanduser() if LOG_DIR else xdg.DATA_HOME / 'logs'
+    from copy import deepcopy
+    logging_config = deepcopy(LOGGING_CONFIG)
     if config.get('log_errors'):
         try:
             LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -674,8 +640,8 @@ def setup_logging():
             # We can’t really log any error here, because logging isn’t setup yet.
             pass
         else:
-            LOGGING_CONFIG['root']['handlers'].append('error')
-            LOGGING_CONFIG['handlers']['error'] = {
+            logging_config['root']['handlers'].append('error')
+            logging_config['handlers']['error'] = {
                 'level': 'ERROR',
                 'class': 'logging.FileHandler',
                 'filename': str(LOG_DIR / 'errors.log'),
@@ -683,18 +649,18 @@ def setup_logging():
             }
             logging.disable(logging.WARNING)
 
-    if options.debug:
-        LOGGING_CONFIG['root']['handlers'].append('debug')
-        LOGGING_CONFIG['handlers']['debug'] = {
+    if debug_file:
+        logging_config['root']['handlers'].append('debug')
+        logging_config['handlers']['debug'] = {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': options.debug,
+            'filename': debug_file,
             'formatter': 'simple',
         }
         logging.disable(logging.NOTSET)
 
-    if LOGGING_CONFIG['root']['handlers']:
-        logging.config.dictConfig(LOGGING_CONFIG)
+    if logging_config['root']['handlers']:
+        logging.config.dictConfig(logging_config)
     else:
         logging.disable(logging.ERROR)
         logging.basicConfig(level=logging.CRITICAL)
@@ -736,9 +702,6 @@ config = Config(Path('/dev/null'))
 
 # The logger object for this module
 log = logging.getLogger(__name__)  # type: logging.Logger
-
-# The command-line options
-options = None
 
 # delayed import from common.py
 safeJID = None  # type: Optional[Callable]
