@@ -25,6 +25,7 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    Union,
 )
 from xml.etree import ElementTree as ET
 
@@ -88,6 +89,17 @@ class Core:
 
     custom_version: str
     firstrun: bool
+    completion: CompletionCore
+    command: CommandCore
+    handler: HandlerCore
+    bookmarks: BookmarkList
+    status: Status
+    commands: Dict[str, Command]
+    room_number_jump: List[str]
+    initial_joins: List[JID]
+    pending_invites: Dict[str, str]
+    configuration_change_handlers: Dict[str, List[Callable[..., None]]]
+    own_nick: str
 
     def __init__(self, custom_version: str, firstrun: bool):
         self.completion = CompletionCore(self)
@@ -101,7 +113,7 @@ class Core:
         self.last_stream_error = None
         self.stdscr = None
         status = config.getstr('status')
-        status = POSSIBLE_SHOW.get(status, None)
+        status = POSSIBLE_SHOW.get(status) or ''
         self.status = Status(show=status, message=config.getstr('status_message'))
         self.running = True
         self.custom_version = custom_version
@@ -130,14 +142,13 @@ class Core:
         self.events = events.EventHandler()
         self.events.add_event_handler('tab_change', self.on_tab_change)
 
-        self.tabs = Tabs(self.events)
+        self.tabs = Tabs(self.events, tabs.GapTab())
         self.previous_tab_nb = 0
 
-        own_nick = config.getstr('default_nick')
-        own_nick = own_nick or self.xmpp.boundjid.user
-        own_nick = own_nick or os.environ.get('USER')
-        own_nick = own_nick or 'poezio_user'
-        self.own_nick = own_nick
+        self.own_nick: str = (
+            config.getstr('default_nick') or self.xmpp.boundjid.user or
+            os.environ.get('USER') or 'poezio_user'
+        )
 
         self.size = SizeManager(self)
 
@@ -305,8 +316,6 @@ class Core:
 
         self.initial_joins = []
 
-        self.connected_events = {}
-
         self.pending_invites = {}
 
         # a dict of the form {'config_option': [list, of, callbacks]}
@@ -322,7 +331,7 @@ class Core:
         # The callback takes two argument: the config option, and the new
         # value
         self.configuration_change_handlers = defaultdict(list)
-        config_handlers = [
+        config_handlers: List[Tuple[str, Callable[..., Any]]] = [
             ('', self.on_any_config_change),
             ('ack_message_receipts', self.on_ack_receipts_config_change),
             ('connection_check_interval', self.xmpp.set_keepalive_values),
@@ -843,7 +852,7 @@ class Core:
         or the default nickname
         """
         bm = self.bookmarks[room_name]
-        if bm:
+        if bm and bm.nick:
             return bm.nick
         return self.own_nick
 
@@ -993,10 +1002,8 @@ class Core:
 
 ### Tab getters ###
 
-    def get_tabs(self, cls: Type[T] = None) -> List[T]:
+    def get_tabs(self, cls: Type[T]) -> List[T]:
         "Get all the tabs of a type"
-        if cls is None:
-            return self.tabs.get_tabs()
         return self.tabs.by_class(cls)
 
     def get_conversation_by_jid(self,
@@ -1014,6 +1021,7 @@ class Core:
         jid = JID(jid)
         # We first check if we have a static conversation opened
         # with this precise resource
+        conversation: Optional[tabs.ConversationTab]
         conversation = self.tabs.by_name_and_class(jid.full,
                                                    tabs.StaticConversationTab)
         if jid.bare == jid.full and not conversation:
@@ -1303,7 +1311,7 @@ class Core:
                 tab.activate(reason=reason)
 
     def on_user_changed_status_in_private(self, jid: JID, status: Status) -> None:
-        tab = self.tabs.by_name_and_class(jid, tabs.ChatTab)
+        tab = self.tabs.by_name_and_class(jid, tabs.OneToOneTab)
         if tab is not None:  # display the message in private
             tab.update_status(status)
 

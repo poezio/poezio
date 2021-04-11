@@ -1507,10 +1507,12 @@ class MucTab(ChatTab):
         self.leave_room(msg)
         if config.getbool('synchronise_open_rooms'):
             if self.jid in self.core.bookmarks:
-                self.core.bookmarks[self.jid].autojoin = False
-                asyncio.ensure_future(
-                    self.core.bookmarks.save(self.core.xmpp)
-                )
+                bookmark = self.core.bookmarks[self.jid]
+                if bookmark:
+                    bookmark.autojoin = False
+                    asyncio.ensure_future(
+                        self.core.bookmarks.save(self.core.xmpp)
+                    )
         self.core.close_tab(self)
 
     def on_close(self) -> None:
