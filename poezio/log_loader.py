@@ -2,6 +2,17 @@
 This modules contains a class that loads messages into a ChatTab, either from
 MAM or the local logs, and a class that loads MUC history into the local
 logs.
+
+
+How the log loading works will depend on the poezio configuration:
+
+- if use_log is True, no logs will be fetched dynamically
+- if use_log is False, all logs will be fetched from MAM (if available)
+- if mam_sync and use_log are True, most chat tabs will try to sync the local
+  logs with the MAM history when opening them, or when joining a room.
+- all log loading/writing workflows are paused until the MAM sync is complete
+  (so that the local log loading can be up-to-date with the MAM history)
+- when use_log is False, mam_sync has no effect
 """
 from __future__ import annotations
 import asyncio
