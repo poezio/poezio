@@ -84,7 +84,6 @@ class MucTab(ChatTab):
     plugin_keys: Dict[str, Callable[..., Any]] = {}
     additional_information: Dict[str, Callable[[str], str]] = {}
     lagged: bool = False
-    mam_filler: Optional[MAMFiller]
 
     def __init__(self, core: Core, jid: JID, nick: str, password: Optional[str] = None) -> None:
         ChatTab.__init__(self, core, jid)
@@ -105,7 +104,6 @@ class MucTab(ChatTab):
         self.topic_from = ''
         # Self ping event, so we can cancel it when we leave the room
         self.self_ping_event: Optional[timed_events.DelayedEvent] = None
-        self.mam_filler = None
         # UI stuff
         self.topic_win = windows.Topic()
         self.v_separator = windows.VerticalSeparator()
@@ -181,7 +179,8 @@ class MucTab(ChatTab):
             seconds = None
             if last_message is not None:
                 seconds = (datetime.now() - last_message.time).seconds
-        self.mam_filler = MAMFiller(self, logger)
+        if self.mam_filler is None and config.getbool('mam_sync'):
+            self.mam_filler = MAMFiller(logger, self)
         muc.join_groupchat(
             self.core,
             self.jid.bare,
