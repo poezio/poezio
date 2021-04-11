@@ -13,9 +13,12 @@ from typing import (
     List,
     Optional,
     TypeVar,
+    TYPE_CHECKING,
 )
 
 from poezio import common
+if TYPE_CHECKING:
+    from poezio.core.core import Core
 
 
 T = TypeVar('T', bound=Callable[..., Any])
@@ -56,6 +59,8 @@ def wrap_generic(func: Callable, before: BeforeFunc = None, after: AfterFunc = N
 
 
 class RefreshWrapper:
+    core: Optional[Core]
+
     def __init__(self) -> None:
         self.core = None
 

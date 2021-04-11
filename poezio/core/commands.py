@@ -14,11 +14,9 @@ from slixmpp.xmlstream.stanzabase import StanzaBase
 from slixmpp.xmlstream.handler import Callback
 from slixmpp.xmlstream.matcher import StanzaPath
 
-from poezio import common
-from poezio import tabs
-from poezio import multiuserchat as muc
+from poezio import common, config as config_module, tabs, multiuserchat as muc
 from poezio.bookmarks import Bookmark
-from poezio.config import config, DEFAULT_CONFIG, options as config_opts
+from poezio.config import config, DEFAULT_CONFIG
 from poezio.contact import Contact, Resource
 from poezio.decorators import deny_anonymous
 from poezio.plugin import PluginConfig
@@ -1346,7 +1344,7 @@ class CommandCore:
         info = ('Your JID is %s\nYour current status is "%s" (%s)'
                 '\nYour default nickname is %s\nYou are running poezio %s' %
                 (jid, message if message else '', show
-                 if show else 'available', nick, config_opts.custom_version))
+                 if show else 'available', nick, self.core.custom_version))
         self.core.information(info, 'Info')
 
     @command_args_parser.ignored
@@ -1355,6 +1353,16 @@ class CommandCore:
         /reload
         """
         self.core.reload_config()
+
+    @command_args_parser.raw
+    def debug(self, args):
+        """/debug [filename]"""
+        if not args.strip():
+            config_module.setup_logging('')
+            self.core.information('Debug logging disabled!', 'Info')
+        elif args:
+            config_module.setup_logging(args)
+            self.core.information(f'Debug logging to {args} enabled!', 'Info')
 
 
 def dumb_callback(*args, **kwargs):

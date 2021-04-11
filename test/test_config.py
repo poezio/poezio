@@ -99,7 +99,6 @@ class TestConfigSections(object):
 
 class TestTabNames(object):
     def test_get_tabname(self, config_obj):
-        config.post_logging_setup()
         config_obj.set_and_save('test', value='value.toto@toto.com',
                                 section='toto@toto.com')
         config_obj.set_and_save('test2', value='value2@toto.com',

@@ -27,7 +27,7 @@ from slixmpp.util import FileSystemCache
 from poezio import common
 from poezio import fixes
 from poezio import xdg
-from poezio.config import config, options
+from poezio.config import config
 
 
 class Connection(slixmpp.ClientXMPP):
@@ -37,7 +37,7 @@ class Connection(slixmpp.ClientXMPP):
     """
     __init = False
 
-    def __init__(self):
+    def __init__(self, custom_version=''):
         keyfile = config.getstr('keyfile')
         certfile = config.getstr('certfile')
 
@@ -169,7 +169,7 @@ class Connection(slixmpp.ClientXMPP):
             self.register_plugin('xep_0172')
 
         if config.getbool('send_poezio_info'):
-            info = {'name': 'poezio', 'version': options.custom_version}
+            info = {'name': 'poezio', 'version': custom_version}
             if config.getbool('send_os_info'):
                 info['os'] = common.get_os_info()
             self.plugin['xep_0030'].set_identities(identities={('client',

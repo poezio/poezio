@@ -24,12 +24,13 @@ have become [0|1|2|3], with the tab "4" renumbered to "3" if gap tabs are
 disabled.
 """
 
-from typing import List, Dict, Type, Optional, Union, Tuple
+from typing import List, Dict, Type, Optional, Union, Tuple, TypeVar, cast
 from collections import defaultdict
 from slixmpp import JID
 from poezio import tabs
 from poezio.events import EventHandler
-from poezio.config import config
+
+T = TypeVar('T', bound=tabs.Tab)
 
 
 class Tabs:
@@ -47,7 +48,7 @@ class Tabs:
         '_events',
     ]
 
-    def __init__(self, events: EventHandler) -> None:
+    def __init__(self, events: EventHandler, initial_tab: tabs.Tab) -> None:
         """
         Initialize the Tab List. Even though the list is initially
         empty, all methods are only valid once append() has been called
@@ -55,7 +56,7 @@ class Tabs:
         """
         # cursor
         self._current_index: int = 0
-        self._current_tab: Optional[tabs.Tab] = None
+        self._current_tab: tabs.Tab = initial_tab
 
         self._previous_tab: Optional[tabs.Tab] = None
         self._tabs: List[tabs.Tab] = []
@@ -92,7 +93,7 @@ class Tabs:
         return False
 
     @property
-    def current_tab(self) -> Optional[tabs.Tab]:
+    def current_tab(self) -> tabs.Tab:
         """Current tab"""
         return self._current_tab
 
@@ -122,9 +123,9 @@ class Tabs:
         """Get a tab with a specific name"""
         return self._tab_names.get(name)
 
-    def by_class(self, cls: Type[tabs.Tab]) -> List[tabs.Tab]:
+    def by_class(self, cls: Type[T]) -> List[T]:
         """Get all the tabs of a class"""
-        return self._tab_types.get(cls, [])
+        return cast(List[T], self._tab_types.get(cls, []))
 
     def find_match(self, name: str) -> Optional[tabs.Tab]:
         """Get a tab using extended matching (tab.matching_name())"""
@@ -171,12 +172,12 @@ class Tabs:
         return any_matched, candidate
 
     def by_name_and_class(self, name: str,
-                          cls: Type[tabs.Tab]) -> Optional[tabs.Tab]:
+                          cls: Type[T]) -> Optional[T]:
         """Get a tab with its name and class"""
         cls_tabs = self._tab_types.get(cls, [])
         for tab in cls_tabs:
             if tab.name == name:
-                return tab
+                return cast(T, tab)
         return None
 
     def _rebuild(self):

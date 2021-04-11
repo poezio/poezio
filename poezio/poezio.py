@@ -79,16 +79,14 @@ def main():
 
     sys.stdout.write("\x1b]0;poezio\x07")
     sys.stdout.flush()
+    from poezio.args import run_cmdline_args
+    options, firstrun = run_cmdline_args()
     from poezio import config
-    config.run_cmdline_args()
-    config.create_global_config()
-    config.setup_logging()
-    config.post_logging_setup()
+    config.create_global_config(options.filename)
+    config.setup_logging(options.debug)
 
     import logging
     logging.raiseExceptions = False
-
-    from poezio.config import options
 
     if options.check_config:
         config.check_config()
@@ -109,7 +107,7 @@ def main():
     from poezio.core.core import Core
 
     signal.signal(signal.SIGINT, signal.SIG_IGN)  # ignore ctrl-c
-    cocore = Core()
+    cocore = Core(options.custom_version, firstrun)
     signal.signal(signal.SIGUSR1, cocore.sigusr_handler)  # reload the config
     signal.signal(signal.SIGHUP, cocore.exit_from_signal)
     signal.signal(signal.SIGTERM, cocore.exit_from_signal)
