@@ -45,7 +45,7 @@ from poezio.core.structs import Command, Completion, Status
 from poezio.config import config
 from poezio.decorators import command_args_parser, refresh_wrapper
 from poezio.logger import logger
-from poezio.log_loader import MAMFiller
+from poezio.log_loader import MAMFiller, LogLoader
 from poezio.text_buffer import TextBuffer
 from poezio.theming import get_theme, dump_tuple
 from poezio.user import User
@@ -1008,6 +1008,16 @@ class OneToOneTab(ChatTab):
             shortdesc='Request the attention.',
             desc='Attention: Request the attention of the contact.  Can also '
             'send a message along with the attention.')
+        self.init_logs()
+
+    def init_logs(self) -> None:
+        use_log = config.get_by_tabname('use_log', self.jid)
+        mam_sync = config.get_by_tabname('mam_sync', self.jid)
+        if use_log and mam_sync:
+            self.mam_filler = MAMFiller(logger, self)
+        asyncio.ensure_future(
+            LogLoader(logger, self, use_log).tab_open()
+        )
 
     def remote_user_color(self):
         return dump_tuple(get_theme().COLOR_REMOTE_USER)

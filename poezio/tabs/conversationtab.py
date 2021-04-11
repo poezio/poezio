@@ -21,8 +21,6 @@ from poezio.tabs.basetabs import OneToOneTab, Tab
 from poezio import common
 from poezio import windows
 from poezio import xhtml
-from poezio.log_loader import MAMFiller, LogLoader
-from poezio.logger import logger
 from poezio.common import safeJID
 from poezio.config import config
 from poezio.core.structs import Command
@@ -389,11 +387,6 @@ class DynamicConversationTab(ConversationTab):
         self.resize()
         self.update_commands()
         self.update_keys()
-        if config.getbool('mam_sync'):
-            self.mam_filler = MAMFiller(logger, self)
-        asyncio.ensure_future(
-            LogLoader(logger, self, config.getbool('use_log')).tab_open()
-        )
 
     def get_info_header(self):
         return self.info_header
@@ -461,6 +454,10 @@ class StaticConversationTab(ConversationTab):
         self.resize()
         self.update_commands()
         self.update_keys()
+
+    def init_logs(self) -> None:
+        # Disable local logs because…
+        pass
 
     def get_info_header(self):
         return self.info_header

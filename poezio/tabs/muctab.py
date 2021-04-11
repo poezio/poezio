@@ -59,7 +59,6 @@ from poezio.ui.types import (
     Message,
     MucOwnJoinMessage,
     MucOwnLeaveMessage,
-    StatusMessage,
     PersistentInfoMessage,
 )
 
@@ -179,7 +178,9 @@ class MucTab(ChatTab):
             seconds = None
             if last_message is not None:
                 seconds = (datetime.now() - last_message.time).seconds
-        if self.mam_filler is None and config.getbool('mam_sync'):
+        use_log = config.get_by_tabname('mam_sync', self.general_jid)
+        mam_sync = config.get_by_tabname('mam_sync', self.general_jid)
+        if self.mam_filler is None and use_log and mam_sync:
             self.mam_filler = MAMFiller(logger, self)
         muc.join_groupchat(
             self.core,
@@ -606,9 +607,9 @@ class MucTab(ChatTab):
                     },
                 ),
             )
-        asyncio.ensure_future(
-            LogLoader(logger, self, config.get('use_log')).tab_open(),
-        )
+        asyncio.ensure_future(LogLoader(
+            logger, self, config.get_by_tabname('use_log', self.general_jid)
+        ).tab_open())
 
     def handle_presence_joined(self, presence: Presence, status_codes: Set[int]) -> None:
         """
