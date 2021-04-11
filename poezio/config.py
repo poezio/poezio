@@ -92,6 +92,7 @@ DEFAULT_CONFIG: ConfigDict = {
         'lazy_resize': True,
         'log_dir': '',
         'log_errors': True,
+        'mam_sync': True,
         'max_lines_in_memory': 2048,
         'max_messages_in_memory': 2048,
         'max_nick_length': 25,

@@ -861,6 +861,13 @@ Options related to logging.
 
         Set to ``false`` if you don’t want to write any message to the disk.
 
+    mam_sync
+
+        **Default value:** ``true``
+
+        If ``true``, will try to fill local logs with missing MAM history
+        when opening a tab or joining a room.
+
 Plugins
 ~~~~~~~
 
