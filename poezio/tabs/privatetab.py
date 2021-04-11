@@ -10,7 +10,6 @@ both participant’s nicks. It also has slightly different features than
 the ConversationTab (such as tab-completion on nicks from the room).
 
 """
-import asyncio
 import curses
 import logging
 from typing import Dict, Callable
@@ -24,8 +23,6 @@ from poezio import xhtml
 from poezio.config import config
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper
-from poezio.logger import logger
-from poezio.log_loader import LogLoader, MAMFiller
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 from poezio.ui.types import (
@@ -70,11 +67,6 @@ class PrivateTab(OneToOneTab):
         self.on = True
         self.update_commands()
         self.update_keys()
-        if config.getbool('mam_sync'):
-            self.mam_filler = MAMFiller(logger, self)
-        asyncio.ensure_future(
-            LogLoader(logger, self, config.getbool('use_log')).tab_open()
-        )
 
     @property
     def log_name(self) -> str:
