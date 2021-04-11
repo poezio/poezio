@@ -1,8 +1,8 @@
 """Poezio type stuff"""
 
 try:
-    from typing import TypedDict, Literal
+    from typing import TypedDict
 except ImportError:
-    from typing_extensions import TypedDict, Literal
+    from typing_extensions import TypedDict
 
-__all__ = ['TypedDict', 'Literal']
+__all__ = ['TypedDict']
