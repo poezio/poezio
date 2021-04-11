@@ -10,16 +10,19 @@ TODO: get http://bugs.python.org/issue1410680 fixed, one day, in order
 to remove our ugly custom I/O methods.
 """
 
+import logging
 import logging.config
 import os
 import sys
 
 from configparser import RawConfigParser, NoOptionError, NoSectionError
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Union, Tuple, cast, Any
+from typing import Dict, List, Optional, Union, Tuple, cast, Any
 
 from poezio import xdg
+from slixmpp import JID
 
+log = logging.getLogger(__name__)  # type: logging.Logger
 
 ConfigValue = Union[str, int, float, bool]
 
@@ -256,7 +259,6 @@ class Config:
         in the section, we search for the global option if fallback is
         True. And we return `default` as a fallback as a last resort.
         """
-        from slixmpp import JID
         if isinstance(tabname, JID):
             tabname = tabname.full
         if self.default and (not default) and fallback:
@@ -276,7 +278,7 @@ class Config:
         """
         Try to get the value of an option for a server
         """
-        server = safeJID(jid).server
+        server = JID(jid).server
         if server:
             server = '@' + server
             if server in self.sections() and option in self.options(server):
@@ -665,17 +667,6 @@ def setup_logging(debug_file=''):
         logging.disable(logging.ERROR)
         logging.basicConfig(level=logging.CRITICAL)
 
-    global log
-    log = logging.getLogger(__name__)
-
-
-def post_logging_setup():
-    # common imports slixmpp, which creates then its loggers, so
-    # it needs to be after logger configuration
-    from poezio.common import safeJID as JID
-    global safeJID
-    safeJID = JID
-
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -693,18 +684,8 @@ LOGGING_CONFIG = {
     }
 }
 
-# True if this is the first run, in this case we will display
-# some help in the info buffer
-firstrun = False
-
 # Global config object. Is setup for real in poezio.py
 config = Config(Path('/dev/null'))
-
-# The logger object for this module
-log = logging.getLogger(__name__)  # type: logging.Logger
-
-# delayed import from common.py
-safeJID = None  # type: Optional[Callable]
 
 # the global log dir
 LOG_DIR = Path()

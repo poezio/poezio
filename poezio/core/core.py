@@ -46,7 +46,7 @@ from poezio.bookmarks import (
     Bookmark,
 )
 from poezio.common import get_error_message
-from poezio.config import config, firstrun
+from poezio.config import config
 from poezio.contact import Contact, Resource
 from poezio.daemon import Executor
 from poezio.fifo import Fifo
@@ -87,11 +87,13 @@ class Core:
     """
 
     custom_version: str
+    firstrun: bool
 
-    def __init__(self, custom_version: str):
+    def __init__(self, custom_version: str, firstrun: bool):
         self.completion = CompletionCore(self)
         self.command = CommandCore(self)
         self.handler = HandlerCore(self)
+        self.firstrun = firstrun
         # All uncaught exception are given to this callback, instead
         # of being displayed on the screen and exiting the program.
         sys.excepthook = self.on_exception
@@ -545,7 +547,7 @@ class Core:
                 ' colors will probably be ugly',
                 'Error',
             )
-        if firstrun:
+        if self.firstrun:
             self.information(
                 'It seems that it is the first time you start poezio.\n'
                 'The online help is here https://doc.poez.io/\n\n'

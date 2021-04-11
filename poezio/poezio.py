@@ -84,7 +84,6 @@ def main():
     from poezio import config
     config.create_global_config(options.filename)
     config.setup_logging(options.debug)
-    config.post_logging_setup()
 
     import logging
     logging.raiseExceptions = False
@@ -108,7 +107,7 @@ def main():
     from poezio.core.core import Core
 
     signal.signal(signal.SIGINT, signal.SIG_IGN)  # ignore ctrl-c
-    cocore = Core(options.custom_version)
+    cocore = Core(options.custom_version, firstrun)
     signal.signal(signal.SIGUSR1, cocore.sigusr_handler)  # reload the config
     signal.signal(signal.SIGHUP, cocore.exit_from_signal)
     signal.signal(signal.SIGTERM, cocore.exit_from_signal)
