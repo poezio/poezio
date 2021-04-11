@@ -135,12 +135,16 @@ class LogLoader:
         await self.wait_mam()
         results: List[BaseMessage] = []
         filepath = self.logger.get_file_path(self.tab.jid)
+        count = 0
         for msg in iterate_messages_reverse(filepath):
             typ_ = msg.pop('type')
             if typ_ == 'message':
                 results.append(make_line_local(self.tab, msg))
             if len(results) >= nb:
                 break
+            count += 1
+            if count % 20 == 0:
+                await asyncio.sleep(0)
         return results[::-1]
 
     async def mam_fill_gap(self, gap: HistoryGap) -> List[BaseMessage]:
@@ -179,6 +183,7 @@ class LogLoader:
         await self.wait_mam()
         start = gap.last_timestamp_before_leave
         end = gap.first_timestamp_after_join
+        count = 0
 
         results: List[BaseMessage] = []
         filepath = self.logger.get_file_path(self.tab.jid)
@@ -190,6 +195,9 @@ class LogLoader:
                 results.append(make_line_local(self.tab, msg))
             if len(results) >= HARD_LIMIT:
                 break
+            count += 1
+            if count % 20 == 0:
+                await asyncio.sleep(0)
         return results[::-1]
 
     async def scroll_requested(self):
@@ -225,6 +233,7 @@ class LogLoader:
         """
         await self.wait_mam()
         tab = self.tab
+        count = 0
         last_message_time = None
         if tab._text_buffer.messages:
             last_message_time = to_utc(tab._text_buffer.messages[0].time)
@@ -239,6 +248,9 @@ class LogLoader:
                     results.append(make_line_local(self.tab, msg))
             if len(results) >= nb:
                 break
+            count += 1
+            if count % 20 == 0:
+                await asyncio.sleep(0)
         return results[::-1]
 
     async def mam_scroll_requested(self, nb: int) -> List[BaseMessage]:
@@ -272,7 +284,7 @@ class LogLoader:
             tab.query_status = False
 
     async def wait_mam(self) -> None:
-        """Waitt for the MAM history sync before reading the local logs.
+        """Wait for the MAM history sync before reading the local logs.
 
         Does nothing apart from blocking.
         """
