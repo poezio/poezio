@@ -20,7 +20,7 @@ from poezio.config import config
 from poezio.xhtml import clean_text
 from poezio.ui.types import Message, BaseMessage, LoggableTrait
 from slixmpp import JID
-from poezio.types import TypedDict, Literal
+from poezio.types import TypedDict
 
 import logging
 
@@ -68,7 +68,7 @@ class LogMessage(LogItem):
 LogDict = TypedDict(
     'LogDict',
     {
-        'type': Literal['message', 'info'], 'txt': str, 'time': datetime,
+        'type': str, 'txt': str, 'time': datetime,
         'history': bool, 'nickname': str
     },
     total=False,
