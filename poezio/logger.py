@@ -11,7 +11,7 @@ conversations and roster changes
 
 import mmap
 import re
-from typing import List, Dict, Optional, IO, Any, Union
+from typing import List, Dict, Optional, IO, Any, Union, Generator
 from datetime import datetime
 from pathlib import Path
 
@@ -19,6 +19,8 @@ from poezio import common
 from poezio.config import config
 from poezio.xhtml import clean_text
 from poezio.ui.types import Message, BaseMessage, LoggableTrait
+from slixmpp import JID
+from slixmpp.types import TypedDict, Literal
 
 import logging
 
@@ -61,6 +63,16 @@ class LogMessage(LogItem):
         LogItem.__init__(self, year, month, day, hour, minute, seconds,
                          nb_lines, message)
         self.nick = nick
+
+
+LogDict = TypedDict(
+    'LogDict',
+    {
+        'type': Literal['message', 'info'], 'txt': str, 'time': datetime,
+        'history': bool, 'nickname': str
+    },
+    total=False,
+)
 
 
 def parse_log_line(msg: str, jid: str = '') -> Optional[LogItem]:
@@ -111,33 +123,35 @@ class Logger:
         except Exception:
             pass
 
-    def get_file_path(self, jid: str) -> Path:
+    def get_file_path(self, jid: Union[str, JID]) -> Path:
         """Return the log path for a specific jid"""
         jidstr = str(jid).replace('/', '\\')
         return self.log_dir / jidstr
 
-    def fd_busy(self, jid: str) -> None:
+    def fd_busy(self, jid: Union[str, JID]) -> None:
         """Signal to the logger that this logfile is busy elsewhere.
         And that the messages should be queued to be logged later.
 
         :param jid: file name
         """
-        self._busy_fds[jid] = True
-        self._buffered_fds[jid] = []
+        jidstr = str(jid).replace('/', '\\')
+        self._busy_fds[jidstr] = True
+        self._buffered_fds[jidstr] = []
 
-    def fd_available(self, jid: str) -> None:
+    def fd_available(self, jid: Union[str, JID]) -> None:
         """Signal to the logger that this logfile is no longer busy.
         And write messages to the end.
 
         :param jid: file name
         """
-        if jid in self._busy_fds:
-            del self._busy_fds[jid]
-        if jid in self._buffered_fds:
-            msgs = ''.join(self._buffered_fds.pop(jid))
-            if jid in self._fds:
-                self._fds[jid].close()
-                del self._fds[jid]
+        jidstr = str(jid).replace('/', '\\')
+        if jidstr in self._busy_fds:
+            del self._busy_fds[jidstr]
+        if jidstr in self._buffered_fds:
+            msgs = ''.join(self._buffered_fds.pop(jidstr))
+            if jidstr in self._fds:
+                self._fds[jidstr].close()
+                del self._fds[jidstr]
             self.log_raw(jid, msgs)
 
     def close(self, jid: str) -> None:
@@ -226,7 +240,7 @@ class Logger:
             return True
         return self.log_raw(jid, logged_msg)
 
-    def log_raw(self, jid: str, logged_msg: str, force: bool = False) -> bool:
+    def log_raw(self, jid: Union[str, JID], logged_msg: str, force: bool = False) -> bool:
         """Log a raw string.
 
         :param jid: filename
@@ -334,7 +348,7 @@ def build_log_message(nick: str,
     return logged_msg + ''.join(' %s\n' % line for line in lines)
 
 
-def last_message_in_archive(filepath: Path) -> Optional[Dict]:
+def last_message_in_archive(filepath: Path) -> Optional[LogDict]:
     """Get the last message from the local archive.
 
     :param filepath: the log file path
@@ -347,7 +361,7 @@ def last_message_in_archive(filepath: Path) -> Optional[Dict]:
     return last_msg
 
 
-def iterate_messages_reverse(filepath: Path):
+def iterate_messages_reverse(filepath: Path) -> Generator[LogDict, None, None]:
     """Get the latest messages from the log file, one at a time.
 
     :param fd: the file descriptor
@@ -397,7 +411,7 @@ def _get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
     return lines
 
 
-def parse_log_lines(lines: List[str], jid: str = '') -> List[Dict[str, Any]]:
+def parse_log_lines(lines: List[str], jid: str = '') -> List[LogDict]:
     """
     Parse raw log lines into poezio log objects
 
@@ -420,11 +434,11 @@ def parse_log_lines(lines: List[str], jid: str = '') -> List[Dict[str, Any]]:
             log.debug('wrong log format? %s', log_item)
             continue
         message_lines = []
-        message = {
+        message = LogDict({
             'history': True,
             'time': common.get_local_time(log_item.time),
             'type': 'message',
-        }
+        })
         size = log_item.nb_lines
         if isinstance(log_item, LogInfo):
             message_lines.append(log_item.text)
