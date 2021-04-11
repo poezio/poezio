@@ -41,6 +41,10 @@ from poezio.text_buffer import HistoryGap
 from slixmpp import JID
 
 
+# Max number of messages to insert when filling a gap
+HARD_LIMIT = 999
+
+
 log = logging.getLogger(__name__)
 
 
@@ -154,7 +158,12 @@ class LogLoader:
         if end:
             end = end - timedelta(seconds=1)
         try:
-            return await fetch_history(tab, start=start, end=end, amount=999)
+            return await fetch_history(
+                tab,
+                start=start,
+                end=end,
+                amount=HARD_LIMIT
+            )
         except (NoMAMSupportException, MAMQueryException, DiscoInfoException):
             return []
         finally:
@@ -179,6 +188,8 @@ class LogLoader:
                 break
             if typ_ == 'message' and (not end or msg['time'] < end):
                 results.append(make_line_local(self.tab, msg))
+            if len(results) >= HARD_LIMIT:
+                break
         return results[::-1]
 
     async def scroll_requested(self):
