@@ -20,7 +20,7 @@ from poezio.config import config
 from poezio.xhtml import clean_text
 from poezio.ui.types import Message, BaseMessage, LoggableTrait
 from slixmpp import JID
-from slixmpp.types import TypedDict, Literal
+from poezio.types import TypedDict, Literal
 
 import logging
 
