@@ -3,7 +3,6 @@ XMPP-related handlers for the Core class
 """
 
 import logging
-log = logging.getLogger(__name__)
 
 from typing import Optional
 
@@ -30,7 +29,7 @@ from poezio import fixes
 from poezio import tabs
 from poezio import xhtml
 from poezio import multiuserchat as muc
-from poezio.common import safeJID, get_error_message
+from poezio.common import get_error_message
 from poezio.config import config, get_image_cache
 from poezio.core.structs import Status
 from poezio.contact import Resource
@@ -57,6 +56,8 @@ try:
     PYGMENTS = True
 except ImportError:
     PYGMENTS = False
+
+log = logging.getLogger(__name__)
 
 CERT_WARNING_TEXT = """
 WARNING: CERTIFICATE FOR %s CHANGED
@@ -249,7 +250,10 @@ class HandlerCore:
         """
         Direct invitation received
         """
-        room = safeJID(message['groupchat_invite']['jid'])
+        try:
+            room = JID(message['groupchat_invite']['jid'])
+        except InvalidJID:
+            return
         if room.bare in self.core.pending_invites:
             return
 

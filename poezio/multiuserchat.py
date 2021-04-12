@@ -19,7 +19,6 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from poezio.common import safeJID
 from slixmpp import (
     JID,
     ClientXMPP,
@@ -45,7 +44,7 @@ def change_show(
     """
     Change our 'Show'
     """
-    jid = safeJID(jid)
+    jid = JID(jid)
     pres = xmpp.make_presence(pto='%s/%s' % (jid, own_nick))
     if show:  # if show is None, don't put a <show /> tag. It means "available"
         pres['type'] = show
@@ -66,7 +65,7 @@ def change_nick(
     """
     xmpp = core.xmpp
     presence = xmpp.make_presence(
-        pshow=show, pstatus=status, pto=safeJID('%s/%s' % (jid, nick)))
+        pshow=show, pstatus=status, pto=JID('%s/%s' % (jid, nick)))
     core.events.trigger('changing_nick', presence)
     presence.send()
 
@@ -122,7 +121,7 @@ def leave_groupchat(
     """
     Leave the groupchat
     """
-    jid = safeJID(jid)
+    jid = JID(jid)
     try:
         xmpp.plugin['xep_0045'].leave_muc(jid, own_nick, msg)
     except KeyError:

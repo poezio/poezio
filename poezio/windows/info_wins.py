@@ -8,9 +8,9 @@ from __future__ import annotations
 from typing import Optional, Dict, TYPE_CHECKING, Any
 
 import logging
-log = logging.getLogger(__name__)
 
-from poezio.common import safeJID
+from slixmpp import JID, InvalidJID
+
 from poezio.config import config
 
 from poezio.windows.base_wins import Win
@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from poezio.user import User
     from poezio.tabs import MucTab
     from poezio.windows import TextWin
+
+log = logging.getLogger(__name__)
 
 
 class InfoWin(Win):
@@ -101,7 +103,10 @@ class PrivateInfoWin(InfoWin):
                         to_curses_attr(get_theme().COLOR_INFORMATION_BAR))
 
     def write_room_name(self, name):
-        jid = safeJID(name)
+        try:
+            jid = JID(name)
+        except InvalidJID:
+            jid = JID('')
         room_name, nick = jid.bare, jid.resource
         theme = get_theme()
         self.addstr(nick, to_curses_attr(theme.COLOR_PRIVATE_NAME))
@@ -158,7 +163,10 @@ class ConversationInfoWin(InfoWin):
         # from someone not in our roster. In this case, we display
         # only the maximum information from the message we can get.
         log.debug('Refresh: %s', self.__class__.__name__)
-        jid = safeJID(jid)
+        try:
+            jid = JID(jid)
+        except InvalidJID:
+            jid = JID('')
         if contact:
             if jid.resource:
                 resource = contact[jid.full]
@@ -363,7 +371,10 @@ class ConversationStatusMessageWin(InfoWin):
 
     def refresh(self, jid, contact):
         log.debug('Refresh: %s', self.__class__.__name__)
-        jid = safeJID(jid)
+        try:
+            jid = JID(jid)
+        except InvalidJID:
+            jid = JID('')
         if contact:
             if jid.resource:
                 resource = contact[jid.full]

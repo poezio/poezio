@@ -459,24 +459,6 @@ def format_gaming_string(infos: Dict[str, str]) -> str:
     return name
 
 
-def safeJID(*args: Any, **kwargs: Any) -> JID:
-    """
-    Construct a :py:class:`slixmpp.JID` object from a string.
-
-    Used to avoid tracebacks during is stringprep fails
-    (fall back to a JID with an empty string).
-    """
-    try:
-        return JID(*args, **kwargs)
-    except InvalidJID:
-        log.debug(
-            'safeJID caught an invalidJID exception: %r, %r',
-            args, kwargs,
-            exc_info=True,
-        )
-        return JID('')
-
-
 def unique_prefix_of(a: str, b: str) -> str:
     """
     Return the unique prefix of `a` with `b`.

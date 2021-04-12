@@ -11,17 +11,17 @@ There are two different instances of a ConversationTab:
     the time.
 
 """
-import asyncio
 import curses
 import logging
 from typing import Dict, Callable
+
+from slixmpp import JID, InvalidJID
 
 from poezio.tabs.basetabs import OneToOneTab, Tab
 
 from poezio import common
 from poezio import windows
 from poezio import xhtml
-from poezio.common import safeJID
 from poezio.config import config
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper
@@ -166,7 +166,13 @@ class ConversationTab(OneToOneTab):
             status = iq['last_activity']['status']
             from_ = iq['from']
             msg = '\x19%s}The last activity of %s was %s ago%s'
-            if not safeJID(from_).user:
+            user = ''
+            try:
+                user = JID(from_).user
+            except InvalidJID:
+                pass
+
+            if not user:
                 msg = '\x19%s}The uptime of %s is %s.' % (
                     dump_tuple(get_theme().COLOR_INFORMATION_TEXT), from_,
                     common.parse_secs_to_str(seconds))
@@ -188,7 +194,10 @@ class ConversationTab(OneToOneTab):
     @command_args_parser.ignored
     def command_info(self):
         contact = roster[self.get_dest_jid()]
-        jid = safeJID(self.get_dest_jid())
+        try:
+            jid = JID(self.get_dest_jid())
+        except InvalidJID:
+            jid = JID('')
         if contact:
             if jid.resource:
                 resource = contact[jid.full]
@@ -300,7 +309,10 @@ class ConversationTab(OneToOneTab):
 
     def on_lose_focus(self):
         contact = roster[self.get_dest_jid()]
-        jid = safeJID(self.get_dest_jid())
+        try:
+            jid = JID(self.get_dest_jid())
+        except InvalidJID:
+            jid = JID('')
         if contact:
             if jid.resource:
                 resource = contact[jid.full]
@@ -321,7 +333,10 @@ class ConversationTab(OneToOneTab):
 
     def on_gain_focus(self):
         contact = roster[self.get_dest_jid()]
-        jid = safeJID(self.get_dest_jid())
+        try:
+            jid = JID(self.get_dest_jid())
+        except InvalidJID:
+            jid = JID('')
         if contact:
             if jid.resource:
                 resource = contact[jid.full]

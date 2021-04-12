@@ -4,13 +4,13 @@ Windows used inthe bookmarkstab
 import curses
 from typing import List, Tuple, Optional
 
-from poezio.windows import base_wins
+from slixmpp import JID, InvalidJID
+
 from poezio.windows.base_wins import Win
 from poezio.windows.inputs import Input
 from poezio.windows.data_forms import FieldInput, FieldInputMixin
 
 from poezio.theming import to_curses_attr, get_theme
-from poezio.common import safeJID
 from poezio.bookmarks import Bookmark, BookmarkList
 
 
@@ -33,14 +33,20 @@ class BookmarkJIDInput(FieldInput, Input):
     def __init__(self, field: Bookmark) -> None:
         FieldInput.__init__(self, field)
         Input.__init__(self)
-        jid = safeJID(field.jid)
+        try:
+            jid = JID(field.jid)
+        except InvalidJID:
+            jid = JID('')
         jid.resource = field.nick or None
         self.text = jid.full
         self.pos = len(self.text)
         self.color = get_theme().COLOR_NORMAL_TEXT
 
     def save(self) -> None:
-        jid = safeJID(self.get_text())
+        try:
+            jid = JID(self.get_text())
+        except InvalidJID:
+            jid = JID('')
         self._field.jid = jid.bare
         self._field.nick = jid.resource
 
