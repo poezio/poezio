@@ -16,10 +16,10 @@ Command
 
 
 """
+from slixmpp import JID, InvalidJID
 from poezio.plugin import BasePlugin
 from poezio.tabs import MucTab
 from poezio.decorators import command_args_parser
-from poezio.common import safeJID
 from poezio.core.structs import Completion
 
 
@@ -42,13 +42,15 @@ class Plugin(BasePlugin):
             jid = current_tab.jid.bare
             message = None
         elif len(args) == 1:
-            jid = safeJID(args[0]).domain
-            if not jid:
+            try:
+                jid = JID(args[0]).domain
+            except InvalidJID:
                 return self.core.command_help('server_part')
             message = None
         else:
-            jid = safeJID(args[0]).domain
-            if not jid:
+            try:
+                jid = JID(args[0]).domain
+            except InvalidJID:
                 return self.core.command_help('server_part')
             message = args[1]
 

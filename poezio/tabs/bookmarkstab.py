@@ -12,9 +12,8 @@ from poezio import windows
 from poezio.bookmarks import Bookmark, BookmarkList
 from poezio.core.structs import Command
 from poezio.tabs import Tab
-from poezio.common import safeJID
 
-from slixmpp import JID
+from slixmpp import JID, InvalidJID
 
 log = logging.getLogger(__name__)
 
@@ -82,10 +81,11 @@ class BookmarksTab(Tab):
                 'Duplicate bookmarks in list (saving aborted)', 'Error')
             return
         for bm in self.new_bookmarks:
-            if safeJID(bm.jid):
+            try:
+                JID(bm.jid)
                 if not self.bookmarks[bm.jid]:
                     self.bookmarks.append(bm)
-            else:
+            except InvalidJID:
                 self.core.information(
                     'Invalid JID for bookmark: %s/%s' % (bm.jid, bm.nick),
                     'Error')

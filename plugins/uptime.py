@@ -12,7 +12,7 @@ Command
         Retrieve the uptime of the server of ``jid``.
 """
 from poezio.plugin import BasePlugin
-from poezio.common import parse_secs_to_str, safeJID
+from poezio.common import parse_secs_to_str
 from slixmpp.xmlstream import ET
 from slixmpp import JID, InvalidJID
 from slixmpp.exceptions import IqError, IqTimeout

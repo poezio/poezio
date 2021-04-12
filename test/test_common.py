@@ -11,7 +11,7 @@ from poezio.common import (_datetime_tuple as datetime_tuple, get_utc_time,
                            get_local_time, shell_split, _find_argument_quoted
                            as find_argument_quoted, _find_argument_unquoted as
                            find_argument_unquoted, parse_str_to_secs,
-                           parse_secs_to_str, safeJID, unique_prefix_of)
+                           parse_secs_to_str, unique_prefix_of)
 
 def test_utc_time():
     delta = timedelta(seconds=-3600)
@@ -59,10 +59,6 @@ def test_parse_secs_to_str():
 
     with pytest.raises(TypeError):
         parse_secs_to_str('toto')
-
-def test_safeJID():
-    assert safeJID('toto@titi/tata') == JID('toto@titi/tata')
-    assert safeJID('toto@…') == JID('')
 
 def test_unique_prefix_of__no_shared_prefix():
     assert unique_prefix_of("a", "b") == "a"

@@ -16,11 +16,11 @@ from os import getenv, path
 from pathlib import Path
 from typing import Dict, Callable
 
+from slixmpp import JID, InvalidJID
 from slixmpp.exceptions import IqError, IqTimeout
 
-from poezio import common
 from poezio import windows
-from poezio.common import safeJID, shell_split
+from poezio.common import shell_split
 from poezio.config import config
 from poezio.contact import Contact, Resource
 from poezio.decorators import refresh_wrapper
@@ -531,7 +531,11 @@ class RosterInfoTab(Tab):
         """
         if args is None:
             return self.core.command.help('name')
-        jid = safeJID(args[0]).bare
+        try:
+            jid = JID(args[0]).bare
+        except InvalidJID:
+            self.core.information(f'Invalid JID: {args[0]}', 'Error')
+            return
         name = args[1] if len(args) == 2 else ''
 
         contact = roster[jid]
@@ -571,7 +575,11 @@ class RosterInfoTab(Tab):
             else:
                 return self.core.command.help('groupadd')
         else:
-            jid = safeJID(args[0]).bare
+            try:
+                jid = JID(args[0]).bare
+            except InvalidJID:
+                self.core.information(f'Invalid JID: {args[0]}', 'Error')
+                return
             group = args[1]
 
         contact = roster[jid]
@@ -614,7 +622,11 @@ class RosterInfoTab(Tab):
         """
         if args is None:
             return self.core.command.help('groupmove')
-        jid = safeJID(args[0]).bare
+        try:
+            jid = JID(args[0]).bare
+        except InvalidJID:
+            self.core.information(f'Invalid JID: {args[0]}', 'Error')
+            return
         group_from = args[1]
         group_to = args[2]
 
@@ -671,7 +683,11 @@ class RosterInfoTab(Tab):
         if args is None:
             return self.core.command.help('groupremove')
 
-        jid = safeJID(args[0]).bare
+        try:
+            jid = JID(args[0]).bare
+        except InvalidJID:
+            self.core.information(f'Invalid JID: {args[0]}', 'Error')
+            return
         group = args[1]
 
         contact = roster[jid]
@@ -1037,7 +1053,7 @@ class RosterInfoTab(Tab):
         if isinstance(selected_row, Contact):
             jid = selected_row.bare_jid
         elif isinstance(selected_row, Resource):
-            jid = safeJID(selected_row.jid).bare
+            jid = JID(selected_row.jid).bare
         else:
             return
         self.on_slash()
@@ -1119,8 +1135,11 @@ def jid_and_name_match(contact, txt):
     if not txt:
         return True
     txt = txt.lower()
-    if txt in safeJID(contact.bare_jid).bare.lower():
-        return True
+    try:
+        if txt in JID(contact.bare_jid).bare.lower():
+            return True
+    except InvalidJID:
+        pass
     if txt in contact.name.lower():
         return True
     return False
@@ -1133,9 +1152,12 @@ def jid_and_name_match_slow(contact, txt):
     """
     if not txt:
         return True  # Everything matches when search is empty
-    user = safeJID(contact.bare_jid).bare
-    if diffmatch(txt, user):
-        return True
+    try:
+        user = JID(contact.bare_jid).bare
+        if diffmatch(txt, user):
+            return True
+    except InvalidJID:
+        pass
     if contact.name and diffmatch(txt, contact.name):
         return True
     return False

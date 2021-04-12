@@ -8,7 +8,6 @@
 Defines the Roster and RosterGroup classes
 """
 import logging
-log = logging.getLogger(__name__)
 
 from typing import List
 
@@ -18,10 +17,10 @@ from poezio.roster_sorting import SORTING_METHODS, GROUP_SORTING_METHODS
 
 from os import path as p
 from datetime import datetime
-from poezio.common import safeJID
 from slixmpp.exceptions import IqError, IqTimeout
-from slixmpp import JID
+from slixmpp import JID, InvalidJID
 
+log = logging.getLogger(__name__)
 
 class Roster:
     """
@@ -77,7 +76,10 @@ class Roster:
 
     def __getitem__(self, key):
         """Get a Contact from his bare JID"""
-        key = safeJID(key).bare
+        try:
+            key = JID(key).bare
+        except InvalidJID:
+            return None
         if key in self.contacts and self.contacts[key] is not None:
             return self.contacts[key]
         if key in self.jids():
@@ -91,7 +93,10 @@ class Roster:
 
     def remove(self, jid):
         """Send a removal iq to the server"""
-        jid = safeJID(jid).bare
+        try:
+            jid = JID(jid).bare
+        except InvalidJID:
+            return
         if self.__node[jid]:
             try:
                 self.__node[jid].send_presence(ptype='unavailable')
@@ -101,7 +106,10 @@ class Roster:
 
     def __delitem__(self, jid):
         """Remove a contact from the roster view"""
-        jid = safeJID(jid).bare
+        try:
+            jid = JID(jid).bare
+        except InvalidJID:
+            return
         contact = self[jid]
         if not contact:
             return
@@ -119,7 +127,10 @@ class Roster:
 
     def __contains__(self, key):
         """True if the bare jid is in the roster, false otherwise"""
-        return safeJID(key).bare in self.jids()
+        try:
+            return JID(key).bare in self.jids()
+        except InvalidJID:
+            return False
 
     @property
     def jid(self):

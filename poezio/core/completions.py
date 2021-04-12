@@ -2,24 +2,22 @@
 Completions for the global commands
 """
 import logging
+import os
+from functools import reduce
+from pathlib import Path
 from typing import List, Optional
 
-log = logging.getLogger(__name__)
-
-import os
-from pathlib import Path
-from functools import reduce
-
-from slixmpp import JID
+from slixmpp import JID, InvalidJID
 
 from poezio import common
 from poezio import tabs
 from poezio import xdg
-from poezio.common import safeJID
 from poezio.config import config
 from poezio.roster import roster
 
 from poezio.core.structs import POSSIBLE_SHOW, Completion
+
+log = logging.getLogger(__name__)
 
 
 class CompletionCore:
@@ -124,9 +122,12 @@ class CompletionCore:
             return False
         if len(args) == 1:
             args.append('')
-        jid = safeJID(args[1])
-        if args[1].endswith('@') and not jid.user and not jid.server:
-            jid.user = args[1][:-1]
+        try:
+            jid = JID(args[1])
+        except InvalidJID:
+            jid = JID('')
+            if args[1].endswith('@'):
+                jid.user = args[1][:-1]
 
         relevant_rooms = []
         relevant_rooms.extend(sorted(self.core.pending_invites.keys()))
@@ -149,7 +150,8 @@ class CompletionCore:
             for tab in self.core.get_tabs(tabs.MucTab):
                 if tab.joined:
                     serv_list.append(
-                        '%s@%s' % (jid.user, safeJID(tab.name).host))
+                        '%s@%s' % (jid.user, tab.general_jid.server)
+                    )
             serv_list.extend(relevant_rooms)
             return Completion(
                 the_input.new_completion, serv_list, 1, quotify=True)
@@ -213,9 +215,8 @@ class CompletionCore:
 
         if len(args) == 1:
             args.append('')
-        jid = safeJID(args[1])
-
-        if jid.server and (jid.resource or jid.full.endswith('/')):
+        try:
+            jid = JID(args[1])
             tab = self.core.tabs.by_name_and_class(jid.bare, tabs.MucTab)
             nicks = [tab.own_nick] if tab else []
             default = os.environ.get('USER') if os.environ.get(
@@ -230,6 +231,8 @@ class CompletionCore:
             jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
             return Completion(
                 the_input.new_completion, jids_list, 1, quotify=True)
+        except InvalidJID:
+            pass
         muc_list = [tab.name for tab in self.core.get_tabs(tabs.MucTab)]
         muc_list.sort()
         muc_list.append('*')
@@ -429,9 +432,8 @@ class CompletionCore:
             return False
         if len(args) == 1:
             args.append('')
-        jid = safeJID(args[1])
-
-        if jid.server and (jid.resource or jid.full.endswith('/')):
+        try:
+            jid = JID(args[1])
             tab = self.core.tabs.by_name_and_class(jid.bare, tabs.MucTab)
             nicks = [tab.own_nick] if tab else []
             default = os.environ.get('USER') if os.environ.get(
@@ -446,6 +448,8 @@ class CompletionCore:
             jids_list = ['%s/%s' % (jid.bare, nick) for nick in nicks]
             return Completion(
                 the_input.new_completion, jids_list, 1, quotify=True)
+        except InvalidJID:
+            pass
         muc_list = [tab.name for tab in self.core.get_tabs(tabs.MucTab)]
         muc_list.append('*')
         return Completion(the_input.new_completion, muc_list, 1, quotify=True)

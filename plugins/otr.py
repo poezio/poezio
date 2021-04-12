@@ -184,7 +184,6 @@ and :term:`log` configuration parameters are tab-specific.
 from gettext import gettext as _
 import logging
 
-log = logging.getLogger(__name__)
 import os
 import html
 import curses
@@ -194,10 +193,11 @@ import potr
 from potr.context import NotEncryptedError, UnencryptedMessage, ErrorReceived, NotOTRMessage,\
         STATE_ENCRYPTED, STATE_PLAINTEXT, STATE_FINISHED, Context, Account, crypt
 
+from slixmpp import JID, InvalidJID
+
 from poezio import common
 from poezio import xdg
 from poezio import xhtml
-from poezio.common import safeJID
 from poezio.config import config
 from poezio.plugin import BasePlugin
 from poezio.roster import roster
@@ -206,6 +206,8 @@ from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
 from poezio.core.structs import Completion
 from poezio.ui.types import InfoMessage, Message
+
+log = logging.getLogger(__name__)
 
 POLICY_FLAGS = {
     'ALLOW_V1': False,
@@ -345,7 +347,7 @@ class PoezioContext(Context):
         self.xmpp = xmpp
         self.core = core
         self.flags = {}
-        self.trustName = safeJID(peer).bare
+        self.trustName = JID(peer).bare
         self.in_smp = False
         self.smp_own = False
         self.log = 0
@@ -375,7 +377,7 @@ class PoezioContext(Context):
             'info': '\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT),
             'normal': '\x19%s}' % dump_tuple(get_theme().COLOR_NORMAL_TEXT),
             'jid': self.peer,
-            'bare_jid': safeJID(self.peer).bare
+            'bare_jid': JID(self.peer).bare
         }
 
         tab = self.core.tabs.by_name(self.peer)
@@ -461,8 +463,9 @@ class PoezioAccount(Account):
 
                     if acc != self.name or proto != 'xmpp':
                         continue
-                    jid = safeJID(ctx).bare
-                    if not jid:
+                    try:
+                        jid = JID(ctx).bare
+                    except InvalidJID:
                         continue
                     self.setTrust(jid, fpr, trust)
         except:
@@ -595,7 +598,7 @@ class Plugin(BasePlugin):
         """
         Retrieve or create an OTR context
         """
-        jid = safeJID(jid)
+        jid = JID(jid)
         if jid.full not in self.contexts:
             flags = POLICY_FLAGS.copy()
             require = self.config.get_by_tabname(
@@ -806,9 +809,11 @@ class Plugin(BasePlugin):
         Find an OTR session from a bare JID.
         """
         for ctx in self.contexts:
-            if safeJID(
-                    ctx
-            ).bare == bare_jid and self.contexts[ctx].state == STATE_ENCRYPTED:
+            try:
+                jid = JID(ctx).bare
+            except InvalidJID:
+                continue
+            if jid == bare_jid and self.contexts[ctx].state == STATE_ENCRYPTED:
                 return self.contexts[ctx]
         return None
 
@@ -880,7 +885,11 @@ class Plugin(BasePlugin):
         Returns the text to display in the infobar (the OTR status)
         """
         context = self.get_context(jid)
-        if safeJID(jid).bare == jid and context.state != STATE_ENCRYPTED:
+        try:
+            bare_jid = JID(jid).bare
+        except InvalidJID:
+            bare_jid = ''
+        if bare_jid == jid and context.state != STATE_ENCRYPTED:
             ctx = self.find_encrypted_context_with_matching(jid)
             if ctx:
                 context = ctx

@@ -6,9 +6,10 @@ import qrcode
 
 from typing import Dict, Callable
 
+from slixmpp import JID, InvalidJID
+
 from poezio import windows
 from poezio.tabs import Tab
-from poezio.common import safeJID
 from poezio.core.structs import Command
 from poezio.decorators import command_args_parser
 from poezio.plugin import BasePlugin
@@ -170,7 +171,11 @@ class Plugin(BasePlugin):
     def command_invite(self, args):
         server = self.core.xmpp.boundjid.domain
         if len(args) > 0:
-            server = safeJID(args[0])
+            try:
+                server = JID(args[0])
+            except InvalidJID:
+                self.api.information(f'Invalid JID: {args[0]}', 'Error')
+                return
         session = {
             'next' : self.on_next,
             'error': self.core.handler.adhoc_error
