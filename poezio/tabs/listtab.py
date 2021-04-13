@@ -34,7 +34,7 @@ class ListTab(Tab):
         Tab.__init__(self, core)
         self.state = 'normal'
         self._error_message = ''
-        self.name = name
+        self._name = name
         columns = collections.OrderedDict()
         for col, num in cols:
             columns[col] = num
