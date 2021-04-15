@@ -146,14 +146,15 @@ class TextWin(Win):
         """
         self.addstr_colored(txt, y, x)
 
-    def resize(self, height: int, width: int, y: int, x: int, room: TextBuffer=None) -> None:
+    def resize(self, height: int, width: int, y: int, x: int,
+               room: Optional[TextBuffer] = None, force: bool = False) -> None:
         old_width: Optional[int]
         if hasattr(self, 'width'):
             old_width = self.width
         else:
             old_width = None
         self._resize(height, width, y, x)
-        if room and self.width != old_width:
+        if room and (self.width != old_width or force):
             self.rebuild_everything(room)
 
         # reposition the scrolling after resize

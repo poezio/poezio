@@ -1268,8 +1268,8 @@ class MucTab(ChatTab):
 
         self.text_win.resize(
             self.height - 3 - info_win_height - tab_win_height, text_width, 1,
-            0)
-        self.text_win.rebuild_everything(self._text_buffer)
+            0, self._text_buffer, force=self.ui_config_changed)
+        self.ui_config_changed = False
         self.info_header.resize(
             1, self.width, self.height - 2 - info_win_height - tab_win_height,
             0)
@@ -1314,7 +1314,7 @@ class MucTab(ChatTab):
             Tab.tab_win_height(), 1, 1, 9 * (self.width // 10))
         self.text_win.resize(
             self.height - 3 - self.core.information_win_size -
-            Tab.tab_win_height(), text_width, 1, 0)
+            Tab.tab_win_height(), text_width, 1, 0, self._text_buffer)
         self.info_header.resize(
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)

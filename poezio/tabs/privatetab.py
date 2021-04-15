@@ -214,8 +214,8 @@ class PrivateTab(OneToOneTab):
 
         self.text_win.resize(
             self.height - 2 - info_win_height - tab_win_height, self.width, 0,
-            0)
-        self.text_win.rebuild_everything(self._text_buffer)
+            0, self._text_buffer, force=self.ui_config_changed)
+        self.ui_config_changed = False
         self.info_header.resize(
             1, self.width, self.height - 2 - info_win_height - tab_win_height,
             0)

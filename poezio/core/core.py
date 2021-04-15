@@ -347,6 +347,7 @@ class Core:
             ('plugins_dir', self.plugin_manager.on_plugins_dir_change),
             ('request_message_receipts',
              self.on_request_receipts_config_change),
+            ('show_timestamps', self.on_show_timestamps_changed),
             ('theme', self.on_theme_config_change),
             ('themes_dir', theming.update_themes_dir),
             ('use_bookmarks_method', self.on_bookmarks_method_config_change),
@@ -403,6 +404,12 @@ class Core:
         Called when the hide_user_list option changes
         """
         self.call_for_resize()
+
+    def on_show_timestamps_changed(self, option, value):
+        """
+        Called when the show_timestamps option changes
+        """
+        self.call_for_resize(ui_config_changed=True)
 
     def on_bookmarks_method_config_change(self, option, value):
         """
@@ -1577,7 +1584,7 @@ class Core:
             self.information('Unable to write in the config file', 'Error')
         self.call_for_resize()
 
-    def resize_global_information_win(self):
+    def resize_global_information_win(self, ui_config_changed: bool = False):
         """
         Resize the global_information_win only once at each resize.
         """
@@ -1588,7 +1595,8 @@ class Core:
         height = (tabs.Tab.height - 1 - self.information_win_size -
                   tabs.Tab.tab_win_height())
         self.information_win.resize(self.information_win_size, tabs.Tab.width,
-                                    height, 0)
+                                    height, 0, self.information_buffer,
+                                    force=ui_config_changed)
 
     def resize_global_info_bar(self):
         """
@@ -1619,7 +1627,7 @@ class Core:
         self.stdscr.clear()
         self.refresh_window()
 
-    def call_for_resize(self):
+    def call_for_resize(self, ui_config_changed: bool = False):
         """
         Called when we want to resize the screen
         """
@@ -1642,8 +1650,9 @@ class Core:
             scr = self.stdscr
         tabs.Tab.initial_resize(scr)
         self.resize_global_info_bar()
-        self.resize_global_information_win()
+        self.resize_global_information_win(ui_config_changed)
         for tab in self.tabs:
+            tab.ui_config_changed = True
             if config.getbool('lazy_resize'):
                 tab.need_resize = True
             else:
