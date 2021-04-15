@@ -5,6 +5,8 @@ of everything; it also contains global commands, completions and event
 handlers but those are defined in submodules in order to avoir cluttering
 this file.
 """
+from __future__ import annotations
+
 import logging
 import asyncio
 import curses
@@ -25,14 +27,14 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    Union,
+    TYPE_CHECKING,
 )
 from xml.etree import ElementTree as ET
 
 from slixmpp import JID, InvalidJID
 from slixmpp.util import FileSystemPerJidCache
 from slixmpp.xmlstream.handler import Callback
-from slixmpp.exceptions import IqError, IqTimeout
+from slixmpp.exceptions import IqError, IqTimeout, XMPPError
 
 from poezio import connection
 from poezio import decorators
@@ -58,7 +60,6 @@ from poezio.size_manager import SizeManager
 from poezio.user import User
 from poezio.text_buffer import TextBuffer
 from poezio.timed_events import DelayedEvent
-from poezio.theming import get_theme
 from poezio import keyboard, xdg
 
 from poezio.core.completions import CompletionCore
@@ -73,10 +74,12 @@ from poezio.core.structs import (
 )
 
 from poezio.ui.types import (
-    Message,
     PersistentInfoMessage,
     UIMessage,
 )
+
+if TYPE_CHECKING:
+    from _curses import _CursesWindow
 
 log = logging.getLogger(__name__)
 
@@ -101,6 +104,27 @@ class Core:
     pending_invites: Dict[str, str]
     configuration_change_handlers: Dict[str, List[Callable[..., None]]]
     own_nick: str
+    connection_time: float
+    custom_version: str
+    xmpp: connection.Connection
+    avatar_cache: FileSystemPerJidCache
+    plugins_autoloaded: bool
+    previous_tab_nb: int
+    tabs: Tabs
+    size: SizeManager
+    plugin_manager: PluginManager
+    events: events.EventHandler
+    legitimate_disconnect: bool
+    information_buffer: TextBuffer
+    information_win_size: int
+    stdscr: Optional[_CursesWindow]
+    xml_buffer: TextBuffer
+    xml_tab: Optional[tabs.XMLTab]
+    last_stream_error: Optional[Tuple[float, XMPPError]]
+    remote_fifo: Optional[Fifo]
+    key_func: KeyDict
+    tab_win: windows.GlobalInfoBar
+    left_tab_win: Optional[windows.VerticalGlobalInfoBar]
 
     def __init__(self, custom_version: str, firstrun: bool):
         self.completion = CompletionCore(self)
@@ -116,7 +140,6 @@ class Core:
         status = config.getstr('status')
         status = POSSIBLE_SHOW.get(status) or ''
         self.status = Status(show=status, message=config.getstr('status_message'))
-        self.running = True
         self.custom_version = custom_version
         self.xmpp = connection.Connection(custom_version)
         self.xmpp.core = self
@@ -124,7 +147,6 @@ class Core:
         roster.set_node(self.xmpp.client_roster)
         decorators.refresh_wrapper.core = self
         self.bookmarks = BookmarkList()
-        self.debug = False
         self.remote_fifo = None
         self.avatar_cache = FileSystemPerJidCache(
             str(xdg.CACHE_HOME), 'avatars', binary=True)
@@ -1361,8 +1383,6 @@ class Core:
 
     def doupdate(self) -> None:
         "Do a curses update"
-        if not self.running:
-            return
         curses.doupdate()
 
     def information(self, msg: str, typ: str = '') -> bool:

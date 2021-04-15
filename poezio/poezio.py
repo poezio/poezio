@@ -111,8 +111,6 @@ def main():
     signal.signal(signal.SIGUSR1, cocore.sigusr_handler)  # reload the config
     signal.signal(signal.SIGHUP, cocore.exit_from_signal)
     signal.signal(signal.SIGTERM, cocore.exit_from_signal)
-    if options.debug:
-        cocore.debug = True
     cocore.start()
 
     from slixmpp.exceptions import IqError, IqTimeout
