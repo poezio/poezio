@@ -34,7 +34,7 @@ class ConfirmTab(Tab):
         """
         Tab.__init__(self, core)
         self.state = 'highlight'
-        self.name = name
+        self._name = name
         self.default_help_message = windows.HelpText(
             "Choose with arrow keys and press enter")
         self.input = self.default_help_message
