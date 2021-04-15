@@ -1,14 +1,22 @@
+from __future__ import annotations
 
 from datetime import datetime
 from math import ceil, log10
-from typing import Union, Optional, List, Tuple
-from poezio.ui.funcs import truncate_nick
+from typing import Optional, Tuple, Dict, Any, Callable
+
 from poezio import poopt
-from poezio.user import User
 from poezio.theming import dump_tuple, get_theme
+from poezio.ui.funcs import truncate_nick
+from poezio.user import User
+
 
 class BaseMessage:
+    """Base class for all ui-related messages"""
     __slots__ = ('txt', 'time', 'identifier')
+
+    txt: str
+    identifier: str
+    time: datetime
 
     def __init__(self, txt: str, identifier: str = '', time: Optional[datetime] = None):
         self.txt = txt
@@ -19,6 +27,7 @@ class BaseMessage:
             self.time = datetime.now()
 
     def compute_offset(self, with_timestamps: bool, nick_size: int) -> int:
+        """Compute the offset of the message"""
         theme = get_theme()
         return theme.SHORT_TIME_FORMAT_LENGTH + 1
 
@@ -28,9 +37,37 @@ class EndOfArchive(BaseMessage):
 
 
 class InfoMessage(BaseMessage):
+    """Information message"""
     def __init__(self, txt: str, identifier: str = '', time: Optional[datetime] = None):
         txt = ('\x19%s}' % dump_tuple(get_theme().COLOR_INFORMATION_TEXT)) + txt
         super().__init__(txt=txt, identifier=identifier, time=time)
+
+
+class UIMessage(BaseMessage):
+    """Message displayed through poezio UI"""
+    __slots__ = ('level', 'color')
+    level: str
+    color: Optional[Tuple]
+
+    def __init__(self, txt: str, level: str):
+        BaseMessage.__init__(self, txt=txt)
+        self.level = level.capitalize()
+        colors = get_theme().INFO_COLORS
+        self.color = colors.get(level.lower(), colors.get('default', None))
+
+    def compute_offset(self, with_timestamps: bool, nick_size: int) -> int:
+        """Compute the x-position at which the message should be printed"""
+        offset = 0
+        theme = get_theme()
+        if with_timestamps:
+            offset += 1 + theme.SHORT_TIME_FORMAT_LENGTH
+        level = self.level
+        if not level:  # not a message, nothing to do afterwards
+            return offset
+        level = truncate_nick(level, nick_size) or ''
+        offset += poopt.wcswidth(level)
+        offset += 2
+        return offset
 
 
 class LoggableTrait:
@@ -39,6 +76,7 @@ class LoggableTrait:
 
 
 class PersistentInfoMessage(InfoMessage, LoggableTrait):
+    """Information message thatt will be logged"""
     pass
 
 
@@ -53,6 +91,7 @@ class MucOwnJoinMessage(InfoMessage, LoggableTrait):
 class XMLLog(BaseMessage):
     """XML Log message"""
     __slots__ = ('incoming')
+    incoming: bool
 
     def __init__(
             self,
@@ -62,10 +101,7 @@ class XMLLog(BaseMessage):
         BaseMessage.__init__(
             self,
             txt=txt,
-            identifier='',
         )
-        self.txt = txt
-        self.identifier = ''
         self.incoming = incoming
 
     def compute_offset(self, with_timestamps: bool, nick_size: int) -> int:
@@ -83,7 +119,10 @@ class XMLLog(BaseMessage):
 
 
 class StatusMessage(BaseMessage):
+    """A dynamically formatted status message"""
     __slots__ = ('format_string', 'format_args')
+    format_string: str
+    format_args: Dict[str, Callable[[], Any]]
 
     def __init__(self, format_string: str, format_args: dict):
         BaseMessage.__init__(
@@ -103,8 +142,19 @@ class StatusMessage(BaseMessage):
 
 class Message(BaseMessage, LoggableTrait):
     __slots__ = ('nick_color', 'nickname', 'user', 'delayed', 'history',
-                 'top', 'highlight', 'me', 'old_message', 'revisions',
+                 'highlight', 'me', 'old_message', 'revisions',
                  'jid', 'ack')
+    nick_color: Optional[Tuple]
+    nickname: Optional[str]
+    user: Optional[User]
+    delayed: bool
+    history: bool
+    highlight: bool
+    me: bool
+    old_message: Optional[Message]
+    revisions: int
+    jid: Optional[str]
+    ack: int
 
     def __init__(self,
                  txt: str,
@@ -115,9 +165,8 @@ class Message(BaseMessage, LoggableTrait):
                  history: bool = False,
                  user: Optional[User] = None,
                  identifier: Optional[str] = '',
-                 top: Optional[bool] = False,
                  highlight: bool = False,
-                 old_message: Optional['Message'] = None,
+                 old_message: Optional[Message] = None,
                  revisions: int = 0,
                  jid: Optional[str] = None,
                  ack: int = 0) -> None:
@@ -143,7 +192,6 @@ class Message(BaseMessage, LoggableTrait):
         self.nickname = nickname
         self.nick_color = nick_color
         self.user = user
-        self.top = top
         self.highlight = highlight
         self.me = me
         self.old_message = old_message
@@ -181,6 +229,7 @@ class Message(BaseMessage, LoggableTrait):
         return ''.join(acc)
 
     def compute_offset(self, with_timestamps: bool, nick_size: int) -> int:
+        """Compute the x-position at which the message should be printed"""
         offset = 0
         theme = get_theme()
         if with_timestamps:

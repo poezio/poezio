@@ -124,12 +124,14 @@ class Tab:
     plugin_commands: Dict[str, Command] = {}
     plugin_keys: Dict[str, Callable] = {}
     # Placeholder values, set on resize
-    height = 1
-    width = 1
+    height: int = 1
+    width: int = 1
     core: Core
     input: Optional[windows.Input]
     key_func: Dict[str, Callable[[], Any]]
     commands: Dict[str, Command]
+    need_resize: bool
+    ui_config_changed: bool
 
     def __init__(self, core: Core):
         self.core = core
@@ -142,6 +144,7 @@ class Tab:
         self._prev_state = None
 
         self.need_resize = False
+        self.ui_config_changed = False
         self.key_func = {}  # each tab should add their keys in there
         # and use them in on_input
         self.commands = {}  # and their own commands

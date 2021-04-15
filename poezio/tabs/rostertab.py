@@ -434,7 +434,9 @@ class RosterInfoTab(Tab):
                                     roster_width)
             self.information_win.resize(
                 self.height - 1 - tab_win_height - contact_win_h, info_width,
-                0, roster_width + 1, self.core.information_buffer)
+                0, roster_width + 1, self.core.information_buffer,
+                force=self.ui_config_changed)
+            self.ui_config_changed = False
             if display_contact_win:
                 y = self.height - tab_win_height - contact_win_h - 1
                 avatar_width = contact_win_h * 2

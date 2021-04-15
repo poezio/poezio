@@ -5,6 +5,8 @@ of everything; it also contains global commands, completions and event
 handlers but those are defined in submodules in order to avoir cluttering
 this file.
 """
+from __future__ import annotations
+
 import logging
 import asyncio
 import curses
@@ -25,19 +27,18 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    Union,
+    TYPE_CHECKING,
 )
 from xml.etree import ElementTree as ET
 
 from slixmpp import JID, InvalidJID
 from slixmpp.util import FileSystemPerJidCache
 from slixmpp.xmlstream.handler import Callback
-from slixmpp.exceptions import IqError, IqTimeout
+from slixmpp.exceptions import IqError, IqTimeout, XMPPError
 
 from poezio import connection
 from poezio import decorators
 from poezio import events
-from poezio import tabs
 from poezio import theming
 from poezio import timed_events
 from poezio import windows
@@ -45,6 +46,11 @@ from poezio import windows
 from poezio.bookmarks import (
     BookmarkList,
     Bookmark,
+)
+from poezio.tabs import (
+    Tab, XMLTab, ChatTab, ConversationTab, PrivateTab, MucTab, OneToOneTab,
+    GapTab, RosterInfoTab, StaticConversationTab, DataFormsTab,
+    DynamicConversationTab, STATE_PRIORITY
 )
 from poezio.common import get_error_message
 from poezio.config import config
@@ -58,7 +64,6 @@ from poezio.size_manager import SizeManager
 from poezio.user import User
 from poezio.text_buffer import TextBuffer
 from poezio.timed_events import DelayedEvent
-from poezio.theming import get_theme
 from poezio import keyboard, xdg
 
 from poezio.core.completions import CompletionCore
@@ -73,13 +78,16 @@ from poezio.core.structs import (
 )
 
 from poezio.ui.types import (
-    Message,
     PersistentInfoMessage,
+    UIMessage,
 )
+
+if TYPE_CHECKING:
+    from _curses import _CursesWindow  # pylint: disable=no-name-in-module
 
 log = logging.getLogger(__name__)
 
-T = TypeVar('T', bound=tabs.Tab)
+T = TypeVar('T', bound=Tab)
 
 
 class Core:
@@ -100,6 +108,26 @@ class Core:
     pending_invites: Dict[str, str]
     configuration_change_handlers: Dict[str, List[Callable[..., None]]]
     own_nick: str
+    connection_time: float
+    xmpp: connection.Connection
+    avatar_cache: FileSystemPerJidCache
+    plugins_autoloaded: bool
+    previous_tab_nb: int
+    tabs: Tabs
+    size: SizeManager
+    plugin_manager: PluginManager
+    events: events.EventHandler
+    legitimate_disconnect: bool
+    information_buffer: TextBuffer
+    information_win_size: int
+    stdscr: Optional[_CursesWindow]
+    xml_buffer: TextBuffer
+    xml_tab: Optional[XMLTab]
+    last_stream_error: Optional[Tuple[float, XMPPError]]
+    remote_fifo: Optional[Fifo]
+    key_func: KeyDict
+    tab_win: windows.GlobalInfoBar
+    left_tab_win: Optional[windows.VerticalGlobalInfoBar]
 
     def __init__(self, custom_version: str, firstrun: bool):
         self.completion = CompletionCore(self)
@@ -115,7 +143,6 @@ class Core:
         status = config.getstr('status')
         status = POSSIBLE_SHOW.get(status) or ''
         self.status = Status(show=status, message=config.getstr('status_message'))
-        self.running = True
         self.custom_version = custom_version
         self.xmpp = connection.Connection(custom_version)
         self.xmpp.core = self
@@ -123,7 +150,6 @@ class Core:
         roster.set_node(self.xmpp.client_roster)
         decorators.refresh_wrapper.core = self
         self.bookmarks = BookmarkList()
-        self.debug = False
         self.remote_fifo = None
         self.avatar_cache = FileSystemPerJidCache(
             str(xdg.CACHE_HOME), 'avatars', binary=True)
@@ -142,7 +168,7 @@ class Core:
         self.events = events.EventHandler()
         self.events.add_event_handler('tab_change', self.on_tab_change)
 
-        self.tabs = Tabs(self.events, tabs.GapTab())
+        self.tabs = Tabs(self.events, GapTab())
         self.previous_tab_nb = 0
 
         self.own_nick: str = (
@@ -347,6 +373,7 @@ class Core:
             ('plugins_dir', self.plugin_manager.on_plugins_dir_change),
             ('request_message_receipts',
              self.on_request_receipts_config_change),
+            ('show_timestamps', self.on_show_timestamps_changed),
             ('theme', self.on_theme_config_change),
             ('themes_dir', theming.update_themes_dir),
             ('use_bookmarks_method', self.on_bookmarks_method_config_change),
@@ -363,7 +390,7 @@ class Core:
         self.left_tab_win = None
         self.tab_win = windows.GlobalInfoBar(self)
 
-    def on_tab_change(self, old_tab: tabs.Tab, new_tab: tabs.Tab):
+    def on_tab_change(self, old_tab: Tab, new_tab: Tab):
         """Whenever the current tab changes, change focus and refresh"""
         old_tab.on_lose_focus()
         new_tab.on_gain_focus()
@@ -403,6 +430,12 @@ class Core:
         Called when the hide_user_list option changes
         """
         self.call_for_resize()
+
+    def on_show_timestamps_changed(self, option, value):
+        """
+        Called when the show_timestamps option changes
+        """
+        self.call_for_resize(ui_config_changed=True)
 
     def on_bookmarks_method_config_change(self, option, value):
         """
@@ -546,7 +579,7 @@ class Core:
         windows.base_wins.TAB_WIN = self.stdscr
         self._create_windows()
         self.call_for_resize()
-        default_tab = tabs.RosterInfoTab(self)
+        default_tab = RosterInfoTab(self)
         default_tab.on_gain_focus()
         self.tabs.append(default_tab)
         self.information('Welcome to poezio!', 'Info')
@@ -682,7 +715,7 @@ class Core:
         Messages are namedtuples of the form
         ('txt nick_color time str_time nickname user')
         """
-        if not isinstance(self.tabs.current_tab, tabs.ChatTab):
+        if not isinstance(self.tabs.current_tab, ChatTab):
             return None
         return self.tabs.current_tab.get_conversation_messages()
 
@@ -865,7 +898,7 @@ class Core:
         if reconnect:
             self.xmpp.reconnect(wait=0.0, reason=msg)
         else:
-            for tab in self.get_tabs(tabs.MucTab):
+            for tab in self.get_tabs(MucTab):
                 tab.leave_room(msg)
             self.xmpp.disconnect(reason=msg)
 
@@ -875,7 +908,7 @@ class Core:
         conversation.
         Returns False if the current tab is not a conversation tab
         """
-        if not isinstance(self.tabs.current_tab, tabs.ChatTab):
+        if not isinstance(self.tabs.current_tab, ChatTab):
             return False
         self.tabs.current_tab.command_say(msg)
         return True
@@ -1009,7 +1042,7 @@ class Core:
     def get_conversation_by_jid(self,
                                 jid: JID,
                                 create: bool = True,
-                                fallback_barejid: bool = True) -> Optional[tabs.ChatTab]:
+                                fallback_barejid: bool = True) -> Optional[ChatTab]:
         """
         From a JID, get the tab containing the conversation with it.
         If none already exist, and create is "True", we create it
@@ -1021,17 +1054,17 @@ class Core:
         jid = JID(jid)
         # We first check if we have a static conversation opened
         # with this precise resource
-        conversation: Optional[tabs.ConversationTab]
+        conversation: Optional[ConversationTab]
         conversation = self.tabs.by_name_and_class(jid.full,
-                                                   tabs.StaticConversationTab)
+                                                   StaticConversationTab)
         if jid.bare == jid.full and not conversation:
             conversation = self.tabs.by_name_and_class(
-                jid.full, tabs.DynamicConversationTab)
+                jid.full, DynamicConversationTab)
 
         if not conversation and fallback_barejid:
             # If not, we search for a conversation with the bare jid
             conversation = self.tabs.by_name_and_class(
-                jid.bare, tabs.DynamicConversationTab)
+                jid.bare, DynamicConversationTab)
             if not conversation:
                 if create:
                     # We create a dynamic conversation with the bare Jid if
@@ -1043,7 +1076,7 @@ class Core:
                     conversation = None
         return conversation
 
-    def add_tab(self, new_tab: tabs.Tab, focus: bool = False) -> None:
+    def add_tab(self, new_tab: Tab, focus: bool = False) -> None:
         """
         Appends the new_tab in the tab list and
         focus it if focus==True
@@ -1139,11 +1172,11 @@ class Core:
     def go_to_important_room(self) -> None:
         """
         Go to the next room with activity, in the order defined in the
-        dict tabs.STATE_PRIORITY
+        dict STATE_PRIORITY
         """
         # shortcut
-        priority = tabs.STATE_PRIORITY
-        tab_refs: Dict[str, List[tabs.Tab]] = {}
+        priority = STATE_PRIORITY
+        tab_refs: Dict[str, List[Tab]] = {}
         # put all the active tabs in a dict of lists by state
         for tab in self.tabs.get_tabs():
             if not tab:
@@ -1168,7 +1201,7 @@ class Core:
 
     def focus_tab_named(self,
                         tab_name: str,
-                        type_: Type[tabs.Tab] = None) -> bool:
+                        type_: Type[Tab] = None) -> bool:
         """Returns True if it found a tab to focus on"""
         if type_ is None:
             tab = self.tabs.by_name(tab_name)
@@ -1179,24 +1212,24 @@ class Core:
             return True
         return False
 
-    def focus_tab(self, tab: tabs.Tab) -> bool:
+    def focus_tab(self, tab: Tab) -> bool:
         """Focus a tab"""
         return self.tabs.set_current_tab(tab)
 
     ### Opening actions ###
 
     def open_conversation_window(self, jid: JID,
-                                 focus=True) -> tabs.ConversationTab:
+                                 focus=True) -> ConversationTab:
         """
         Open a new conversation tab and focus it if needed. If a resource is
         provided, we open a StaticConversationTab, else a
         DynamicConversationTab
         """
-        new_tab: tabs.ConversationTab
+        new_tab: ConversationTab
         if jid.resource:
-            new_tab = tabs.StaticConversationTab(self, jid)
+            new_tab = StaticConversationTab(self, jid)
         else:
-            new_tab = tabs.DynamicConversationTab(self, jid)
+            new_tab = DynamicConversationTab(self, jid)
         if not focus:
             new_tab.state = "private"
         self.add_tab(new_tab, focus)
@@ -1204,21 +1237,21 @@ class Core:
         return new_tab
 
     def open_private_window(self, room_name: str, user_nick: str,
-                            focus=True) -> Optional[tabs.PrivateTab]:
+                            focus=True) -> Optional[PrivateTab]:
         """
         Open a Private conversation in a MUC and focus if needed.
         """
         complete_jid = room_name + '/' + user_nick
         # if the room exists, focus it and return
-        for tab in self.get_tabs(tabs.PrivateTab):
+        for tab in self.get_tabs(PrivateTab):
             if tab.name == complete_jid:
                 self.tabs.set_current_tab(tab)
                 return tab
         # create the new tab
-        muc_tab = self.tabs.by_name_and_class(room_name, tabs.MucTab)
+        muc_tab = self.tabs.by_name_and_class(room_name, MucTab)
         if not muc_tab:
             return None
-        tab = tabs.PrivateTab(self, complete_jid, muc_tab.own_nick)
+        tab = PrivateTab(self, complete_jid, muc_tab.own_nick)
         if hasattr(tab, 'directed_presence'):
             tab.directed_presence = tab.directed_presence
         if not focus:
@@ -1234,11 +1267,11 @@ class Core:
                       nick: str,
                       *,
                       password: Optional[str] = None,
-                      focus=True) -> tabs.MucTab:
+                      focus=True) -> MucTab:
         """
         Open a new tab.MucTab containing a muc Room, using the specified nick
         """
-        new_tab = tabs.MucTab(self, room, nick, password=password)
+        new_tab = MucTab(self, room, nick, password=password)
         self.add_tab(new_tab, focus)
         self.refresh_window()
         return new_tab
@@ -1250,7 +1283,7 @@ class Core:
         The callback are called with the completed form as parameter in
         addition with kwargs
         """
-        form_tab = tabs.DataFormsTab(self, form, on_cancel, on_send, kwargs)
+        form_tab = DataFormsTab(self, form, on_cancel, on_send, kwargs)
         self.add_tab(form_tab, True)
 
     ### Modifying actions ###
@@ -1262,7 +1295,7 @@ class Core:
         with him/her
         """
         tab = self.tabs.by_name_and_class('%s/%s' % (room_name, old_nick),
-                                          tabs.PrivateTab)
+                                          PrivateTab)
         if tab:
             tab.rename_user(old_nick, user)
 
@@ -1273,7 +1306,7 @@ class Core:
         private conversation
         """
         tab = self.tabs.by_name_and_class('%s/%s' % (room_name, user.nick),
-                                          tabs.PrivateTab)
+                                          PrivateTab)
         if tab:
             tab.user_left(status_message, user)
 
@@ -1283,7 +1316,7 @@ class Core:
         private conversation
         """
         tab = self.tabs.by_name_and_class('%s/%s' % (room_name, nick),
-                                          tabs.PrivateTab)
+                                          PrivateTab)
         if tab:
             tab.user_rejoined(nick)
 
@@ -1295,7 +1328,7 @@ class Core:
         """
         if reason is None:
             reason = '\x195}You left the room\x193}'
-        for tab in self.get_tabs(tabs.PrivateTab):
+        for tab in self.get_tabs(PrivateTab):
             if tab.name.startswith(room_name):
                 tab.deactivate(reason=reason)
 
@@ -1306,23 +1339,23 @@ class Core:
         """
         if reason is None:
             reason = '\x195}You joined the room\x193}'
-        for tab in self.get_tabs(tabs.PrivateTab):
+        for tab in self.get_tabs(PrivateTab):
             if tab.name.startswith(room_name):
                 tab.activate(reason=reason)
 
     def on_user_changed_status_in_private(self, jid: JID, status: Status) -> None:
-        tab = self.tabs.by_name_and_class(jid, tabs.OneToOneTab)
+        tab = self.tabs.by_name_and_class(jid, OneToOneTab)
         if tab is not None:  # display the message in private
             tab.update_status(status)
 
-    def close_tab(self, to_close: tabs.Tab = None) -> None:
+    def close_tab(self, to_close: Tab = None) -> None:
         """
         Close the given tab. If None, close the current one
         """
         was_current = to_close is None
         tab = to_close or self.tabs.current_tab
 
-        if isinstance(tab, tabs.RosterInfoTab):
+        if isinstance(tab, RosterInfoTab):
             return  # The tab 0 should NEVER be closed
         tab.on_close()
         del tab.key_func  # Remove self references
@@ -1343,7 +1376,7 @@ class Core:
         Search for a ConversationTab with the given jid (full or bare),
         if yes, add the given message to it
         """
-        tab = self.tabs.by_name_and_class(jid, tabs.ConversationTab)
+        tab = self.tabs.by_name_and_class(jid, ConversationTab)
         if tab is not None:
             tab.add_message(PersistentInfoMessage(msg))
             if self.tabs.current_tab is tab:
@@ -1353,8 +1386,6 @@ class Core:
 
     def doupdate(self) -> None:
         "Do a curses update"
-        if not self.running:
-            return
         curses.doupdate()
 
     def information(self, msg: str, typ: str = '') -> bool:
@@ -1374,17 +1405,14 @@ class Core:
                     'Did not show the message:\n\t%s> %s \n\tdue to filter_info_messages configuration',
                     typ, msg)
                 return False
-        colors = get_theme().INFO_COLORS
-        color = colors.get(typ.lower(), colors.get('default', None))
         nb_lines = self.information_buffer.add_message(
-            Message(
+            UIMessage(
                 txt=msg,
-                nickname=typ,
-                nick_color=color
+                level=typ,
             )
         )
         popup_on = config.getlist('information_buffer_popup_on')
-        if isinstance(self.tabs.current_tab, tabs.RosterInfoTab):
+        if isinstance(self.tabs.current_tab, RosterInfoTab):
             self.refresh_window()
         elif typ != '' and typ.lower() in popup_on:
             popup_time = config.getint('popup_time') + (nb_lines - 1) * 2
@@ -1535,7 +1563,7 @@ class Core:
         Scroll the information buffer up
         """
         self.information_win.scroll_up(self.information_win.height)
-        if not isinstance(self.tabs.current_tab, tabs.RosterInfoTab):
+        if not isinstance(self.tabs.current_tab, RosterInfoTab):
             self.information_win.refresh()
         else:
             info = self.tabs.current_tab.information_win
@@ -1547,7 +1575,7 @@ class Core:
         Scroll the information buffer down
         """
         self.information_win.scroll_down(self.information_win.height)
-        if not isinstance(self.tabs.current_tab, tabs.RosterInfoTab):
+        if not isinstance(self.tabs.current_tab, RosterInfoTab):
             self.information_win.refresh()
         else:
             info = self.tabs.current_tab.information_win
@@ -1577,18 +1605,19 @@ class Core:
             self.information('Unable to write in the config file', 'Error')
         self.call_for_resize()
 
-    def resize_global_information_win(self):
+    def resize_global_information_win(self, ui_config_changed: bool = False):
         """
         Resize the global_information_win only once at each resize.
         """
-        if self.information_win_size > tabs.Tab.height - 6:
-            self.information_win_size = tabs.Tab.height - 6
-        if tabs.Tab.height < 6:
+        if self.information_win_size > Tab.height - 6:
+            self.information_win_size = Tab.height - 6
+        if Tab.height < 6:
             self.information_win_size = 0
-        height = (tabs.Tab.height - 1 - self.information_win_size -
-                  tabs.Tab.tab_win_height())
-        self.information_win.resize(self.information_win_size, tabs.Tab.width,
-                                    height, 0)
+        height = (Tab.height - 1 - self.information_win_size -
+                  Tab.tab_win_height())
+        self.information_win.resize(self.information_win_size, Tab.width,
+                                    height, 0, self.information_buffer,
+                                    force=ui_config_changed)
 
     def resize_global_info_bar(self):
         """
@@ -1609,7 +1638,7 @@ class Core:
             self.left_tab_win = windows.VerticalGlobalInfoBar(
                 self, truncated_win)
         elif not self.size.core_degrade_y:
-            self.tab_win.resize(1, tabs.Tab.width, tabs.Tab.height - 2, 0)
+            self.tab_win.resize(1, Tab.width, Tab.height - 2, 0)
             self.left_tab_win = None
 
     def full_screen_redraw(self):
@@ -1619,7 +1648,7 @@ class Core:
         self.stdscr.clear()
         self.refresh_window()
 
-    def call_for_resize(self):
+    def call_for_resize(self, ui_config_changed: bool = False):
         """
         Called when we want to resize the screen
         """
@@ -1627,6 +1656,8 @@ class Core:
         # window to each Tab class, so they draw themself in the portion of
         # the screen that they can occupy, and we draw the tab list on the
         # remaining space, on the left
+        if self.stdscr is None:
+            raise ValueError('No output available')
         height, width = self.stdscr.getmaxyx()
         if (config.getbool('enable_vertical_tab_list')
                 and not self.size.core_degrade_x):
@@ -1640,10 +1671,11 @@ class Core:
                 return
         else:
             scr = self.stdscr
-        tabs.Tab.initial_resize(scr)
+        Tab.initial_resize(scr)
         self.resize_global_info_bar()
-        self.resize_global_information_win()
+        self.resize_global_information_win(ui_config_changed)
         for tab in self.tabs:
+            tab.ui_config_changed = True
             if config.getbool('lazy_resize'):
                 tab.need_resize = True
             else:
@@ -1714,7 +1746,7 @@ class Core:
         for bm in bookmarks:
             if not (bm.autojoin or config.getbool('open_all_bookmarks')):
                 continue
-            tab = self.tabs.by_name_and_class(bm.jid, tabs.MucTab)
+            tab = self.tabs.by_name_and_class(bm.jid, MucTab)
             nick = bm.nick if bm.nick else self.own_nick
             if not tab:
                 tab = self.open_new_room(
@@ -1722,7 +1754,7 @@ class Core:
             self.initial_joins.append(bm.jid)
             # do not join rooms that do not have autojoin
             # but display them anyway
-            if bm.autojoin:
+            if bm.autojoin and tab:
                 tab.join()
 
     async def check_bookmark_storage(self, features: List[str]):
@@ -1749,16 +1781,14 @@ class Core:
         """
         Display the error in the tab
         """
-        tab = self.tabs.by_name_and_class(room_name, tabs.MucTab)
+        tab = self.tabs.by_name_and_class(room_name, MucTab)
         if not tab:
             return
         error_message = get_error_message(error)
         tab.add_message(
-            Message(
+            UIMessage(
                 error_message,
-                highlight=True,
-                nickname='Error',
-                nick_color=get_theme().COLOR_ERROR_MSG,
+                level='Error',
             ),
         )
         code = error['error']['code']

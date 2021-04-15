@@ -368,7 +368,7 @@ class Theme:
     # Info messages color (the part before the ">")
     INFO_COLORS = {
         'info': (5, -1),
-        'error': (16, 1),
+        'error': (9, 7, 'b'),
         'warning': (1, -1),
         'roster': (2, -1),
         'help': (10, -1),

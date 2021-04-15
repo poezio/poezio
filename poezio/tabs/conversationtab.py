@@ -252,8 +252,10 @@ class ConversationTab(OneToOneTab):
 
         self.text_win.resize(
             self.height - 2 - bar_height - info_win_height - tab_win_height,
-            self.width, bar_height, 0)
-        self.text_win.rebuild_everything(self._text_buffer)
+            self.width, bar_height, 0, self._text_buffer,
+            force=self.ui_config_changed
+        )
+        self.ui_config_changed = False
         if display_bar:
             self.upper_bar.resize(1, self.width, 0, 0)
         self.get_info_header().resize(
