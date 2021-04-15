@@ -342,6 +342,7 @@ class CommandCore:
 
     def _parse_join_jid(self, jid_string: str) -> Tuple[Optional[str], Optional[str]]:
         # we try to join a server directly
+        server_root = False
         try:
             if jid_string.startswith('@'):
                 server_root = True
@@ -350,7 +351,7 @@ class CommandCore:
                 info = JID(jid_string)
                 server_root = False
         except InvalidJID:
-            return (None, None)
+            info = JID('')
 
         set_nick: Optional[str] = ''
         if len(jid_string) > 1 and jid_string.startswith('/'):
