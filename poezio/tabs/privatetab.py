@@ -314,7 +314,7 @@ class PrivateTab(OneToOneTab):
             ),
         )
         new_jid = self.jid.bare + '/' + user.nick
-        self.name = new_jid
+        self._name = new_jid
         return self.core.tabs.current_tab is self
 
     @refresh_wrapper.conditional
