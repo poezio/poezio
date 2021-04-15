@@ -136,7 +136,8 @@ class Logger:
         """
         jidstr = str(jid).replace('/', '\\')
         self._busy_fds[jidstr] = True
-        self._buffered_fds[jidstr] = []
+        if jidstr not in self._buffered_fds:
+            self._buffered_fds[jidstr] = []
 
     def fd_available(self, jid: Union[str, JID]) -> None:
         """Signal to the logger that this logfile is no longer busy.
@@ -371,15 +372,19 @@ def iterate_messages_reverse(filepath: Path) -> Generator[LogDict, None, None]:
             with mmap.mmap(fd.fileno(), 0, prot=mmap.PROT_READ) as m:
                 # start of messages begin with MI or MR, after a \n
                 pos = m.rfind(b"\nM") + 1
-                lines = parse_log_lines(
-                    m[pos:-1].decode(errors='replace').splitlines()
-                )
+                if pos != -1:
+                    lines = parse_log_lines(
+                        m[pos:-1].decode(errors='replace').splitlines()
+                    )
+                elif m[0:1] == b'M':
+                    # Handle the case of a single message present in the log
+                    # file, hence no newline.
+                    lines = parse_log_lines(
+                        m[:].decode(errors='replace').splitlines()
+                    )
                 if lines:
                     yield lines[0]
-                # number of message found so far
-                count = 0
                 while pos > 0:
-                    count += 1
                     old_pos = pos
                     pos = m.rfind(b"\nM", 0, pos) + 1
                     lines = parse_log_lines(
