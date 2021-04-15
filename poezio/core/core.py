@@ -75,6 +75,7 @@ from poezio.core.structs import (
 from poezio.ui.types import (
     Message,
     PersistentInfoMessage,
+    UIMessage,
 )
 
 log = logging.getLogger(__name__)
@@ -1381,13 +1382,10 @@ class Core:
                     'Did not show the message:\n\t%s> %s \n\tdue to filter_info_messages configuration',
                     typ, msg)
                 return False
-        colors = get_theme().INFO_COLORS
-        color = colors.get(typ.lower(), colors.get('default', None))
         nb_lines = self.information_buffer.add_message(
-            Message(
+            UIMessage(
                 txt=msg,
-                nickname=typ,
-                nick_color=color
+                level=typ,
             )
         )
         popup_on = config.getlist('information_buffer_popup_on')
@@ -1763,11 +1761,9 @@ class Core:
             return
         error_message = get_error_message(error)
         tab.add_message(
-            Message(
+            UIMessage(
                 error_message,
-                highlight=True,
-                nickname='Error',
-                nick_color=get_theme().COLOR_ERROR_MSG,
+                level='Error',
             ),
         )
         code = error['error']['code']

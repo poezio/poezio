@@ -30,6 +30,7 @@ from poezio.ui.types import (
     BaseMessage,
     Message,
     StatusMessage,
+    UIMessage,
     XMLLog,
 )
 
@@ -123,6 +124,29 @@ def write_pre(msg: BaseMessage, win: Win, with_timestamps: bool, nick_size: int)
     if with_timestamps:
         return PreMessageHelpers.write_time(win, False, msg.time)
     return 0
+
+
+@write_pre.register(UIMessage)
+def write_pre_uimessage(msg: UIMessage, win: Win, with_timestamps: bool, nick_size: int) -> int:
+    """ Write the prefix of a ui message log
+        - timestamp (short or long)
+        - level
+    """
+    color: Optional[Tuple]
+    offset = 0
+    if with_timestamps:
+        offset += PreMessageHelpers.write_time(win, False, msg.time)
+
+    if not msg.level:  # not a message, nothing to do afterwards
+        return offset
+
+    level = truncate_nick(msg.level, nick_size)
+    offset += poopt.wcswidth(level)
+    color = msg.color
+    PreMessageHelpers.write_nickname(win, level, color, False)
+    win.addstr('> ')
+    offset += 2
+    return offset
 
 
 @write_pre.register(Message)

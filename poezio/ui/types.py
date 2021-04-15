@@ -43,6 +43,33 @@ class InfoMessage(BaseMessage):
         super().__init__(txt=txt, identifier=identifier, time=time)
 
 
+class UIMessage(BaseMessage):
+    """Message displayed through poezio UI"""
+    __slots__ = ('level', 'color')
+    level: str
+    color: Optional[Tuple]
+
+    def __init__(self, txt: str, level: str):
+        BaseMessage.__init__(self, txt=txt)
+        self.level = level.capitalize()
+        colors = get_theme().INFO_COLORS
+        self.color = colors.get(level.lower(), colors.get('default', None))
+
+    def compute_offset(self, with_timestamps: bool, nick_size: int) -> int:
+        """Compute the x-position at which the message should be printed"""
+        offset = 0
+        theme = get_theme()
+        if with_timestamps:
+            offset += 1 + theme.SHORT_TIME_FORMAT_LENGTH
+        level = self.level
+        if not level:  # not a message, nothing to do afterwards
+            return offset
+        level = truncate_nick(level, nick_size) or ''
+        offset += poopt.wcswidth(level)
+        offset += 2
+        return offset
+
+
 class LoggableTrait:
     """Trait for classes of messages that should go through the logger"""
     pass
