@@ -83,7 +83,7 @@ from poezio.ui.types import (
 )
 
 if TYPE_CHECKING:
-    from _curses import _CursesWindow
+    from _curses import _CursesWindow  # pylint: disable=no-name-in-module
 
 log = logging.getLogger(__name__)
 
