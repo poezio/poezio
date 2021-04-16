@@ -110,7 +110,7 @@ class Input(Win):
         """
         if self.pos == 0:
             return True
-        separators = string.punctuation + ' '
+        separators = string.punctuation + ' ' + '\n'
         while self.pos > 0 and self.text[self.pos - 1] in separators:
             self.key_left()
         while self.pos > 0 and self.text[self.pos - 1] not in separators:
@@ -123,7 +123,7 @@ class Input(Win):
         """
         if self.is_cursor_at_end():
             return True
-        separators = string.punctuation + ' '
+        separators = string.punctuation + ' ' + '\n'
         while not self.is_cursor_at_end() and self.text[self.pos] in separators:
             self.key_right()
         while not self.is_cursor_at_end() and self.text[self.
@@ -135,7 +135,7 @@ class Input(Win):
         """
         Delete the word just before the cursor
         """
-        separators = string.punctuation + ' '
+        separators = string.punctuation + ' ' + '\n'
         while self.pos > 0 and self.text[self.pos - 1] in separators:
             self.key_backspace()
         while self.pos > 0 and self.text[self.pos - 1] not in separators:
@@ -146,7 +146,7 @@ class Input(Win):
         """
         Delete the word just after the cursor
         """
-        separators = string.punctuation + ' '
+        separators = string.punctuation + ' ' + '\n'
         while not self.is_cursor_at_end() and self.text[self.pos] in separators:
             self.key_dc()
         while not self.is_cursor_at_end() and self.text[self.
