@@ -1714,7 +1714,7 @@ class MucTab(ChatTab):
         /say <message>
         Or normal input + enter
         """
-        needed = 'inactive' if self.inactive else 'active'
+        chatstate = 'inactive' if self.inactive else 'active'
         msg = self.core.xmpp.make_message(self.jid.bare)
         msg['type'] = 'groupchat'
         msg['body'] = line
@@ -1732,7 +1732,10 @@ class MucTab(ChatTab):
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
         if config.get_by_tabname('send_chat_states', self.general_jid):
-            msg['chat_state'] = needed
+            if chatstate == 'inactive':
+                self.send_chat_state(chatstate, always_send=True)
+            else:
+                msg['chat_state'] = chatstate
         if correct:
             msg['replace']['id'] = self.last_sent_message['id']  # type: ignore
         self.cancel_paused_delay()
@@ -1745,7 +1748,7 @@ class MucTab(ChatTab):
         # TODO: #3314. Display outgoing MUC message.
         self.set_last_sent_message(msg, correct=correct)
         msg.send()
-        self.chat_state = needed
+        self.chat_state = chatstate
 
     @command_args_parser.raw
     def command_xhtml(self, msg: str) -> None:
