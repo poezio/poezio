@@ -819,8 +819,11 @@ class ChatTab(Tab):
     @property
     def inactive(self) -> bool:
         """Whether we should send inactive or active as a chatstate"""
-        return self.core.status.show in ('xa', 'away') or\
-                (hasattr(self, 'directed_presence') and not self.directed_presence)
+        return self.core.status.show in ('xa', 'away') or (
+            hasattr(self, 'directed_presence')
+            and self.directed_presence is not None
+            and self.directed_presence
+        )
 
     def move_separator(self) -> None:
         self.text_win.remove_line_separator()
