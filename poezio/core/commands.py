@@ -798,7 +798,7 @@ class CommandCore:
                 info = ('%s=%s' % (option, value), 'Info')
             else:
                 possible_section = args[0]
-                if config.has_section(possible_section):
+                if not config.has_option(possible_section) and config.has_section(possible_section):
                     section = possible_section
                     option = args[1]
                     value = config.get(option, section=section)
