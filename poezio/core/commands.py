@@ -750,6 +750,8 @@ class CommandCore:
         """
         /set [module|][section] <option> [value]
         """
+        if len(args) == 3 and args[1] == '=':
+            args = [args[0], args[2]]
         if args is None or len(args) == 0:
             config_dict = config.to_dict()
             lines = []
