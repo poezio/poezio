@@ -116,7 +116,7 @@ class BookmarksTab(Tab):
                 return res
             self.bookmarks_win.refresh_current_input()
         else:
-            self.bookmarks_win.on_input(key)
+            self.bookmarks_win.on_input(key, raw=raw)
 
     def resize(self):
         self.need_resize = False

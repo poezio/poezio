@@ -62,7 +62,7 @@ class BookmarkMethodInput(FieldInputMixin):
         # val_pos is the position of the currently selected option
         self.val_pos = self.options.index(field.method)
 
-    def do_command(self, key: str) -> None:
+    def do_command(self, key: str, raw: bool = False) -> None:
         if key == 'KEY_LEFT':
             if self.val_pos > 0:
                 self.val_pos -= 1
@@ -131,7 +131,7 @@ class BookmarkAutojoinWin(FieldInputMixin):
         self.last_key = 'KEY_RIGHT'
         self.value = field.autojoin
 
-    def do_command(self, key: str) -> None:
+    def do_command(self, key: str, raw: bool = False) -> None:
         if key == 'KEY_LEFT' or key == 'KEY_RIGHT':
             self.value = not self.value
             self.last_key = key
@@ -341,11 +341,11 @@ class BookmarksWin(Win):
             self.current_horizontal_input].set_color(
                 theme.COLOR_SELECTED_ROW)
 
-    def on_input(self, key: str) -> None:
+    def on_input(self, key: str, raw: bool = False) -> None:
         if not self.lines:
             return
         self.lines[self.current_input][
-            self.current_horizontal_input].do_command(key)
+            self.current_horizontal_input].do_command(key, raw=raw)
 
     def refresh(self) -> None:
         # store the cursor status
