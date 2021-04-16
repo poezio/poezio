@@ -672,10 +672,6 @@ class Core:
                     self.do_command(replace_line_breaks(char), False)
             else:
                 self.do_command(''.join(char_list), True)
-        if self.status.show not in ('xa', 'away'):
-            asyncio.ensure_future(
-                self.xmpp.plugin['xep_0319'].idle()
-            )
         self.doupdate()
 
     def save_config(self):
