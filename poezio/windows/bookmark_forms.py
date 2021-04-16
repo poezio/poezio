@@ -341,11 +341,11 @@ class BookmarksWin(Win):
             self.current_horizontal_input].set_color(
                 theme.COLOR_SELECTED_ROW)
 
-    def on_input(self, key: str) -> None:
+    def on_input(self, key: str, raw: bool = False) -> None:
         if not self.lines:
             return
         self.lines[self.current_input][
-            self.current_horizontal_input].do_command(key)
+            self.current_horizontal_input].do_command(key, raw=raw)
 
     def refresh(self) -> None:
         # store the cursor status

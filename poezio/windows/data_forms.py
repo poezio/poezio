@@ -189,7 +189,7 @@ class TextMultiWin(FieldInputMixin):
                 if not self.options or self.options[-1] != '':
                     self.options.append('')
             else:
-                self.edition_input.do_command(key)
+                self.edition_input.do_command(key, raw=raw)
         self.refresh()
 
     def refresh(self):
