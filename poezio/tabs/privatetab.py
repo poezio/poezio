@@ -167,8 +167,10 @@ class PrivateTab(OneToOneTab):
             msg['html']['body'] = xhtml.poezio_colors_to_html(msg['body'])
             msg['body'] = xhtml.clean_text(msg['body'])
         if config.get_by_tabname('send_chat_states', self.general_jid):
-            needed = 'inactive' if self.inactive else 'active'
-            msg['chat_state'] = needed
+            if self.inactive:
+                self.send_chat_state('inactive', always_send=True)
+            else:
+                msg['chat_state'] = 'active'
         if attention:
             msg['attention'] = True
         self.core.events.trigger('private_say_after', msg, self)
