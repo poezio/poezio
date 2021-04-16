@@ -414,7 +414,7 @@ class HandlerCore:
                         body,
                         replaced_id,
                         message['id'],
-                        time=None,
+                        time=date,
                         jid=jid,
                         nickname=remote_nick)
                     return True

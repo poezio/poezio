@@ -287,7 +287,7 @@ class TextBuffer:
                 'sent by the same fullJID' % (orig_id, new_id))
 
         if not time:
-            time = msg.time
+            time = datetime.now()
 
         self.correction_ids[new_id] = orig_id
         message = Message(
