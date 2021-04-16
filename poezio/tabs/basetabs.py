@@ -182,6 +182,10 @@ class Tab:
         return VERTICAL_STATE_COLORS[self._state]()
 
     @property
+    def priority(self) -> Union[int, float]:
+        return STATE_PRIORITY.get(self._state, -1)
+
+    @property
     def state(self) -> str:
         return self._state
 

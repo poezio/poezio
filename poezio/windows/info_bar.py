@@ -18,6 +18,7 @@ from poezio.common import unique_prefix_of
 
 log = logging.getLogger(__name__)
 
+
 class GlobalInfoBar(Win):
     __slots__ = ('core')
 
@@ -69,7 +70,8 @@ class GlobalInfoBar(Win):
             if not tab:
                 continue
             color = tab.color
-            if not show_inactive and color is theme.COLOR_TAB_NORMAL:
+            if not show_inactive and color is theme.COLOR_TAB_NORMAL and (
+                    tab.priority < 0):
                 continue
             try:
                 if show_nums or not show_names:
@@ -114,7 +116,10 @@ class VerticalGlobalInfoBar(Win):
         if not config.getbool('show_inactive_tabs'):
             sorted_tabs = [
                 tab for tab in sorted_tabs
-                if tab.vertical_color != theme.COLOR_VERTICAL_TAB_NORMAL
+                if (
+                    tab.vertical_color != theme.COLOR_VERTICAL_TAB_NORMAL or
+                    tab.priority > 0
+                )
             ]
         nb_tabs = len(sorted_tabs)
         use_nicks = config.getbool('use_tab_nicks')
