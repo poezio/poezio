@@ -409,12 +409,14 @@ class Input(Win):
         Normal completion
         """
         pos = self.pos
-        if pos < len(
-                self.text) and after.endswith(' ') and self.text[pos] == ' ':
+        if pos < len(self.text) and after.endswith(' ') and self.text[pos] in ' \n':
             after = after[:
                           -1]  # remove the last space if we are already on a space
         if not self.last_completion:
             space_before_cursor = self.text.rfind(' ', 0, pos)
+            line_before_cursor = self.text.rfind('\n', 0, pos)
+            if line_before_cursor > space_before_cursor:
+                space_before_cursor = line_before_cursor
             if space_before_cursor != -1:
                 begin = self.text[space_before_cursor + 1:pos]
             else:

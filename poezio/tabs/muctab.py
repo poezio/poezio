@@ -1812,7 +1812,8 @@ class MucTab(ChatTab):
                 word_list.append(user.nick)
         after = config.getstr('after_completion') + ' '
         input_pos = self.input.pos
-        if ' ' not in self.input.get_text()[:input_pos] or (
+        text_before = self.input.get_text()[:input_pos]
+        if (' ' not in text_before and '\n' not in text_before) or (
                 self.input.last_completion and self.input.get_text()
             [:input_pos] == self.input.last_completion + after):
             add_after = after
