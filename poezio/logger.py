@@ -235,6 +235,8 @@ class Logger:
         typ = 'MI'
         if isinstance(msg, Message):
             nick = msg.nickname or ''
+            if msg.me:
+                txt = f'/me {txt}'
             typ = 'MR'
         logged_msg = build_log_message(nick, txt, date=date, prefix=typ)
         if not logged_msg:
