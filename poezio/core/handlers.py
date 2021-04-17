@@ -10,6 +10,7 @@ import asyncio
 import curses
 import functools
 import select
+import signal
 import ssl
 import sys
 import time
@@ -1463,11 +1464,16 @@ class HandlerCore:
 
         self.core.add_tab(confirm_tab, True)
         self.core.doupdate()
+        # handle resize
+        prev_value = signal.signal(signal.SIGWINCH, self.core.sigwinch_handler)
         while not confirm_tab.done:
-            sel = select.select([sys.stdin], [], [], 5)[0]
-
-            if sel:
-                self.core.on_input_readable()
+            try:
+                sel = select.select([sys.stdin], [], [], 0.5)[0]
+                if sel:
+                    self.core.on_input_readable()
+            except:
+                continue
+        signal.signal(signal.SIGWINCH, prev_value)
 
     def validate_ssl(self, pem):
         """
