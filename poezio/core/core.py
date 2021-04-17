@@ -617,7 +617,7 @@ class Core:
             pass
         sys.__excepthook__(typ, value, trace)
 
-    def sigwinch_handler(self):
+    def sigwinch_handler(self, *args):
         """A work-around for ncurses resize stuff, which sucks. Normally, ncurses
         catches SIGWINCH itself. In its signal handler, it updates the
         windows structures (for example the size, etc) and it
