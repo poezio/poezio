@@ -334,7 +334,10 @@ class MAMFiller:
                     'Fetched %s messages to fill local logs for %s',
                     len(messages), self.tab.jid,
                 )
-            except (DiscoInfoException, NoMAMSupportException, MAMQueryException):
+            except NoMAMSupportException:
+                log.debug('The entity %s does not support MAM', self.tab.jid)
+                return
+            except (DiscoInfoException, MAMQueryException):
                 log.debug(
                     'Failed fetching logs for %s',
                     self.tab.jid, exc_info=True
