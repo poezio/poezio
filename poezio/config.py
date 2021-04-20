@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Union, Tuple, cast, Any
 
 from poezio import xdg
-from slixmpp import JID
+from slixmpp import JID, InvalidJID
 
 log = logging.getLogger(__name__)  # type: logging.Logger
 
@@ -278,7 +278,10 @@ class Config:
         """
         Try to get the value of an option for a server
         """
-        server = JID(jid).server
+        try:
+            server = JID(jid).server
+        except InvalidJID:
+            server = ''
         if server:
             server = '@' + server
             if server in self.sections() and option in self.options(server):
