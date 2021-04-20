@@ -741,7 +741,7 @@ class MucTab(ChatTab):
             user.change_nick(new_nick)
         else:
             user.change_nick(new_nick)
-            color = config.get_by_tabname(new_nick, 'muc_colors') or None
+            color = config.getstr(new_nick, section='muc_colors') or None
             user.change_color(color)
         self.users.remove(user)
         bisect.insort_left(self.users, user)
@@ -1179,14 +1179,14 @@ class MucTab(ChatTab):
         Also, look at the colors of its possible aliases if nick_color_aliases
         is set.
         """
-        color = cast(str, config.get_by_tabname(nick, 'muc_colors'))
+        color = config.getstr(nick, section='muc_colors')
         if color != '':
             return color
         nick_color_aliases = config.get_by_tabname('nick_color_aliases',
                                                    self.jid.bare)
         if nick_color_aliases:
             nick_alias = re.sub('^_*(.*?)_*$', '\\1', nick)
-            color = config.get_by_tabname(nick_alias, 'muc_colors')
+            color = config.getstr(nick_alias, section='muc_colors')
         return color
 
     def on_self_ping_failed(self, iq: Any = None) -> None:
