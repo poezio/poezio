@@ -45,7 +45,6 @@ class Plugin(BasePlugin):
                     identifier=message['id'],
                     jid=tab.core.xmpp.boundjid,
                 ),
-                typ=1,
             )
         message.send()
         self.core.refresh_window()
