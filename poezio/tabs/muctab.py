@@ -1795,6 +1795,30 @@ class MucTab(ChatTab):
             self.ignores.remove(user)
             self.core.information('%s is now unignored' % nick)
 
+    @command_args_parser.quoted(0, 1)
+    def command_request_voice(self, args: List[str]) -> None:
+        """
+        /request_voice [role]
+        Request voice in a moderated room
+        role can be: participant, moderator
+        """
+
+        room = JID(self.name)
+        if not room:
+            self.core.information('request_voice: requires a valid chat address', 'Error')
+            return
+
+        if len(args) > 1:
+            self.core.command.help('request_voice')
+            return
+
+        if args:
+            role = args[0]
+        else:
+            role = 'participant'
+
+        self.core.xmpp['xep_0045'].request_voice(room, role)
+
 ########################## COMPLETIONS #################################
 
     def completion(self) -> None:
@@ -1964,6 +1988,11 @@ class MucTab(ChatTab):
             users = [user.nick for user in self.ignores]
             return Completion(the_input.auto_completion, users, quotify=False)
         return None
+
+    def completion_request_voice(self, the_input: windows.MessageInput) -> Optional[Completion]:
+        """Completion for /request_voice"""
+        allowed = ['participant', 'moderator']
+        return Completion(the_input.auto_completion, allowed, quotify=False)
 
 
 ########################## REGISTER STUFF ##############################
@@ -2234,6 +2263,19 @@ class MucTab(ChatTab):
             'Invite a contact to this room',
             'completion':
             self.completion_invite
+        }, {
+            'name':
+            'request_voice',
+            'func':
+            self.command_request_voice,
+            'desc':
+            'Request voice when we are a visitor in a moderated room',
+            'usage':
+            '[role]',
+            'shortdesc':
+            'Request voice in a moderated room',
+            'completion':
+            self.completion_request_voice
         }])
 
 
