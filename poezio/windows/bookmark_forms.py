@@ -19,7 +19,8 @@ class BookmarkNameInput(FieldInput, Input):
         FieldInput.__init__(self, field)
         Input.__init__(self)
         self.text = field.name
-        self.pos = len(self.text)
+        self.pos = 0
+        self.view_pos = 0
         self.color = get_theme().COLOR_NORMAL_TEXT
 
     def save(self) -> None:
@@ -39,7 +40,8 @@ class BookmarkJIDInput(FieldInput, Input):
             jid = JID('')
         jid.resource = field.nick or None
         self.text = jid.full
-        self.pos = len(self.text)
+        self.pos = 0
+        self.view_pos = 0
         self.color = get_theme().COLOR_NORMAL_TEXT
 
     def save(self) -> None:

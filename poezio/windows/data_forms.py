@@ -330,7 +330,8 @@ class TextSingleWin(FieldInputMixin, Input):
         Input.__init__(self)
         self.text = field.get_value() if isinstance(field.get_value(), str)\
             else ""
-        self.pos = len(self.text)
+        self.pos = 0
+        self.view_pos = 0
         self.color = get_theme().COLOR_NORMAL_TEXT
 
     def reply(self):
