@@ -12,19 +12,23 @@ the ConversationTab (such as tab-completion on nicks from the room).
 """
 import curses
 import logging
+from datetime import datetime
 from typing import Dict, Callable
 
 from slixmpp import JID
+from slixmpp.stanza import Message as SMessage
 
 from poezio.tabs import OneToOneTab, MucTab, Tab
 
+from poezio import common
 from poezio import windows
 from poezio import xhtml
-from poezio.config import config
+from poezio.config import config, get_image_cache
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
+from poezio.text_buffer import CorrectionError
 from poezio.ui.types import (
     Message,
     PersistentInfoMessage,
@@ -42,7 +46,7 @@ class PrivateTab(OneToOneTab):
     message_type = 'chat'
     additional_information: Dict[str, Callable[[str], str]] = {}
 
-    def __init__(self, core, jid, nick):
+    def __init__(self, core, jid, nick, initial=None):
         OneToOneTab.__init__(self, core, jid)
         self.own_nick = nick
         self.info_header = windows.PrivateInfoWin()
@@ -136,6 +140,64 @@ class PrivateTab(OneToOneTab):
             self.input.get_text().startswith('/')
             and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
+
+    def handle_message(self, message: SMessage, display: bool = True):
+        sent = message['from'].bare == self.core.xmpp.boundjid.bare
+        jid = message['to'] if sent else message['from']
+        with_nick = jid.resource
+        sender_nick = with_nick
+        if sent:
+            sender_nick = (self.own_nick or self.core.own_nick)
+        room_from = jid.bare
+        use_xhtml = config.get_by_tabname(
+            'enable_xhtml_im',
+            jid.bare
+        )
+        tmp_dir = get_image_cache()
+        if not sent:
+            self.core.events.trigger('private_msg', message, self)
+        body = xhtml.get_body_from_message_stanza(
+            message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
+        if not body or not self:
+            return
+        delayed, date = common.find_delayed_tag(message)
+        replaced = False
+        user = self.parent_muc.get_user_by_name(with_nick)
+        if message.get_plugin('replace', check=True):
+            replaced_id = message['replace']['id']
+            if replaced_id != '' and config.get_by_tabname(
+                    'group_corrections', room_from):
+                try:
+                    self.modify_message(
+                        body,
+                        replaced_id,
+                        message['id'],
+                        user=user,
+                        time=date,
+                        jid=message['from'],
+                        nickname=sender_nick)
+                    replaced = True
+                except CorrectionError:
+                    log.debug('Unable to correct a message', exc_info=True)
+        if not replaced:
+            msg = Message(
+                txt=body,
+                time=date,
+                history=delayed,
+                nickname=sender_nick,
+                nick_color=get_theme().COLOR_OWN_NICK if sent else None,
+                user=user,
+                identifier=message['id'],
+                jid=message['from'],
+            )
+            if display:
+                self.add_message(msg)
+            else:
+                self.log_message(msg)
+        if sent:
+            self.set_last_sent_message(message, correct=replaced)
+        else:
+            self.last_remote_message = datetime.now()
 
     @refresh_wrapper.always
     @command_args_parser.raw

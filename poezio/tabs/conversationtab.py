@@ -13,22 +13,25 @@ There are two different instances of a ConversationTab:
 """
 import curses
 import logging
+from datetime import datetime
 from typing import Dict, Callable
 
-from slixmpp import JID, InvalidJID
+from slixmpp import JID, InvalidJID, Message as SMessage
 
 from poezio.tabs.basetabs import OneToOneTab, Tab
 
 from poezio import common
+from poezio import tabs
 from poezio import windows
 from poezio import xhtml
-from poezio.config import config
+from poezio.config import config, get_image_cache
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper
 from poezio.roster import roster
 from poezio.theming import get_theme, dump_tuple
 from poezio.decorators import command_args_parser
-from poezio.ui.types import InfoMessage
+from poezio.ui.types import InfoMessage, Message
+from poezio.text_buffer import CorrectionError
 
 log = logging.getLogger(__name__)
 
@@ -43,8 +46,8 @@ class ConversationTab(OneToOneTab):
     additional_information: Dict[str, Callable[[str], str]] = {}
     message_type = 'chat'
 
-    def __init__(self, core, jid):
-        OneToOneTab.__init__(self, core, jid)
+    def __init__(self, core, jid, initial=None):
+        OneToOneTab.__init__(self, core, jid, initial=initial)
         self.nick = None
         self.nick_sent = False
         self.state = 'normal'
@@ -101,6 +104,71 @@ class ConversationTab(OneToOneTab):
 
     def completion(self):
         self.complete_commands(self.input)
+
+    def handle_message(self, message: SMessage, display: bool = True):
+        """Handle a received message.
+
+        The message can come from us (carbon copy).
+        """
+        use_xhtml = config.get_by_tabname(
+            'enable_xhtml_im',
+            message['from'].bare
+        )
+        tmp_dir = get_image_cache()
+        # normal message, we are the recipient
+        if message['to'].bare == self.core.xmpp.boundjid.bare:
+            conv_jid = message['from']
+            jid = conv_jid
+            color = get_theme().COLOR_REMOTE_USER
+            self.last_remote_message = datetime.now()
+            remote_nick = self.get_nick()
+        # we wrote the message (happens with carbons)
+        elif message['from'].bare == self.core.xmpp.boundjid.bare:
+            conv_jid = message['to']
+            jid = self.core.xmpp.boundjid
+            color = get_theme().COLOR_OWN_NICK
+            remote_nick = self.core.own_nick
+        # we are not part of that message, drop it
+        else:
+            return
+
+        self.core.events.trigger('conversation_msg', message, self)
+
+        if not message['body']:
+            return
+        body = xhtml.get_body_from_message_stanza(
+            message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
+        delayed, date = common.find_delayed_tag(message)
+
+        replaced = False
+        if message.get_plugin('replace', check=True):
+            replaced_id = message['replace']['id']
+            if replaced_id and config.get_by_tabname('group_corrections',
+                                                     conv_jid.bare):
+                try:
+                    replaced = self.modify_message(
+                        body,
+                        replaced_id,
+                        message['id'],
+                        time=date,
+                        jid=jid,
+                        nickname=remote_nick)
+                except CorrectionError:
+                    log.debug('Unable to correct the message: %s', message)
+        if not replaced:
+            msg = Message(
+                txt=body,
+                time=date,
+                nickname=remote_nick,
+                nick_color=color,
+                history=delayed,
+                identifier=message['id'],
+                jid=jid,
+            )
+            if display:
+                self.add_message(msg)
+            else:
+                self.log_message(msg)
 
     @refresh_wrapper.always
     @command_args_parser.raw
@@ -396,9 +464,9 @@ class DynamicConversationTab(ConversationTab):
     plugin_commands: Dict[str, Command] = {}
     plugin_keys: Dict[str, Callable] = {}
 
-    def __init__(self, core, jid, resource=None):
+    def __init__(self, core, jid, initial=None):
         self.locked_resource = None
-        ConversationTab.__init__(self, core, jid)
+        ConversationTab.__init__(self, core, jid, initial=initial)
         self.jid.resource = None
         self.info_header = windows.DynamicConversationInfoWin()
         self.register_command(
@@ -466,15 +534,15 @@ class StaticConversationTab(ConversationTab):
     plugin_commands: Dict[str, Command] = {}
     plugin_keys: Dict[str, Callable] = {}
 
-    def __init__(self, core, jid):
-        ConversationTab.__init__(self, core, jid)
+    def __init__(self, core, jid, initial=None):
+        ConversationTab.__init__(self, core, jid, initial=initial)
         assert jid.resource
         self.info_header = windows.ConversationInfoWin()
         self.resize()
         self.update_commands()
         self.update_keys()
 
-    def init_logs(self) -> None:
+    def init_logs(self, initial=None) -> None:
         # Disable local logs because…
         pass
 
