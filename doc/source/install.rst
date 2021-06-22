@@ -24,6 +24,9 @@ using one of these.
   the unstable branch of `nixpkgs`. Use ``nix-env -f "<nixpkgs>" -iA poezio``
   to install poezio for the current user.
 - **OpenBSD**: a poezio port_ is available
+- **Guix**: Poezio can be obtained with Guix on any GNU/Linux distribution.
+  To install poezio in default user-profile: ``guix install poezio``.
+  To try poezio without installation: ``guix environment --pure --ad-hoc poezio``.
 
 (If another distribution provides a poezio package, please tell us and we will
 add it to the list)
