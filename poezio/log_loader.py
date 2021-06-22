@@ -309,6 +309,7 @@ class MAMFiller:
         self.future = asyncio.ensure_future(self.fetch_routine())
         self.done = asyncio.Event()
         self.limit = limit
+        self.result = 0
 
     def cancel(self) -> None:
         """Cancel the routine and signal the end."""
@@ -334,6 +335,7 @@ class MAMFiller:
                     'Fetched %s messages to fill local logs for %s',
                     len(messages), self.tab.jid,
                 )
+                self.result = len(messages)
             except NoMAMSupportException:
                 log.debug('The entity %s does not support MAM', self.tab.jid)
                 return

@@ -346,95 +346,34 @@ class HandlerCore:
         use_xhtml = config.get_by_tabname('enable_xhtml_im',
                                           message['from'].bare)
         tmp_dir = get_image_cache()
-        body = xhtml.get_body_from_message_stanza(
-            message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
-        if not body:
+        if not xhtml.get_body_from_message_stanza(
+                message, use_xhtml=use_xhtml, extract_images_to=tmp_dir):
             if not self.core.xmpp.plugin['xep_0380'].has_eme(message):
                 return
             self.core.xmpp.plugin['xep_0380'].replace_body_with_eme(message)
-            body = message['body']
 
-        remote_nick = ''
         # normal message, we are the recipient
         if message['to'].bare == self.core.xmpp.boundjid.bare:
             conv_jid = message['from']
-            jid = conv_jid
-            color = get_theme().COLOR_REMOTE_USER
-            # check for a name
-            if conv_jid.bare in roster:
-                remote_nick = roster[conv_jid.bare].name
-            # check for a received nick
-            if not remote_nick and config.getbool('enable_user_nick'):
-                if message.xml.find(
-                        '{http://jabber.org/protocol/nick}nick') is not None:
-                    remote_nick = message['nick']['nick']
-            if not remote_nick:
-                remote_nick = conv_jid.user
-                if not remote_nick:
-                    remote_nick = conv_jid.full
             own = False
         # we wrote the message (happens with carbons)
         elif message['from'].bare == self.core.xmpp.boundjid.bare:
             conv_jid = message['to']
-            jid = self.core.xmpp.boundjid
-            color = get_theme().COLOR_OWN_NICK
-            remote_nick = self.core.own_nick
             own = True
         # we are not part of that message, drop it
         else:
             return
 
-        conversation = self.core.get_conversation_by_jid(conv_jid, create=True)
-        if isinstance(conversation,
-                      tabs.DynamicConversationTab) and conv_jid.resource:
-            conversation.lock(conv_jid.resource)
-
-        if not own:
-            if not conversation.nick:
-                conversation.nick = remote_nick
-            else:
-                remote_nick = conversation.get_nick()
-
-            conversation.last_remote_message = datetime.now()
-        self.core.events.trigger('conversation_msg', message, conversation)
-
-        if not message['body']:
-            return
-        body = xhtml.get_body_from_message_stanza(
-            message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
-        delayed, date = common.find_delayed_tag(message)
-
-        def try_modify():
-            if message.xml.find('{urn:xmpp:message-correct:0}replace') is None:
-                return False
-            replaced_id = message['replace']['id']
-            if replaced_id and config.get_by_tabname('group_corrections',
-                                                     conv_jid.bare):
-                try:
-                    conversation.modify_message(
-                        body,
-                        replaced_id,
-                        message['id'],
-                        time=date,
-                        jid=jid,
-                        nickname=remote_nick)
-                    return True
-                except CorrectionError:
-                    log.debug('Unable to correct a message', exc_info=True)
-            return False
-
-        if not try_modify():
-            conversation.add_message(
-                PMessage(
-                    txt=body,
-                    time=date,
-                    nickname=remote_nick,
-                    nick_color=color,
-                    history=delayed,
-                    identifier=message['id'],
-                    jid=jid,
-                )
+        conversation = self.core.get_conversation_by_jid(conv_jid, create=False)
+        if conversation is None:
+            conversation = tabs.DynamicConversationTab(
+                self.core,
+                JID(conv_jid.bare),
+                initial=message,
             )
+            self.core.tabs.append(conversation)
+        else:
+            conversation.handle_message(message)
 
         if not own and 'private' in config.getstr('beep_on').split():
             if not config.get_by_tabname('disable_beep', conv_jid.bare):
@@ -679,7 +618,10 @@ class HandlerCore:
             return
 
         room_from = jid.bare
-        use_xhtml = config.get_by_tabname('enable_xhtml_im', jid.bare)
+        use_xhtml = config.get_by_tabname(
+            'enable_xhtml_im',
+            jid.bare
+        )
         tmp_dir = get_image_cache()
         body = xhtml.get_body_from_message_stanza(
             message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
@@ -687,14 +629,6 @@ class HandlerCore:
             jid.full,
             tabs.PrivateTab)  # get the tab with the private conversation
         ignore = config.get_by_tabname('ignore_private', room_from)
-        if not tab:  # It's the first message we receive: create the tab
-            if body and not ignore:
-                tab = self.core.open_private_window(room_from, with_nick,
-                                                    False)
-        # Tab can still be None here, when receiving carbons of a MUC-PM for
-        # example
-        sender_nick = (tab and tab.own_nick
-                       or self.core.own_nick) if sent else with_nick
         if ignore and not sent:
             self.core.events.trigger('ignored_private', message, tab)
             msg = config.get_by_tabname('private_auto_response', room_from)
@@ -702,44 +636,18 @@ class HandlerCore:
                 self.core.xmpp.send_message(
                     mto=jid.full, mbody=msg, mtype='chat')
             return
-        if not sent:
-            self.core.events.trigger('private_msg', message, tab)
-        body = xhtml.get_body_from_message_stanza(
-            message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
-        if not body or not tab:
-            return
-        replaced = False
-        user = tab.parent_muc.get_user_by_name(with_nick)
-        if message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
-            replaced_id = message['replace']['id']
-            if replaced_id != '' and config.get_by_tabname(
-                    'group_corrections', room_from):
-                try:
-                    tab.modify_message(
-                        body,
-                        replaced_id,
-                        message['id'],
-                        user=user,
-                        jid=message['from'],
-                        nickname=sender_nick)
-                    replaced = True
-                except CorrectionError:
-                    log.debug('Unable to correct a message', exc_info=True)
-        if not replaced:
-            tab.add_message(
-                PMessage(
-                    txt=body,
-                    nickname=sender_nick,
-                    nick_color=get_theme().COLOR_OWN_NICK if sent else None,
-                    user=user,
-                    identifier=message['id'],
-                    jid=message['from'],
+        if tab is None:  # It's the first message we receive: create the tab
+            if body and not ignore:
+                tab = tabs.PrivateTab(
+                        self.core,
+                        jid,
+                        self.core.own_nick,
+                        initial=message,
                 )
-            )
-        if sent:
-            tab.set_last_sent_message(message, correct=replaced)
+                self.core.tabs.append(tab)
+                tab.parent_muc.privates.append(tab)
         else:
-            tab.last_remote_message = datetime.now()
+            tab.handle_message(message)
 
         if not sent and 'private' in config.getstr('beep_on').split():
             if not config.get_by_tabname('disable_beep', jid.full):

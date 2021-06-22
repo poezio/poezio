@@ -999,7 +999,7 @@ class ChatTab(Tab):
 
 
 class OneToOneTab(ChatTab):
-    def __init__(self, core, jid):
+    def __init__(self, core, jid, initial=None):
         ChatTab.__init__(self, core, jid)
 
         self.__status = Status("", "")
@@ -1018,17 +1018,28 @@ class OneToOneTab(ChatTab):
             shortdesc='Request the attention.',
             desc='Attention: Request the attention of the contact.  Can also '
             'send a message along with the attention.')
-        self.init_logs()
+        self.init_logs(initial=initial)
 
-    def init_logs(self) -> None:
+    def init_logs(self, initial=None) -> None:
         use_log = config.get_by_tabname('use_log', self.jid)
         mam_sync = config.get_by_tabname('mam_sync', self.jid)
         if use_log and mam_sync:
             limit = config.get_by_tabname('mam_sync_limit', self.jid)
             self.mam_filler = MAMFiller(logger, self, limit)
+
+            async def fallback_no_mam():
+                await self.mam_filler.done.wait()
+                if self.mam_filler.result == 0:
+                    self.handle_message(initial)
+            asyncio.ensure_future(fallback_no_mam())
+        elif use_log and initial:
+            self.handle_message(initial, display=False)
         asyncio.ensure_future(
             LogLoader(logger, self, use_log).tab_open()
         )
+
+    def handle_message(self, msg: SMessage, display: bool = True):
+        pass
 
     def remote_user_color(self):
         return dump_tuple(get_theme().COLOR_REMOTE_USER)
