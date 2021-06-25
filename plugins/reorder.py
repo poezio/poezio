@@ -177,9 +177,9 @@ class Plugin(BasePlugin):
                     new_tabs.append(tab)
                     old_tabs.remove(tab)
                 else:
-                    self.api.information('Tab %s not found. Creating it' % jid, 'Warning')
                     # TODO: Add support for MucTab. Requires nickname.
                     if cls in (tabs.DynamicConversationTab, tabs.StaticConversationTab):
+                        self.api.information('Tab %s not found. Creating it' % jid, 'Warning')
                         new_tab = cls(self.core, jid)
                         new_tabs.append(new_tab)
                     else:
