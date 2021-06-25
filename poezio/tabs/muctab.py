@@ -272,10 +272,12 @@ class MucTab(ChatTab):
                 return
 
         try:
+            if affiliation != 'member':
+                nick = None
             await self.core.xmpp['xep_0045'].set_affiliation(
                 self.jid.bare,
-                nick=nick,
                 jid=jid,
+                nick=nick,
                 affiliation=affiliation,
                 reason=reason
             )
