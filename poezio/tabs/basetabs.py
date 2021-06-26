@@ -1025,12 +1025,14 @@ class OneToOneTab(ChatTab):
         mam_sync = config.get_by_tabname('mam_sync', self.jid)
         if use_log and mam_sync:
             limit = config.get_by_tabname('mam_sync_limit', self.jid)
-            self.mam_filler = MAMFiller(logger, self, limit)
+            mam_filler = MAMFiller(logger, self, limit)
+            self.mam_filler = mam_filler
 
             async def fallback_no_mam():
-                await self.mam_filler.done.wait()
-                if self.mam_filler.result == 0:
+                await mam_filler.done.wait()
+                if mam_filler.result == 0:
                     self.handle_message(initial)
+
             asyncio.ensure_future(fallback_no_mam())
         elif use_log and initial:
             self.handle_message(initial, display=False)
