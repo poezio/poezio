@@ -366,7 +366,7 @@ class ConversationTab(OneToOneTab):
         else:
             if self.nick:
                 return self.nick
-            return self.jid.user
+            return self.jid.user or self.jid.domain
 
     def on_input(self, key, raw):
         if not raw and key in self.key_func:
