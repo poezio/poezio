@@ -143,10 +143,10 @@ class LogLoader:
         count = 0
         for msg in iterate_messages_reverse(filepath):
             typ_ = msg.pop('type')
-            if msg['time'] < limit:
-                break
             if typ_ == 'message':
                 results.append(make_line_local(self.tab, msg))
+            elif msg['time'] < limit and 'set the subject' not in msg['txt']:
+                break
             if len(results) >= nb:
                 break
             count += 1
@@ -201,12 +201,12 @@ class LogLoader:
         filepath = self.logger.get_file_path(self.tab.jid)
         for msg in iterate_messages_reverse(filepath):
             typ_ = msg.pop('type')
-            if msg['time'] < limit:
-                break
             if start and msg['time'] < start:
                 break
             if typ_ == 'message' and (not end or msg['time'] < end):
                 results.append(make_line_local(self.tab, msg))
+            elif msg['time'] < limit and 'set the subject' not in msg['txt']:
+                break
             if len(results) >= amount:
                 break
             count += 1
