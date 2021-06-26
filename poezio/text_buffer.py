@@ -315,6 +315,13 @@ class TextBuffer:
                 return message
         return None
 
+    def find_first_message(self) -> Optional[Message]:
+        """Find the first real message received in this buffer"""
+        for message in self.messages:
+            if isinstance(message, Message):
+                return message
+        return None
+
     def __del__(self):
         size = len(self.messages)
         log.debug('** Deleting %s messages from textbuffer', size)

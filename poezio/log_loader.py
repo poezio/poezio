@@ -19,7 +19,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List
+from typing import List, Optional
 from poezio import tabs
 from poezio.logger import (
     build_log_message,
@@ -88,9 +88,9 @@ class LogLoader:
         messages = []
         if gap is not None:
             if self.mam_only:
-                messages = await self.mam_fill_gap(gap)
+                messages = await self.mam_fill_gap(gap, amount)
             else:
-                messages = await self.local_fill_gap(gap)
+                messages = await self.local_fill_gap(gap, amount)
         else:
             if self.mam_only:
                 messages = await self.mam_tab_open(amount)
@@ -126,6 +126,10 @@ class LogLoader:
         finally:
             tab.query_status = False
 
+    def _get_time_limit(self) -> datetime:
+        """Get the date 10 weeks ago from now."""
+        return datetime.now() - timedelta(weeks=10)
+
     async def local_tab_open(self, nb: int) -> List[BaseMessage]:
         """Fetch messages locally when opening a new tab.
 
@@ -133,11 +137,14 @@ class LogLoader:
         :returns: list of ui messages to add
         """
         await self.wait_mam()
+        limit = self._get_time_limit()
         results: List[BaseMessage] = []
         filepath = self.logger.get_file_path(self.tab.jid)
         count = 0
         for msg in iterate_messages_reverse(filepath):
             typ_ = msg.pop('type')
+            if msg['time'] < limit:
+                break
             if typ_ == 'message':
                 results.append(make_line_local(self.tab, msg))
             if len(results) >= nb:
@@ -147,13 +154,15 @@ class LogLoader:
                 await asyncio.sleep(0)
         return results[::-1]
 
-    async def mam_fill_gap(self, gap: HistoryGap) -> List[BaseMessage]:
+    async def mam_fill_gap(self, gap: HistoryGap, amount: Optional[int] = None) -> List[BaseMessage]:
         """Fill a message gap in an existing tab using MAM.
 
         :param gap: Object describing the history gap
         :returns: list of ui messages to add
         """
         tab = self.tab
+        if amount is None:
+            amount = HARD_LIMIT
 
         start = gap.last_timestamp_before_leave
         end = gap.first_timestamp_after_join
@@ -166,21 +175,24 @@ class LogLoader:
                 tab,
                 start=start,
                 end=end,
-                amount=HARD_LIMIT
+                amount=amount,
             )
         except (NoMAMSupportException, MAMQueryException, DiscoInfoException):
             return []
         finally:
             tab.query_status = False
 
-    async def local_fill_gap(self, gap: HistoryGap) -> List[BaseMessage]:
+    async def local_fill_gap(self, gap: HistoryGap, amount: Optional[int] = None) -> List[BaseMessage]:
         """Fill a message gap in an existing tab using the local logs.
         Mostly useless when not used with the MAMFiller.
 
         :param gap: Object describing the history gap
         :returns: list of ui messages to add
         """
+        if amount is None:
+            amount = HARD_LIMIT
         await self.wait_mam()
+        limit = self._get_time_limit()
         start = gap.last_timestamp_before_leave
         end = gap.first_timestamp_after_join
         count = 0
@@ -189,11 +201,13 @@ class LogLoader:
         filepath = self.logger.get_file_path(self.tab.jid)
         for msg in iterate_messages_reverse(filepath):
             typ_ = msg.pop('type')
+            if msg['time'] < limit:
+                break
             if start and msg['time'] < start:
                 break
             if typ_ == 'message' and (not end or msg['time'] < end):
                 results.append(make_line_local(self.tab, msg))
-            if len(results) >= HARD_LIMIT:
+            if len(results) >= amount:
                 break
             count += 1
             if count % 20 == 0:
@@ -234,16 +248,17 @@ class LogLoader:
         await self.wait_mam()
         tab = self.tab
         count = 0
-        last_message_time = None
-        if tab._text_buffer.messages:
-            last_message_time = to_utc(tab._text_buffer.messages[0].time)
-            last_message_time -= timedelta(microseconds=1)
+
+        first_message = tab._text_buffer.find_first_message()
+        first_message_time = None
+        if first_message:
+            first_message_time = first_message.time - timedelta(microseconds=1)
 
         results: List[BaseMessage] = []
         filepath = self.logger.get_file_path(self.tab.jid)
         for msg in iterate_messages_reverse(filepath):
             typ_ = msg.pop('type')
-            if last_message_time is None or msg['time'] < last_message_time:
+            if first_message_time is None or msg['time'] < first_message_time:
                 if typ_ == 'message':
                     results.append(make_line_local(self.tab, msg))
             if len(results) >= nb:
