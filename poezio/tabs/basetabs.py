@@ -1028,12 +1028,15 @@ class OneToOneTab(ChatTab):
             mam_filler = MAMFiller(logger, self, limit)
             self.mam_filler = mam_filler
 
-            async def fallback_no_mam():
-                await mam_filler.done.wait()
-                if mam_filler.result == 0:
-                    self.handle_message(initial)
+            if initial is not None:
+                # If there is an initial message, throw it back into the
+                # text buffer if it cannot be fetched from mam
+                async def fallback_no_mam():
+                    await mam_filler.done.wait()
+                    if mam_filler.result == 0:
+                        self.handle_message(initial)
 
-            asyncio.ensure_future(fallback_no_mam())
+                asyncio.ensure_future(fallback_no_mam())
         elif use_log and initial:
             self.handle_message(initial, display=False)
         asyncio.ensure_future(
