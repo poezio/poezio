@@ -143,10 +143,10 @@ class LogLoader:
         count = 0
         for msg in iterate_messages_reverse(filepath):
             typ_ = msg.pop('type')
-            if msg['time'] < limit:
-                break
             if typ_ == 'message':
                 results.append(make_line_local(self.tab, msg))
+            elif msg['time'] < limit and 'set the subject' not in msg['txt']:
+                break
             if len(results) >= nb:
                 break
             count += 1
@@ -192,21 +192,23 @@ class LogLoader:
         if amount is None:
             amount = HARD_LIMIT
         await self.wait_mam()
+        log.debug('FILLING GAP FOR %s', self.tab)
         limit = self._get_time_limit()
         start = gap.last_timestamp_before_leave
         end = gap.first_timestamp_after_join
         count = 0
+        log.debug('gap: %s', gap)
 
         results: List[BaseMessage] = []
         filepath = self.logger.get_file_path(self.tab.jid)
         for msg in iterate_messages_reverse(filepath):
             typ_ = msg.pop('type')
-            if msg['time'] < limit:
-                break
             if start and msg['time'] < start:
                 break
             if typ_ == 'message' and (not end or msg['time'] < end):
                 results.append(make_line_local(self.tab, msg))
+            elif msg['time'] < limit and 'set the subject' not in msg['txt']:
+                break
             if len(results) >= amount:
                 break
             count += 1
