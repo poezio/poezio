@@ -82,10 +82,10 @@ def parse_log_line(msg: str, jid: str = '') -> Optional[LogItem]:
     :param jid: jid (for error logging)
     :returns: The LogItem or None on error
     """
-    match = re.match(MESSAGE_LOG_RE, msg)
+    match = MESSAGE_LOG_RE.match(msg)
     if match:
         return LogMessage(*match.groups())
-    match = re.match(INFO_LOG_RE, msg)
+    match = INFO_LOG_RE.match(msg)
     if match:
         return LogInfo(*match.groups())
     log.debug('Error while parsing %s’s logs: “%s”', jid, msg)
