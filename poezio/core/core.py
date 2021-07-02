@@ -930,14 +930,17 @@ class Core:
                 pass
         supports_direct = 'jabber:x:conference' in features
         if supports_direct:
-            invite = self.xmpp.plugin['xep_0249'].send_invitation
+            self.xmpp.plugin['xep_0249'].send_invitation(
+                jid=jid,
+                roomjid=room,
+                reason=reason
+            )
         else:  # fallback
-            invite = self.xmpp.plugin['xep_0045'].invite
-        invite(
-            jid=jid,
-            room=room,
-            reason=reason
-        )
+            self.xmpp.plugin['xep_0045'].invite(
+                jid=jid,
+                room=room,
+                reason=reason or '',
+            )
         return True
 
     def _impromptu_room_form(self, room):
@@ -1259,7 +1262,7 @@ class Core:
         return tab
 
     def open_new_room(self,
-                      room: str,
+                      room: JID,
                       nick: str,
                       *,
                       password: Optional[str] = None,
@@ -1773,7 +1776,7 @@ class Core:
             remote_bookmarks = self.bookmarks.remote()
             self.join_initial_rooms(remote_bookmarks)
 
-    def room_error(self, error: IqError, room_name: str) -> None:
+    def room_error(self, error, room_name: str) -> None:
         """
         Display the error in the tab
         """

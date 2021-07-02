@@ -249,7 +249,7 @@ class Config:
 
     def get_by_tabname(self,
                        option,
-                       tabname: str,
+                       tabname: JID,
                        fallback=True,
                        fallback_server=True,
                        default=''):
@@ -259,14 +259,12 @@ class Config:
         in the section, we search for the global option if fallback is
         True. And we return `default` as a fallback as a last resort.
         """
-        if isinstance(tabname, JID):
-            tabname = tabname.full
         if self.default and (not default) and fallback:
             default = self.default.get(DEFSECTION, {}).get(option, '')
         if tabname in self.sections():
             if option in self.options(tabname):
                 # We go the tab-specific option
-                return self.get(option, default, tabname)
+                return self.get(option, default, tabname.full)
         if fallback_server:
             return self.get_by_servname(tabname, option, default, fallback)
         if fallback:

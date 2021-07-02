@@ -11,7 +11,6 @@ independently by their TextWins.
 from __future__ import annotations
 
 import logging
-log = logging.getLogger(__name__)
 
 from typing import (
     cast,
@@ -24,6 +23,7 @@ from typing import (
 )
 from dataclasses import dataclass
 from datetime import datetime
+from slixmpp import JID
 from poezio.config import config
 from poezio.ui.types import (
     BaseMessage,
@@ -35,6 +35,9 @@ from poezio.ui.types import (
 if TYPE_CHECKING:
     from poezio.windows.text_win import TextWin
     from poezio.user import User
+
+
+log = logging.getLogger(__name__)
 
 
 class CorrectionError(Exception):
@@ -214,16 +217,16 @@ class TextBuffer:
                 return (orig_id, i)
         return (orig_id, -1)
 
-    def ack_message(self, old_id: str, jid: str) -> Union[None, bool, Message]:
+    def ack_message(self, old_id: str, jid: JID) -> Union[None, bool, Message]:
         """Mark a message as acked"""
         return self._edit_ack(1, old_id, jid)
 
     def nack_message(self, error: str, old_id: str,
-                     jid: str) -> Union[None, bool, Message]:
+                     jid: JID) -> Union[None, bool, Message]:
         """Mark a message as errored"""
         return self._edit_ack(-1, old_id, jid, append=error)
 
-    def _edit_ack(self, value: int, old_id: str, jid: str,
+    def _edit_ack(self, value: int, old_id: str, jid: JID,
                   append: str = '') -> Union[None, bool, Message]:
         """
         Edit the ack status of a message, and optionally
@@ -253,7 +256,7 @@ class TextBuffer:
                        highlight: bool = False,
                        time: Optional[datetime] = None,
                        user: Optional[User] = None,
-                       jid: Optional[str] = None) -> Message:
+                       jid: Optional[JID] = None) -> Message:
         """
         Correct a message in a text buffer.
 

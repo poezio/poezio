@@ -591,7 +591,7 @@ class ChatTab(Tab):
                 if value.domain:
                     self._jid = value
             except InvalidJID:
-                self._name = value
+                self._name = str(value)
         else:
             raise TypeError("Name %r must be of type JID or str." % value)
 
@@ -687,9 +687,9 @@ class ChatTab(Tab):
         if message:
             message.send()
 
-    def generate_xhtml_message(self, arg: str) -> SMessage:
+    def generate_xhtml_message(self, arg: str) -> Optional[SMessage]:
         if not arg:
-            return
+            return None
         try:
             body = xhtml.clean_text(
                 xhtml.xhtml_to_poezio_colors(arg, force=True))
@@ -697,9 +697,9 @@ class ChatTab(Tab):
         except SAXParseException:
             self.core.information('Could not send custom xhtml', 'Error')
             log.error('/xhtml: Unable to send custom xhtml')
-            return
+            return None
 
-        msg = self.core.xmpp.make_message(self.get_dest_jid())
+        msg: SMessage = self.core.xmpp.make_message(self.get_dest_jid())
         msg['body'] = body
         msg.enable('html')
         msg['html']['body'] = arg
@@ -731,7 +731,7 @@ class ChatTab(Tab):
                          'gone') and self.inactive and not always_send:
                 return
             if config.get_by_tabname('send_chat_states', self.general_jid):
-                msg = self.core.xmpp.make_message(self.get_dest_jid())
+                msg: SMessage = self.core.xmpp.make_message(self.get_dest_jid())
                 msg['type'] = self.message_type
                 msg['chat_state'] = state
                 self.chat_state = state

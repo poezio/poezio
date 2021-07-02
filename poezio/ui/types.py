@@ -4,6 +4,8 @@ from datetime import datetime
 from math import ceil, log10
 from typing import Optional, Tuple, Dict, Any, Callable
 
+from slixmpp import JID
+
 from poezio import poopt
 from poezio.theming import dump_tuple, get_theme
 from poezio.ui.funcs import truncate_nick
@@ -153,7 +155,7 @@ class Message(BaseMessage, LoggableTrait):
     me: bool
     old_message: Optional[Message]
     revisions: int
-    jid: Optional[str]
+    jid: Optional[JID]
     ack: int
 
     def __init__(self,
@@ -168,7 +170,7 @@ class Message(BaseMessage, LoggableTrait):
                  highlight: bool = False,
                  old_message: Optional[Message] = None,
                  revisions: int = 0,
-                 jid: Optional[str] = None,
+                 jid: Optional[JID] = None,
                  ack: int = 0) -> None:
         """
         Create a new Message object with parameters, check for /me messages,

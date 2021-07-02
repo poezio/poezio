@@ -92,7 +92,7 @@ async def get_mam_iterator(
         start: Optional[str] = None,
         end: Optional[str] = None,
         before: Optional[str] = None,
-    ) -> AsyncIterable[Message]:
+    ) -> AsyncIterable[SMessage]:
     """Get an async iterator for this mam query"""
     try:
         query_jid = remote_jid if groupchat else JID(core.xmpp.boundjid.bare)

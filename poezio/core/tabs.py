@@ -171,12 +171,17 @@ class Tabs:
 
         return any_matched, candidate
 
-    def by_name_and_class(self, name: str,
+    def by_name_and_class(self, name: Union[str, JID],
                           cls: Type[T]) -> Optional[T]:
         """Get a tab with its name and class"""
+        if isinstance(name, JID):
+            str_name = name.full
+        else:
+            str_name = name
+        str
         cls_tabs = self._tab_types.get(cls, [])
         for tab in cls_tabs:
-            if tab.name == name:
+            if tab.name == str_name:
                 return cast(T, tab)
         return None
 
