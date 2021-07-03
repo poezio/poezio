@@ -206,7 +206,7 @@ class PrivateTab(OneToOneTab):
             return
         our_jid = JID(self.jid.bare)
         our_jid.resource = self.own_nick
-        msg = self.core.xmpp.make_message(
+        msg: SMessage = self.core.xmpp.make_message(
             mto=self.jid.full,
             mfrom=our_jid,
         )
@@ -240,7 +240,8 @@ class PrivateTab(OneToOneTab):
             return
         self.set_last_sent_message(msg, correct=correct)
         self.core.handler.on_groupchat_private_message(msg, sent=True)
-        msg._add_receipt = True
+        # Our receipts slixmpp hack
+        msg._add_receipt = True  # type: ignore
         msg.send()
         self.cancel_paused_delay()
 

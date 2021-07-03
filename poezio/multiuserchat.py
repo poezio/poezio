@@ -16,6 +16,7 @@ import asyncio
 from xml.etree import ElementTree as ET
 from typing import (
     Optional,
+    Union,
     TYPE_CHECKING,
 )
 
@@ -23,6 +24,7 @@ from slixmpp import (
     JID,
     ClientXMPP,
     Iq,
+    Presence,
 )
 
 import logging
@@ -45,7 +47,7 @@ def change_show(
     Change our 'Show'
     """
     jid = JID(jid)
-    pres = xmpp.make_presence(pto='%s/%s' % (jid, own_nick))
+    pres: Presence = xmpp.make_presence(pto='%s/%s' % (jid, own_nick))
     if show:  # if show is None, don't put a <show /> tag. It means "available"
         pres['type'] = show
     if status:
@@ -55,7 +57,7 @@ def change_show(
 
 def change_nick(
     core: Core,
-    jid: JID,
+    jid: Union[JID, str],
     nick: str,
     status: Optional[str] = None,
     show: Optional[str] = None
@@ -64,7 +66,7 @@ def change_nick(
     Change our own nick in a room
     """
     xmpp = core.xmpp
-    presence = xmpp.make_presence(
+    presence: Presence = xmpp.make_presence(
         pshow=show, pstatus=status, pto=JID('%s/%s' % (jid, nick)))
     core.events.trigger('changing_nick', presence)
     presence.send()
@@ -81,7 +83,7 @@ def join_groupchat(
     tab: Optional['MucTab'] = None
 ) -> None:
     xmpp = core.xmpp
-    stanza = xmpp.make_presence(
+    stanza: Presence = xmpp.make_presence(
         pto='%s/%s' % (jid, nick), pstatus=status, pshow=show)
     x = ET.Element('{http://jabber.org/protocol/muc}x')
     if passwd:

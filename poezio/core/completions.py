@@ -466,11 +466,11 @@ class CompletionCore:
                 tabs.StaticConversationTab,
                 tabs.DynamicConversationTab,
             )
-            tabjid: List[JID] = []
+            tabjid: List[str] = []
             if isinstance(current_tab, chattabs):
                 tabjid = [current_tab.jid.bare]
 
-            jids = roster.jids()
+            jids = [str(i) for i in roster.jids()]
             jids += tabjid
             return Completion(
                 the_input.new_completion, jids, 1, '', quotify=False)

@@ -194,7 +194,7 @@ class Logger:
         :param open_fd: if the file should be opened after creating the dir
         :returns: the opened fd or None
         """
-        if not config.get_by_tabname('use_log', jid):
+        if not config.get_by_tabname('use_log', JID(jid)):
             return None
         try:
             self.log_dir.mkdir(parents=True, exist_ok=True)
@@ -225,7 +225,7 @@ class Logger:
         :param msg: Message to log
         :returns: True if no error was encountered
         """
-        if not config.get_by_tabname('use_log', jid):
+        if not config.get_by_tabname('use_log', JID(jid)):
             return True
         if not isinstance(msg, LoggableTrait):
             return True
@@ -290,7 +290,7 @@ class Logger:
         :param message: message to log
         :returns: True if no error happened
         """
-        if not config.get_by_tabname('use_log', jid):
+        if not config.get_by_tabname('use_log', JID(jid)):
             return True
         self._check_and_create_log_dir('', open_fd=False)
         filename = self.log_dir / 'roster.log'

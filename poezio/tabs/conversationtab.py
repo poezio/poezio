@@ -173,7 +173,7 @@ class ConversationTab(OneToOneTab):
     @refresh_wrapper.always
     @command_args_parser.raw
     def command_say(self, line: str, attention: bool = False, correct: bool = False):
-        msg = self.core.xmpp.make_message(
+        msg: SMessage = self.core.xmpp.make_message(
             mto=self.get_dest_jid(),
             mfrom=self.core.xmpp.boundjid
         )
@@ -210,7 +210,8 @@ class ConversationTab(OneToOneTab):
             return
         self.set_last_sent_message(msg, correct=correct)
         self.core.handler.on_normal_message(msg)
-        msg._add_receipt = True
+        # Our receipts slixmpp hack
+        msg._add_receipt = True  # type: ignore
         msg.send()
         self.cancel_paused_delay()
 

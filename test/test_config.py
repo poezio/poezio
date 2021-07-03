@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from poezio import config
+from slixmpp import JID
 
 
 @pytest.fixture(scope="module")
@@ -104,10 +105,10 @@ class TestTabNames(object):
         config_obj.set_and_save('test2', value='value2@toto.com',
                                 section='@toto.com')
 
-        assert config_obj.get_by_tabname('test', 'toto@toto.com') == 'value.toto@toto.com'
-        assert config_obj.get_by_tabname('test2', 'toto@toto.com') == 'value2@toto.com'
-        assert config_obj.get_by_tabname('test2', 'toto@toto.com', fallback=False) == 'value2@toto.com'
-        assert config_obj.get_by_tabname('test2', 'toto@toto.com', fallback_server=False) == 'true'
-        assert config_obj.get_by_tabname('test_int', 'toto@toto.com', fallback=False) == ''
+        assert config_obj.get_by_tabname('test', JID('toto@toto.com')) == 'value.toto@toto.com'
+        assert config_obj.get_by_tabname('test2', JID('toto@toto.com')) == 'value2@toto.com'
+        assert config_obj.get_by_tabname('test2', JID('toto@toto.com'), fallback=False) == 'value2@toto.com'
+        assert config_obj.get_by_tabname('test2', JID('toto@toto.com'), fallback_server=False) == 'true'
+        assert config_obj.get_by_tabname('test_int', JID('toto@toto.com'), fallback=False) == ''
 
 

@@ -40,10 +40,10 @@ from typing import (
 from slixmpp import (
     InvalidJID,
     JID,
-    ClientXMPP,
 )
 from slixmpp.exceptions import IqError, IqTimeout
 from slixmpp.plugins.xep_0048 import Bookmarks, Conference, URL
+from poezio.connection import Connection
 from poezio.config import config
 
 log = logging.getLogger(__name__)
@@ -223,7 +223,7 @@ class BookmarkList:
             self.preferred = value
             config.set_and_save('use_bookmarks_method', value)
 
-    async def save_remote(self, xmpp: ClientXMPP):
+    async def save_remote(self, xmpp: Connection):
         """Save the remote bookmarks."""
         if not any(self.available_storage.values()):
             return
@@ -241,7 +241,7 @@ class BookmarkList:
                         if bookmark.method == 'local')
         config.set_and_save('rooms', local)
 
-    async def save(self, xmpp: ClientXMPP, core=None):
+    async def save(self, xmpp: Connection, core=None):
         """Save all the bookmarks."""
         self.save_local()
         if config.getbool('use_remote_bookmarks'):
@@ -258,7 +258,7 @@ class BookmarkList:
                     )
                 raise
 
-    async def get_pep(self, xmpp: ClientXMPP):
+    async def get_pep(self, xmpp: Connection):
         """Add the remotely stored bookmarks via pep to the list."""
         iq = await xmpp.plugin['xep_0048'].get_bookmarks(method='xep_0223')
         for conf in iq['pubsub']['items']['item']['bookmarks'][
@@ -269,7 +269,7 @@ class BookmarkList:
             self.append(bookm)
         return iq
 
-    async def get_privatexml(self, xmpp: ClientXMPP):
+    async def get_privatexml(self, xmpp: Connection):
         """
         Fetch the remote bookmarks stored via privatexml.
         """
@@ -280,7 +280,7 @@ class BookmarkList:
             self.append(bookm)
         return iq
 
-    async def get_remote(self, xmpp: ClientXMPP, information: Callable):
+    async def get_remote(self, xmpp: Connection, information: Callable):
         """Add the remotely stored bookmarks to the list."""
         if xmpp.anon or not any(self.available_storage.values()):
             information('No remote bookmark storage available', 'Warning')

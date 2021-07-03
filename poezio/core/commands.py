@@ -1011,7 +1011,7 @@ class CommandCore:
         jid = None
         if args:
             try:
-                jid = JID(args[0]).full
+                jid = JID(args[0])
             except InvalidJID:
                 self.core.information('Invalid JID %s' % args, 'Error')
                 return
@@ -1027,7 +1027,7 @@ class CommandCore:
                 if isinstance(item, Contact):
                     jid = item.bare_jid
                 elif isinstance(item, Resource):
-                    jid = item.jid
+                    jid = JID(item.jid)
 
             chattabs = (
                 tabs.ConversationTab,
@@ -1035,7 +1035,7 @@ class CommandCore:
                 tabs.DynamicConversationTab,
             )
             if isinstance(current_tab, chattabs):
-                jid = current_tab.jid.bare
+                jid = JID(current_tab.jid.bare)
 
         if jid is None:
             self.core.information('No specified JID to block', 'Error')
@@ -1066,7 +1066,7 @@ class CommandCore:
         jid = None
         if args:
             try:
-                jid = JID(args[0]).full
+                jid = JID(args[0])
             except InvalidJID:
                 self.core.information('Invalid JID %s' % args, 'Error')
                 return
@@ -1082,7 +1082,7 @@ class CommandCore:
                 if isinstance(item, Contact):
                     jid = item.bare_jid
                 elif isinstance(item, Resource):
-                    jid = item.jid
+                    jid = JID(item.jid)
 
             chattabs = (
                 tabs.ConversationTab,
@@ -1090,7 +1090,7 @@ class CommandCore:
                 tabs.DynamicConversationTab,
             )
             if isinstance(current_tab, chattabs):
-                jid = current_tab.jid.bare
+                jid = JID(current_tab.jid.bare)
 
         if jid is not None:
             asyncio.ensure_future(
@@ -1158,6 +1158,7 @@ class CommandCore:
             else:
                 self.core.information('Room %s destroyed' % room, 'Info')
 
+        room: Optional[JID]
         if not args[0] and isinstance(self.core.tabs.current_tab, tabs.MucTab):
             room = self.core.tabs.current_tab.general_jid
         else:
