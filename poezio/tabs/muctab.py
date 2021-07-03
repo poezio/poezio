@@ -732,12 +732,8 @@ class MucTab(ChatTab):
         self.core.on_user_rejoined_private_conversation(self.jid.bare, from_nick)
 
     def on_user_nick_change(self, presence: Presence, user: User, from_nick: str) -> None:
-        new_nick_elt = presence.xml.find(
-            '{%s}x/{%s}item' % (NS_MUC_USER, NS_MUC_USER)
-        )
-        if new_nick_elt is not None:
-            new_nick = new_nick_elt.attrib['nick']
-        else:
+        new_nick = presence['muc']['item']['nick']
+        if not new_nick:
             return  # should not happen
         old_color_tuple = user.color
         if user.nick == self.own_nick:
@@ -780,13 +776,11 @@ class MucTab(ChatTab):
         """
         cls: Type[InfoMessage] = PersistentInfoMessage
         self.users.remove(user)
-        by = presence.xml.find('{%s}x/{%s}item/{%s}actor' %
-                               (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
-        reason = presence.xml.find('{%s}x/{%s}item/{%s}reason' %
-                                   (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
+        by = presence['muc']['item'].get_plugin('actor', check=True)
+        reason = presence['muc']['item']['reason']
         by_repr: Union[JID, str, None] = None
-        if by:
-            by_repr = by.get('jid') or by.get('nick') or None
+        if by is not None:
+            by_repr = by['jid'] or by['nick'] or None
 
         theme = get_theme()
         info_col = dump_tuple(theme.COLOR_INFORMATION_TEXT)
@@ -830,14 +824,14 @@ class MucTab(ChatTab):
             else:
                 color = "3"
 
-            if by:
+            if by_repr:
                 kick_msg = ('\x191}%(spec)s \x19%(color)s}'
                             '%(nick)s\x19%(info_col)s} '
                             'has been banned by \x194}%(by)s') % {
                                 'spec': char_kick,
                                 'nick': from_nick,
                                 'color': color,
-                                'by': by,
+                                'by': by_repr,
                                 'info_col': info_col
                             }
             else:
@@ -848,10 +842,10 @@ class MucTab(ChatTab):
                                 'color': color,
                                 'info_col': info_col
                             }
-        if reason is not None and reason.text:
+        if reason:
             kick_msg += ('\x19%(info_col)s} Reason: \x196}'
                          '%(reason)s\x19%(info_col)s}') % {
-                             'reason': reason.text,
+                             'reason': reason,
                              'info_col': info_col
                          }
         self.add_message(cls(kick_msg))
@@ -862,16 +856,14 @@ class MucTab(ChatTab):
         """
         cls: Type[InfoMessage] = PersistentInfoMessage
         self.users.remove(user)
-        actor_elem = presence.xml.find('{%s}x/{%s}item/{%s}actor' %
-                                       (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
-        reason = presence.xml.find('{%s}x/{%s}item/{%s}reason' %
-                                   (NS_MUC_USER, NS_MUC_USER, NS_MUC_USER))
+        actor_elem = presence['muc']['item'].get_plugin('actor', check=True)
+        reason = presence['muc']['item']['reason']
         by = None
         theme = get_theme()
         info_col = dump_tuple(theme.COLOR_INFORMATION_TEXT)
         char_kick = theme.CHAR_KICK
         if actor_elem is not None:
-            by = actor_elem.get('nick') or actor_elem.get('jid')
+            by = actor_elem['nick'] or actor_elem.get['jid'] or None
         if from_nick == self.own_nick:  # we are kicked
             cls = MucOwnLeaveMessage
             if by:
@@ -928,10 +920,10 @@ class MucTab(ChatTab):
                                 'color': color,
                                 'info_col': info_col
                             }
-        if reason is not None and reason.text:
+        if reason:
             kick_msg += ('\x19%(info_col)s} Reason: \x196}'
                          '%(reason)s') % {
-                             'reason': reason.text,
+                             'reason': reason,
                              'info_col': info_col
                          }
         self.add_message(cls(kick_msg))
