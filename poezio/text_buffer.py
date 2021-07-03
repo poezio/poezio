@@ -13,7 +13,6 @@ from __future__ import annotations
 import logging
 
 from typing import (
-    cast,
     Dict,
     List,
     Optional,
@@ -23,7 +22,6 @@ from typing import (
 )
 from dataclasses import dataclass
 from datetime import datetime
-from slixmpp import JID
 from poezio.config import config
 from poezio.ui.types import (
     BaseMessage,
@@ -35,6 +33,7 @@ from poezio.ui.types import (
 if TYPE_CHECKING:
     from poezio.windows.text_win import TextWin
     from poezio.user import User
+    from slixmpp import JID
 
 
 log = logging.getLogger(__name__)
