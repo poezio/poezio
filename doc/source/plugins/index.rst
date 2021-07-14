@@ -146,7 +146,7 @@ Plugin index
         the current (chat) tab.
 
     OMEMO
-        *Not distributed with Poezio.* See https://lab.louiz.org/poezio/poezio-omemo.
+        **Not distributed with Poezio.** See https://lab.louiz.org/poezio/poezio-omemo.
 
         `Documentation <https://lab.louiz.org/poezio/poezio-omemo>`_
 
