@@ -412,11 +412,20 @@ class E2EEPlugin(BasePlugin):
         # MUCs). Let the plugin decide what to do with this information.
         jids: Optional[List[JID]] = [message['to']]
         tab = self.core.tabs.by_jid(message['to'])
-        if tab is None:  # When does that ever happen?
-            log.debug('Attempting to encrypt a message to \'%s\' '
-                      'that is not attached to a Tab. ?! Aborting '
-                      'encryption.', message['to'])
-            return None
+        if tab is None:  # Possible message sent directly by the e2ee lib?
+            log.debug('A message we do not have a tab for '
+                      'is being sent to \'%s\'. ', message['to'])
+
+        # Is this message already encrypted? Do we need to do all these
+        # checks? Possibly an OMEMO heartbeat.
+        has_encrypted_tag = False
+        if self.encrypted_tags is not None:
+            for (namespace, tag) in self.encrypted_tags:
+                if message.xml.find('{%s}%s' % (namespace, tag)) is not None:
+                    # TODO: count all encrypted tags.
+                    has_encrypted_tag = True
+                    log.debug('Message already contains an encrypted tag')
+                    break
 
         parent = None
         if isinstance(tab, PrivateTab):
@@ -449,31 +458,32 @@ class E2EEPlugin(BasePlugin):
                 if user.jid.bare:
                     jids.append(user.jid)
 
-        if not self._encryption_enabled(tab.jid):
-            raise NothingToEncrypt()
-
         log.debug('Sending %s message', self.encryption_name)
 
         has_body = message.xml.find('{%s}%s' % (JCLIENT_NS, 'body')) is not None
 
         # Drop all messages that don't contain a body if the plugin doesn't do
         # Stanza Encryption
-        if not self.stanza_encryption and not has_body:
+        if not self.stanza_encryption and not has_encrypted_tag and not has_body:
             log.debug(
-                '%s plugin: Dropping message as it contains no body, and '
-                'not doesn\'t do stanza encryption',
+                '%s plugin: Dropping message as it\'s not already encrypted, '
+                'contains no body, and doesn\'t do stanza encryption',
                 self.encryption_name,
             )
             return None
 
-        # Call the enabled encrypt method
-        func = self._enabled_tabs[tab.jid]
-        if iscoroutinefunction(func):
-            # pylint: disable=unexpected-keyword-arg
-            await func(message, jids, tab, passthrough=True)
-        else:
-            # pylint: disable=unexpected-keyword-arg
-            func(message, jids, tab, passthrough=True)
+        if tab and not has_encrypted_tag:
+            if not self._encryption_enabled(tab.jid):
+                raise NothingToEncrypt()
+
+            # Call the enabled encrypt method
+            func = self._enabled_tabs[tab.jid]
+            if iscoroutinefunction(func):
+                # pylint: disable=unexpected-keyword-arg
+                await func(message, jids, tab, passthrough=True)
+            else:
+                # pylint: disable=unexpected-keyword-arg
+                func(message, jids, tab, passthrough=True)
 
         if has_body:
             # Only add EME tag if the message has a body.
