@@ -414,8 +414,10 @@ class E2EEPlugin(BasePlugin):
             for (namespace, tag) in self.encrypted_tags:
                 tmp = tmp and message.xml.find('{%s}%s' % (namespace, tag)) is not None
             has_encrypted_tag = tmp
-            if has_encrypted_tag:
-                log.debug('Message already contains encrypted tags')
+
+        if has_encrypted_tag:
+            log.debug('Message already contains encrypted tags')
+            raise NothingToEncrypt()
 
         # Find who to encrypt to. If in a groupchat this can be multiple JIDs.
         # It is possible that we are not able to find a jid (e.g., semi-anon
@@ -425,12 +427,8 @@ class E2EEPlugin(BasePlugin):
         if tab is None:  # Possible message sent directly by the e2ee lib?
             log.debug(
                 'A message we do not have a tab for '
-                'is being sent to \'%s\'.%s',
-                message['to'],
-                'Dropping' if not has_encrypted_tag else '',
+                'is being sent to \'%s\'.', message['to'],
             )
-            if not has_encrypted_tag:
-                return None
 
         parent = None
         if isinstance(tab, PrivateTab):
@@ -472,10 +470,10 @@ class E2EEPlugin(BasePlugin):
 
         # Drop all messages that don't contain a body if the plugin doesn't do
         # Stanza Encryption
-        if not self.stanza_encryption and not has_encrypted_tag and not has_body:
+        if not self.stanza_encryption and not has_body:
             log.debug(
-                '%s plugin: Dropping message as it\'s not already encrypted, '
-                'contains no body, and doesn\'t do stanza encryption',
+                '%s plugin: Dropping message as it contains no body, and '
+                'doesn\'t do stanza encryption',
                 self.encryption_name,
             )
             return None
