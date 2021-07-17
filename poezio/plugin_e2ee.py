@@ -401,17 +401,8 @@ class E2EEPlugin(BasePlugin):
             raise NothingToEncrypt()
         message = stanza
 
-        # Find who to encrypt to. If in a groupchat this can be multiple JIDs.
-        # It is possible that we are not able to find a jid (e.g., semi-anon
-        # MUCs). Let the plugin decide what to do with this information.
-        jids: Optional[List[JID]] = [message['to']]
-        tab = self.core.tabs.by_jid(message['to'])
-        if tab is None:  # Possible message sent directly by the e2ee lib?
-            log.debug('A message we do not have a tab for '
-                      'is being sent to \'%s\'. ', message['to'])
-
         # Is this message already encrypted? Do we need to do all these
-        # checks? Possibly an OMEMO heartbeat.
+        # checks? Such as an OMEMO heartbeat.
         has_encrypted_tag = False
         if self.encrypted_tags is not None:
             for (namespace, tag) in self.encrypted_tags:
@@ -420,6 +411,21 @@ class E2EEPlugin(BasePlugin):
                     has_encrypted_tag = True
                     log.debug('Message already contains an encrypted tag')
                     break
+
+        # Find who to encrypt to. If in a groupchat this can be multiple JIDs.
+        # It is possible that we are not able to find a jid (e.g., semi-anon
+        # MUCs). Let the plugin decide what to do with this information.
+        jids: Optional[List[JID]] = [message['to']]
+        tab = self.core.tabs.by_jid(message['to'])
+        if tab is None:  # Possible message sent directly by the e2ee lib?
+            log.debug(
+                'A message we do not have a tab for '
+                'is being sent to \'%s\'.%s',
+                message['to'],
+                'Dropping' if not has_encrypted_tag else '',
+            )
+            if not has_encrypted_tag:
+                return None
 
         parent = None
         if isinstance(tab, PrivateTab):
