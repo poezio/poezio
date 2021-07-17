@@ -361,18 +361,17 @@ class E2EEPlugin(BasePlugin):
 
     def _decrypt(self, message: Message, tab: ChatTabs) -> None:
 
-        has_eme = False
+        has_eme: bool = False
         if message.xml.find('{%s}%s' % (EME_NS, EME_TAG)) is not None and \
                 message['eme']['namespace'] == self.eme_ns:
             has_eme = True
 
-        has_encrypted_tag = False
+        has_encrypted_tag: bool = False
         if not has_eme and self.encrypted_tags is not None:
+            tmp: bool = True
             for (namespace, tag) in self.encrypted_tags:
-                if message.xml.find('{%s}%s' % (namespace, tag)) is not None:
-                    # TODO: count all encrypted tags.
-                    has_encrypted_tag = True
-                    break
+                tmp = tmp and message.xml.find('{%s}%s' % (namespace, tag)) is not None
+            has_encrypted_tag = tmp
 
         if not has_eme and not has_encrypted_tag:
             return None
@@ -409,14 +408,14 @@ class E2EEPlugin(BasePlugin):
 
         # Is this message already encrypted? Do we need to do all these
         # checks? Such as an OMEMO heartbeat.
-        has_encrypted_tag = False
+        has_encrypted_tag: bool = False
         if self.encrypted_tags is not None:
+            tmp: bool = True
             for (namespace, tag) in self.encrypted_tags:
-                if message.xml.find('{%s}%s' % (namespace, tag)) is not None:
-                    # TODO: count all encrypted tags.
-                    has_encrypted_tag = True
-                    log.debug('Message already contains an encrypted tag')
-                    break
+                tmp = tmp and message.xml.find('{%s}%s' % (namespace, tag)) is not None
+            has_encrypted_tag = tmp
+            if has_encrypted_tag:
+                log.debug('Message already contains encrypted tags')
 
         # Find who to encrypt to. If in a groupchat this can be multiple JIDs.
         # It is possible that we are not able to find a jid (e.g., semi-anon
