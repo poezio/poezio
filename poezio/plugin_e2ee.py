@@ -461,6 +461,9 @@ class E2EEPlugin(BasePlugin):
 
         has_body = message.xml.find('{%s}%s' % (JCLIENT_NS, 'body')) is not None
 
+        if not self._encryption_enabled(tab.jid):
+            raise NothingToEncrypt()
+
         # Drop all messages that don't contain a body if the plugin doesn't do
         # Stanza Encryption
         if not self.stanza_encryption and not has_encrypted_tag and not has_body:
@@ -471,18 +474,14 @@ class E2EEPlugin(BasePlugin):
             )
             return None
 
-        if tab and not has_encrypted_tag:
-            if not self._encryption_enabled(tab.jid):
-                raise NothingToEncrypt()
-
-            # Call the enabled encrypt method
-            func = self._enabled_tabs[tab.jid]
-            if iscoroutinefunction(func):
-                # pylint: disable=unexpected-keyword-arg
-                await func(message, jids, tab, passthrough=True)
-            else:
-                # pylint: disable=unexpected-keyword-arg
-                func(message, jids, tab, passthrough=True)
+        # Call the enabled encrypt method
+        func = self._enabled_tabs[tab.jid]
+        if iscoroutinefunction(func):
+            # pylint: disable=unexpected-keyword-arg
+            await func(message, jids, tab, passthrough=True)
+        else:
+            # pylint: disable=unexpected-keyword-arg
+            func(message, jids, tab, passthrough=True)
 
         if has_body:
             # Only add EME tag if the message has a body.
