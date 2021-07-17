@@ -383,12 +383,12 @@ class E2EEPlugin(BasePlugin):
             muctab = tab.parent_muc
             jid = None
 
-        if isinstance(muctab, MucTab):
+        if muctab is not None or isinstance(tab, MucTab):
+            if muctab is None:
+                muctab = tab
             nick = message['from'].resource
-            for user in muctab.users:
-                if user.nick == nick:
-                    jid = user.jid or None
-                    break
+            if user is not None:
+                jid = user.jid or None
 
         self.decrypt(message, jid, tab)
 
