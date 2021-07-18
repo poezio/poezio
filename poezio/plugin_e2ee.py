@@ -396,6 +396,16 @@ class E2EEPlugin(BasePlugin):
         return None
 
     async def _encrypt(self, stanza: StanzaBase, passthrough: bool = True) -> Optional[StanzaBase]:
+        # TODO: Let through messages that contain elements that don't need to
+        # be encrypted even in an encrypted context, such as MUC mediated
+        # invites, etc.
+        # What to do when they're mixed with other elements? It probably
+        # depends on the element. Maybe they can be mixed with
+        # `self.tag_whitelist` that are already assumed to be sent as plain by
+        # the E2EE plugin.
+        # They might not be accompanied by a <body/> most of the time, nor by
+        # an encrypted tag.
+
         if not isinstance(stanza, Message) or stanza['type'] not in ('normal', 'chat', 'groupchat'):
             raise NothingToEncrypt()
         message = stanza
