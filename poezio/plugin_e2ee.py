@@ -291,6 +291,12 @@ class E2EEPlugin(BasePlugin):
 
     @command_args_parser.quoted(2)
     def __command_set_state_global(self, args, state='') -> None:
+        if not args:
+            self.api.information(
+                'No fingerprint provided to the command..',
+                'Error',
+            )
+            return
         jid, fpr = args
         if state not in self._all_trust_states:
             self.api.information(
