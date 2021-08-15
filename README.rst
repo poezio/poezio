@@ -148,7 +148,7 @@ Thanks
 
 .. |python versions| image:: https://img.shields.io/pypi/pyversions/poezio.svg
 
-.. |license| image:: https://img.shields.io/badge/license-zlib-blue.svg
+.. |license| image:: https://img.shields.io/badge/license-gpl--3.0--or--later-blue.svg
 
 .. |discuss| image:: https://inverse.chat/badge.svg?room=poezio@muc.poez.io
    :target: https://chat.jabberfr.org/converse.js/poezio@muc.poez.io
