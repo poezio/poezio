@@ -38,7 +38,8 @@ class BookmarkJIDInput(FieldInput, Input):
             jid = JID(field.jid)
         except InvalidJID:
             jid = JID('')
-        jid.resource = field.nick or ''
+        if field.nick:
+            jid.resource = field.nick
         self.text = jid.full
         self.pos = 0
         self.view_pos = 0
