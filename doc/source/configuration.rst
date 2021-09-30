@@ -55,7 +55,7 @@ and certificate validation.
         Path to the certificate of the Certification Authority.
         As some services may keep different certificates, it is an alternative to
         the Trust On First Use model provided by the :term:`certificate` option.
-        This option is not affected by :term:`ignore_certificate` and boths checks
+        This option is not affected by :term:`ignore_certificate` and both checks
         may be active at the same time.
 
     certificate
@@ -631,7 +631,7 @@ or the way messages are displayed.
 
         The maximum length of the nickname that will be displayed in the
         conversation window. Nicks that are too long will be truncated and have
-        a ``…`` appened to them.
+        a ``…`` appended to them.
 
     roster_group_sort
 

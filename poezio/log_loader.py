@@ -291,7 +291,7 @@ class LogLoader:
             return []
         except (MAMQueryException, DiscoInfoException):
             tab.core.information(
-                f'An error occured when fetching MAM for {tab.jid}',
+                f'An error occurred when fetching MAM for {tab.jid}',
                 'Error'
             )
             return []
@@ -375,7 +375,7 @@ class MAMFiller:
             self.end()
 
     def end(self) -> None:
-        """End a MAM fill (error or sucess). Remove references and signal on
+        """End a MAM fill (error or success). Remove references and signal on
         the Event().
         """
         try:

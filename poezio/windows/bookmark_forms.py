@@ -1,5 +1,5 @@
 """
-Windows used inthe bookmarkstab
+Windows used in the bookmarkstab
 """
 import curses
 from typing import List, Tuple, Optional

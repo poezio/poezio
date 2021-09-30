@@ -2,7 +2,7 @@
 Module defining the Core class, which is the central orchestrator
 of poezio and contains the main loop, the list of tabs, sets the state
 of everything; it also contains global commands, completions and event
-handlers but those are defined in submodules in order to avoir cluttering
+handlers but those are defined in submodules in order to avoid cluttering
 this file.
 """
 from __future__ import annotations
@@ -92,7 +92,7 @@ T = TypeVar('T', bound=Tab)
 
 class Core:
     """
-    “Main” class of poezion
+    “Main” class of poezio
     """
 
     custom_version: str

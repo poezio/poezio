@@ -47,7 +47,7 @@ package, to build C modules, and the slixmpp python library.
 You also need aiodns if you want SRV record support.
 
 The easiest way to have up-to-date dependencies and to be able to test
-this developement version is to use the ``update.sh`` script that downloads
+this development version is to use the ``update.sh`` script that downloads
 them, places them in the right directory, and builds the C module.
 
 You can then launch poezio with

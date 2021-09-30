@@ -1,6 +1,6 @@
 #!/bin/sh
 # Use this script to download or update all dependencies to their last
-# developpement version.
+# development version.
 # The dependencies will be located in a virtualenv, so you do not
 # need to install them on your system at all.
 
