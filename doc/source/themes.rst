@@ -19,7 +19,7 @@ the text impossible to read).
 .. note:: The default theme should work properly in any case. If not, that’s a bug.
 
 A theme file is a python file (with the .py extension) containing a
-class, inheriting the *theming.Theme* class defined into the *theming*
+class, inheriting the *poezio.theming.Theme* class defined into the *theming*
 poezio module.
 
 To check how many colors your current terminal/$TERM supports, do:
@@ -38,18 +38,18 @@ add:
 
 .. code-block:: python
 
-    import theming
+    from poezio.theming import Theme
 
-    class FooTheme(theming.Theme):
-          # Define here colors for that theme
+    class FooTheme(Theme):
+        # Define here colors for that theme
     theme = FooTheme()
 
 To define a *color pair* and assign it to the *COLOR_NAME* option, just do
 
 .. code-block:: python
 
-    class FooTheme(theming.Theme):
-          COLOR_NAME = (fg_color, bg_color, opt_attr)
+    class FooTheme(Theme):
+        COLOR_NAME = (fg_color, bg_color, opt_attr)
 
 You do not have to define all the :ref:`available-options`,
 you can decide that your theme will only change some options, the other
