@@ -178,18 +178,19 @@ def write_pre_message(msg: Message, win: Win, with_timestamps: bool, nick_size: 
             offset += PreMessageHelpers.write_ack(win)
         else:
             offset += PreMessageHelpers.write_nack(win)
+    theme = get_theme()
     if msg.me:
-        with win.colored_text(color=get_theme().COLOR_ME_MESSAGE):
-            win.addstr('* ')
+        with win.colored_text(color=theme.COLOR_ME_MESSAGE):
+            win.addstr(theme.CHAR_BEFORE_NICK_ME)
         PreMessageHelpers.write_nickname(win, nick, color, msg.highlight)
         offset += PreMessageHelpers.write_revisions(win, msg)
-        win.addstr(' ')
-        offset += 3
+        win.addstr(theme.CHAR_AFTER_NICK_ME)
+        offset += len(theme.CHAR_BEFORE_NICK_ME) + len(theme.CHAR_AFTER_NICK_ME)
     else:
         PreMessageHelpers.write_nickname(win, nick, color, msg.highlight)
         offset += PreMessageHelpers.write_revisions(win, msg)
-        win.addstr('> ')
-        offset += 2
+        win.addstr(theme.CHAR_AFTER_NICK)
+        offset += len(theme.CHAR_AFTER_NICK)
     return offset
 
 

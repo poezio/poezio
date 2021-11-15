@@ -325,7 +325,9 @@ class Theme:
     COLOR_COLUMN_HEADER_SEL = (4, 36)
 
     # Strings for special messages (like join, quit, nick change, etc)
-    # Special messages
+    CHAR_BEFORE_NICK_ME = '* '
+    CHAR_AFTER_NICK_ME = ' '
+    CHAR_AFTER_NICK = '> '
     CHAR_JOIN = '--->'
     CHAR_QUIT = '<---'
     CHAR_KICK = '-!-'
