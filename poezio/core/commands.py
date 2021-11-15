@@ -3,6 +3,7 @@ Global commands which are to be linked to the Core class
 """
 
 import asyncio
+from urllib.parse import unquote
 from xml.etree import ElementTree as ET
 from typing import List, Optional, Tuple
 import logging
@@ -343,6 +344,8 @@ class CommandCore:
     def _parse_join_jid(self, jid_string: str) -> Tuple[Optional[str], Optional[str]]:
         # we try to join a server directly
         server_root = False
+        if jid_string.startswith('xmpp:') and jid_string.endswith('?join'):
+            jid_string = unquote(jid_string[5:-5])
         try:
             if jid_string.startswith('@'):
                 server_root = True
