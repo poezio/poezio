@@ -265,14 +265,14 @@ class PreMessageHelpers:
         """
         Write the date on the yth line of the window
         """
-        theme = get_theme()
         if time:
+            theme = get_theme()
             if history and time.date() != date.today():
                 format = theme.LONG_TIME_FORMAT
             else:
                 format = theme.SHORT_TIME_FORMAT
             time_str = time.strftime(format)
-            color = get_theme().COLOR_TIME_STRING
+            color = theme.COLOR_TIME_STRING
             with buffer.colored_text(color=color):
                 buffer.addstr(time_str)
             buffer.addstr(' ')
