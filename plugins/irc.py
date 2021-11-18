@@ -141,7 +141,7 @@ from poezio import tabs
 class Plugin(BasePlugin):
     def init(self):
         if self.config.get('initial_connect', True):
-            asyncio.ensure_future(
+            asyncio.create_task(
                 self.initial_connect()
             )
 

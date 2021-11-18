@@ -95,4 +95,4 @@ class Plugin(BasePlugin):
         else:
             self.api.run_command('/help exec')
             return
-        asyncio.ensure_future(self.async_exec(command, arg))
+        asyncio.create_task(self.async_exec(command, arg))
