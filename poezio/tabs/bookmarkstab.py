@@ -96,7 +96,7 @@ class BookmarksTab(Tab):
             if bm in self.bookmarks:
                 self.bookmarks.remove(bm)
 
-        asyncio.ensure_future(
+        asyncio.create_task(
             self.save_routine()
         )
 

@@ -91,10 +91,7 @@ Configuration
 
 
 """
-from asyncio import (
-    ensure_future,
-    gather,
-)
+import asyncio
 from functools import reduce
 from typing import Dict
 
@@ -174,10 +171,10 @@ class Plugin(BasePlugin):
         ]
         for name, handler in handlers:
             self.core.xmpp.del_event_handler(name, handler)
-        ensure_future(self._stop())
+        asyncio.create_task(self._stop())
 
     async def _stop(self):
-        await gather(
+        await asyncio.gather(
             self.core.xmpp.plugin['xep_0108'].stop(),
             self.core.xmpp.plugin['xep_0107'].stop(),
             self.core.xmpp.plugin['xep_0196'].stop(),

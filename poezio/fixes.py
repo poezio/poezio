@@ -24,7 +24,7 @@ def has_identity(xmpp, jid, identity, on_true=None, on_false=None):
         if not res and on_false is not None:
             on_false()
 
-    asyncio.ensure_future(
+    asyncio.create_task(
         xmpp.plugin['xep_0030'].get_info(jid=jid, callback=_cb)
     )
 
