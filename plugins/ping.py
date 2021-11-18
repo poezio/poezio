@@ -123,7 +123,7 @@ class Plugin(BasePlugin):
         jid = arg
         if not arg:
             jid = self.api.current_tab().jid
-        asyncio.ensure_future(
+        asyncio.create_task(
             self.command_ping(jid)
         )
 
@@ -140,7 +140,7 @@ class Plugin(BasePlugin):
                 jid = JID(arg)
             except InvalidJID:
                 return self.api.information('Invalid JID: %s' % arg, 'Error')
-        asyncio.ensure_future(
+        asyncio.create_task(
             self.command_ping(jid.full)
         )
 
@@ -156,7 +156,7 @@ class Plugin(BasePlugin):
                 res = current.get_highest_priority_resource()
                 if res is not None:
                     jid =res.jid
-        asyncio.ensure_future(
+        asyncio.create_task(
             self.command_ping(jid)
         )
 

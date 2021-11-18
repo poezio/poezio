@@ -444,7 +444,7 @@ class Core:
         if value not in ('pep', 'privatexml'):
             return
         self.bookmarks.preferred = value
-        asyncio.ensure_future(
+        asyncio.create_task(
             self.bookmarks.save(self.xmpp, core=self)
         )
 

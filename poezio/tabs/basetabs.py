@@ -351,7 +351,7 @@ class Tab:
                 if hasattr(self.input, "reset_completion"):
                     self.input.reset_completion()
                 if asyncio.iscoroutinefunction(func):
-                    asyncio.ensure_future(func(arg))
+                    asyncio.create_task(func(arg))
                 else:
                     func(arg)
             return True
@@ -979,7 +979,7 @@ class ChatTab(Tab):
     def on_scroll_up(self):
         if not self.query_status:
             from poezio.log_loader import LogLoader
-            asyncio.ensure_future(
+            asyncio.create_task(
                 LogLoader(logger, self, config.getbool('use_log')).scroll_requested()
             )
         return self.text_win.scroll_up(self.text_win.height - 1)
@@ -1036,10 +1036,10 @@ class OneToOneTab(ChatTab):
                     if mam_filler.result == 0:
                         self.handle_message(initial)
 
-                asyncio.ensure_future(fallback_no_mam())
+                asyncio.create_task(fallback_no_mam())
         elif use_log and initial:
             self.handle_message(initial, display=False)
-        asyncio.ensure_future(
+        asyncio.create_task(
             LogLoader(logger, self, use_log).tab_open()
         )
 
