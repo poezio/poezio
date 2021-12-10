@@ -157,11 +157,11 @@ class Logger:
 
     def close(self, jid: str) -> None:
         """Close the log file for a JID."""
-        jid = str(jid).replace('/', '\\')
-        if jid in self._fds:
-            self._fds[jid].close()
+        jidstr = str(jid).replace('/', '\\')
+        if jidstr in self._fds:
+            self._fds[jidstr].close()
             log.debug('Log file for %s closed.', jid)
-            del self._fds[jid]
+            del self._fds[jidstr]
 
     def reload_all(self) -> None:
         """Close and reload all the file handles (on SIGHUP)"""
@@ -251,18 +251,18 @@ class Logger:
         :param force: Bypass the buffered fd check
         :returns: True if no error was encountered
         """
-        jid = str(jid).replace('/', '\\')
-        if jid in self._fds.keys():
-            fd = self._fds[jid]
+        jidstr = str(jid).replace('/', '\\')
+        if jidstr in self._fds.keys():
+            fd = self._fds[jidstr]
         else:
             option_fd = self._check_and_create_log_dir(jid)
             if option_fd is None:
                 return True
             fd = option_fd
-        filename = self.log_dir / jid
+        filename = self.log_dir / jidstr
         try:
-            if not force and self._busy_fds.get(jid):
-                self._buffered_fds[jid].append(logged_msg)
+            if not force and self._busy_fds.get(jidstr):
+                self._buffered_fds[jidstr].append(logged_msg)
                 return True
             fd.write(logged_msg)
         except OSError:
