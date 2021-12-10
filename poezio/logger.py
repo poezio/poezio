@@ -205,7 +205,7 @@ class Logger:
             return None
         if not open_fd:
             return None
-        filename = self.log_dir / jid
+        filename = self.get_file_path(jid)
         try:
             fd = filename.open('a', encoding='utf-8')
             self._fds[jid] = fd
@@ -259,7 +259,7 @@ class Logger:
             if option_fd is None:
                 return True
             fd = option_fd
-        filename = self.log_dir / jidstr
+        filename = self.get_file_path(jid)
         try:
             if not force and self._busy_fds.get(jidstr):
                 self._buffered_fds[jidstr].append(logged_msg)
