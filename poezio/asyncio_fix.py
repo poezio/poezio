@@ -8,7 +8,8 @@ call_soon() ones. These callback are called only once each.
 
 import asyncio
 import functools
-import collections
+import collections.abc
+import collections.abc.MutableSet
 from asyncio import events
 
 import slixmpp
