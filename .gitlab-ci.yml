@@ -90,19 +90,6 @@ pytest-3.10:
     - python3 setup.py install
     - py.test -v test/
 
-pylint-latest:
-  stage: lint
-  image: python:3
-  script:
-    - apt-get update && apt-get install -y libidn11-dev
-    - git clone https://lab.louiz.org/poezio/slixmpp.git
-    - pip3 install pylint pyasn1-modules cffi --upgrade
-    - cd slixmpp
-    - python3 setup.py install
-    - cd ..
-    - python3 setup.py install
-    - pylint -E poezio
-
 pylint-plugins:
   stage: lint
   image: python:3
