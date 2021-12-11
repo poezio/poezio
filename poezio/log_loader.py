@@ -321,7 +321,7 @@ class MAMFiller:
         self.tab = tab
         self.logger = logger
         logger.fd_busy(tab.jid)
-        self.future = asyncio.ensure_future(self.fetch_routine())
+        self.future = asyncio.create_task(self.fetch_routine())
         self.done = asyncio.Event()
         self.limit = limit
         self.result = 0

@@ -108,7 +108,7 @@ class HandlerCore:
         await self.core.check_bookmark_storage(features)
 
     def find_identities(self, _):
-        asyncio.ensure_future(
+        asyncio.create_task(
             self.core.xmpp['xep_0030'].get_info_from_domain(),
         )
 
@@ -1097,7 +1097,7 @@ class HandlerCore:
         if config.getbool('enable_user_nick'):
             self.core.xmpp.plugin['xep_0172'].publish_nick(
                 nick=self.core.own_nick, callback=dumb_callback)
-        asyncio.ensure_future(self.core.xmpp.plugin['xep_0115'].update_caps())
+        asyncio.create_task(self.core.xmpp.plugin['xep_0115'].update_caps())
         # Start the ping's plugin regular event
         self.core.xmpp.set_keepalive_values()
 

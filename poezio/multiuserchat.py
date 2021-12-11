@@ -109,7 +109,7 @@ def join_groupchat(
         xmpp.plugin['xep_0045'].rooms[jid] = {}
         xmpp.plugin['xep_0045'].our_nicks[jid] = to.resource
 
-    asyncio.ensure_future(
+    asyncio.create_task(
         xmpp.plugin['xep_0030'].get_info(jid=jid, callback=on_disco)
     )
 

@@ -154,14 +154,14 @@ class MucTab(ChatTab):
         """
         The user do not want to send their config, send an iq cancel
         """
-        asyncio.ensure_future(self.core.xmpp['xep_0045'].cancel_config(self.jid))
+        asyncio.create_task(self.core.xmpp['xep_0045'].cancel_config(self.jid))
         self.core.close_tab()
 
     def send_config(self, form: Form) -> None:
         """
         The user sends their config to the server
         """
-        asyncio.ensure_future(self.core.xmpp['xep_0045'].set_room_config(self.jid, form))
+        asyncio.create_task(self.core.xmpp['xep_0045'].set_room_config(self.jid, form))
         self.core.close_tab()
 
     def join(self) -> None:
@@ -610,7 +610,7 @@ class MucTab(ChatTab):
                     },
                 ),
             )
-        asyncio.ensure_future(LogLoader(
+        asyncio.create_task(LogLoader(
             logger, self, config.get_by_tabname('use_log', self.general_jid)
         ).tab_open())
 
@@ -1513,7 +1513,7 @@ class MucTab(ChatTab):
                 bookmark = self.core.bookmarks[self.jid]
                 if bookmark:
                     bookmark.autojoin = False
-                    asyncio.ensure_future(
+                    asyncio.create_task(
                         self.core.bookmarks.save(self.core.xmpp)
                     )
         self.core.close_tab(self)

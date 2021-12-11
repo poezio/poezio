@@ -266,7 +266,7 @@ class Plugin(BasePlugin):
             self.api.information('Invalid JID: %s' % arg, 'Error')
             return
 
-        asyncio.ensure_future(
+        asyncio.create_task(
             self._get_vcard(jid)
         )
 
@@ -290,7 +290,7 @@ class Plugin(BasePlugin):
                 jid = JID(arg)
             except InvalidJID:
                 return self.api.information('Invalid JID: %s' % arg, 'Error')
-        asyncio.ensure_future(
+        asyncio.create_task(
             self._get_vcard(jid)
         )
 
@@ -301,11 +301,11 @@ class Plugin(BasePlugin):
             return
         current = self.api.current_tab().selected_row
         if isinstance(current, Resource):
-            asyncio.ensure_future(
+            asyncio.create_task(
                 self._get_vcard(JID(current.jid).bare)
             )
         elif isinstance(current, Contact):
-            asyncio.ensure_future(
+            asyncio.create_task(
                 self._get_vcard(current.bare_jid)
             )
 

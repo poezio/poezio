@@ -298,7 +298,7 @@ class CommandCore:
             jid = self.core.tabs.current_tab.jid
         if jid is None or not jid.domain:
             return None
-        asyncio.ensure_future(
+        asyncio.create_task(
             self._list_async(jid)
         )
 
@@ -453,7 +453,7 @@ class CommandCore:
         room, nick = self._parse_join_jid(args[0] if args else '')
         password = args[1] if len(args) > 1 else None
 
-        asyncio.ensure_future(
+        asyncio.create_task(
             self._add_bookmark(
                 room=room,
                 nick=nick,
@@ -478,7 +478,7 @@ class CommandCore:
         autojoin = (method == 'local' or
                     (len(args) > 1 and args[1].lower() == 'true'))
 
-        asyncio.ensure_future(
+        asyncio.create_task(
             self._add_bookmark(room, nick, autojoin, password, method)
         )
 
@@ -596,7 +596,7 @@ class CommandCore:
         else:
             jid = args[0]
 
-        asyncio.ensure_future(
+        asyncio.create_task(
             self._remove_bookmark_routine(jid)
         )
 
@@ -983,7 +983,7 @@ class CommandCore:
                 return self.core.information('Invalid JID for /impromptu: %s' % args[0], 'Error')
             jids.add(bare)
 
-        asyncio.ensure_future(self.core.impromptu(jids))
+        asyncio.create_task(self.core.impromptu(jids))
         self.core.information('Invited %s to a random room' % (', '.join(jids)), 'Info')
 
     @command_args_parser.quoted(1, 1, [''])
@@ -1043,7 +1043,7 @@ class CommandCore:
         if jid is None:
             self.core.information('No specified JID to block', 'Error')
         else:
-            asyncio.ensure_future(self._block_async(jid))
+            asyncio.create_task(self._block_async(jid))
 
     async def _block_async(self, jid: JID):
         """Block a JID, asynchronously"""
@@ -1096,7 +1096,7 @@ class CommandCore:
                 jid = JID(current_tab.jid.bare)
 
         if jid is not None:
-            asyncio.ensure_future(
+            asyncio.create_task(
                 self._unblock_async(jid)
             )
         else:
@@ -1185,7 +1185,7 @@ class CommandCore:
                 self.core.information('Invalid alternative room JID: "%s"' % args[2], 'Error')
                 return
 
-        asyncio.ensure_future(do_destroy(room, reason, altroom))
+        asyncio.create_task(do_destroy(room, reason, altroom))
 
     @command_args_parser.quoted(1, 1, [''])
     def bind(self, args):

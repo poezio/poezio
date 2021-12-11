@@ -78,7 +78,7 @@ class Plugin(BasePlugin):
             return
         filename, = args
         filename = expanduser(filename)
-        asyncio.ensure_future(self.send_upload(filename))
+        asyncio.create_task(self.send_upload(filename))
 
     @staticmethod
     def completion_filename(the_input):
