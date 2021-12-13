@@ -352,7 +352,7 @@ class E2EEPlugin(BasePlugin):
                 exc,
             )
             # XXX: check before commit. Do we not nack in MUCs?
-            if not isinstance(tab, MucTab):
+            if tab and not isinstance(tab, MucTab):
                 tab.nack_message(msg, stanza['id'], stanza['from'])
             # TODO: display exceptions to the user properly
             log.error('Exception in encrypt:', exc_info=True)
