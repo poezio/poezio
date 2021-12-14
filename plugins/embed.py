@@ -29,8 +29,8 @@ class Plugin(BasePlugin):
                 help='Embed an image url into the contact\'s client',
                 usage='<image_url>')
 
-    def embed_image_url(self, url):
-        tab = self.api.current_tab()
+    def embed_image_url(self, url, tab=None):
+        tab = tab or self.api.current_tab()
         message = self.core.xmpp.make_message(tab.jid)
         message['body'] = url
         message['oob']['url'] = url

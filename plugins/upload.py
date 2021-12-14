@@ -67,9 +67,10 @@ class Plugin(BasePlugin):
         return url
 
     async def send_upload(self, filename):
+        tab = self.api.current_tab()
         url = await self.upload(filename)
         if url is not None:
-            self.embed.embed_image_url(url)
+            self.embed.embed_image_url(url, tab)
 
     @command_args_parser.quoted(1)
     def command_upload(self, args):
