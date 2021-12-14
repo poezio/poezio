@@ -66,10 +66,10 @@ class Plugin(BasePlugin):
             return None
         return url
 
-    async def send_upload(self, filename):
+    async def send_upload(self, filename, tab):
         url = await self.upload(filename)
         if url is not None:
-            self.embed.embed_image_url(url)
+            self.embed.embed_image_url(url, tab)
 
     @command_args_parser.quoted(1)
     def command_upload(self, args):
@@ -78,7 +78,8 @@ class Plugin(BasePlugin):
             return
         filename, = args
         filename = expanduser(filename)
-        asyncio.create_task(self.send_upload(filename))
+        tab = self.api.current_tab()
+        asyncio.create_task(self.send_upload(filename, tab))
 
     @staticmethod
     def completion_filename(the_input):
