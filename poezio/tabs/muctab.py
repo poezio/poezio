@@ -662,6 +662,16 @@ class MucTab(ChatTab):
         elif typ == 'unavailable':
             self.on_user_leave_groupchat(user, jid, status, from_nick,
                                          JID(from_room), server_initiated)
+            ns = 'http://jabber.org/protocol/muc#user'
+            if presence.xml.find(f'{{{ns}}}x/{{{ns}}}destroy') is not None:
+                reason = presence['muc']['destroy']['reason']
+                altroom = presence['muc']['destroy']['jid']
+                info = f'Room {self.jid} was destroyed.'
+                if reason:
+                    info += f' “{reason}”.'
+                if altroom:
+                    info += f' The new address now is {altroom}.'
+                self.core.information(info, 'Info')
         # status change
         else:
             self.on_user_change_status(user, from_nick, from_room, affiliation,
