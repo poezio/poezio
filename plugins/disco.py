@@ -18,6 +18,7 @@ Usage
 from poezio.plugin import BasePlugin
 from poezio.decorators import command_args_parser
 from slixmpp.jid import InvalidJID
+from slixmpp.exceptions import IqError, IqTimeout
 
 
 class Plugin(BasePlugin):
@@ -99,3 +100,7 @@ class Plugin(BasePlugin):
                 self.on_items(iq)
         except InvalidJID as e:
             self.api.information('Invalid JID “%s”: %s' % (jid, e), 'Error')
+        except IqError as e:
+            self.api.information('Received iq error while querying “%s”: %s' % (jid, e), 'Error')
+        except IqTimeout:
+            self.api.information('Received no reply querying “%s”…' % jid, 'Error')
