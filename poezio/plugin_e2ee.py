@@ -522,10 +522,10 @@ class E2EEPlugin(BasePlugin):
         func = self._enabled_tabs[tab.jid]
         if iscoroutinefunction(func):
             # pylint: disable=unexpected-keyword-arg
-            await func(message, jids, tab, passthrough=True)
+            await func(message, jids, tab, passthrough=passthrough)
         else:
             # pylint: disable=unexpected-keyword-arg
-            func(message, jids, tab, passthrough=True)
+            func(message, jids, tab, passthrough=passthrough)
 
         if has_body:
             # Only add EME tag if the message has a body.
