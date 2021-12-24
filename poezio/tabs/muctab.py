@@ -664,13 +664,14 @@ class MucTab(ChatTab):
                                          JID(from_room), server_initiated)
             ns = 'http://jabber.org/protocol/muc#user'
             if presence.xml.find(f'{{{ns}}}x/{{{ns}}}destroy') is not None:
-                reason = presence['muc']['destroy']['reason']
-                altroom = presence['muc']['destroy']['jid']
                 info = f'Room {self.jid} was destroyed.'
-                if reason:
-                    info += f' “{reason}”.'
-                if altroom:
-                    info += f' The new address now is {altroom}.'
+                if presence['muc']['destroy']:
+                    reason = presence['muc']['destroy']['reason']
+                    altroom = presence['muc']['destroy']['jid']
+                    if reason:
+                        info += f' “{reason}”.'
+                    if altroom:
+                        info += f' The new address now is {altroom}.'
                 self.core.information(info, 'Info')
         # status change
         else:
