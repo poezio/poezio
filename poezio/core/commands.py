@@ -1153,7 +1153,7 @@ class CommandCore:
         """
         /destroy_room [JID [reason [alternative room JID]]]
         """
-        async def do_destroy(room: JID, reason: str, altroom: JID):
+        async def do_destroy(room: JID, reason: str, altroom: Optional[JID]):
             try:
                 await self.core.xmpp['xep_0045'].destroy(room, reason, altroom)
             except (IqError, IqTimeout) as e:
@@ -1178,6 +1178,7 @@ class CommandCore:
             return
 
         reason = args[1]
+        altroom = None
         if args[2]:
             try:
                 altroom = JID(args[2])
