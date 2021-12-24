@@ -1031,6 +1031,7 @@ class Core:
 
             for jid in jids:
                 await self.invite(jid, room, force_mediated=True)
+            self.information('Invited %s to %s' % (', '.join(jids), room.bare), 'Info')
 
         # TODO: Use xep_0045's async join_muc_wait somehow instead?
         self.xmpp.add_event_handler(

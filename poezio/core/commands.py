@@ -984,7 +984,6 @@ class CommandCore:
             jids.add(bare)
 
         asyncio.create_task(self.core.impromptu(jids))
-        self.core.information('Invited %s to a random room' % (', '.join(jids)), 'Info')
 
     @command_args_parser.quoted(1, 1, [''])
     def decline(self, args):
