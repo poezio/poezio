@@ -1017,18 +1017,27 @@ class Core:
             return None
 
         self.open_new_room(room, nick).join()
-        iq = self._impromptu_room_form(room)
-        try:
-            await iq.send()
-        except (IqError, IqTimeout):
-            self.information('Failed to configure impromptu room.', 'Info')
-            # TODO: destroy? leave room.
-            return None
 
-        self.information('Room %s created' % room, 'Info')
+        async def join_callback(_presence):
+            iq = self._impromptu_room_form(room)
+            try:
+                await iq.send()
+            except (IqError, IqTimeout):
+                self.information('Failed to configure impromptu room.', 'Info')
+                # TODO: destroy? leave room.
+                return None
 
-        for jid in jids:
-            await self.invite(jid, room, force_mediated=True)
+            self.information('Room %s created' % room, 'Info')
+
+            for jid in jids:
+                await self.invite(jid, room, force_mediated=True)
+
+        # TODO: Use xep_0045's async join_muc_wait somehow instead?
+        self.xmpp.add_event_handler(
+            'muc::%s::self-presence' % room.bare,
+            join_callback,
+            disposable=True,
+        )
 
 ####################### Tab logic-related things ##############################
 
