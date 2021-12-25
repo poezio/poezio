@@ -42,6 +42,7 @@ from poezio import events
 from poezio import theming
 from poezio import timed_events
 from poezio import windows
+from poezio import utils
 
 from poezio.bookmarks import (
     BookmarkList,
@@ -1005,7 +1006,7 @@ class Core:
             return
 
         nick = self.own_nick
-        localpart = uuid.uuid4().hex
+        localpart = utils.pronounceable()
         room_str = '{!s}@{!s}'.format(localpart, default_muc)
         try:
             room = JID(room_str)
