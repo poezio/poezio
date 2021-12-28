@@ -27,7 +27,7 @@ from slixmpp.util import FileSystemCache
 from poezio import common
 from poezio import fixes
 from poezio import xdg
-from poezio.config import config
+from poezio.config import config, get_ca_cert_path
 
 
 class Connection(slixmpp.ClientXMPP):
@@ -117,7 +117,7 @@ class Connection(slixmpp.ClientXMPP):
         self.ciphers = config.getstr(
             'ciphers', 'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK'
             ':!SRP:!3DES:!aNULL')
-        self.ca_certs = config.getstr('ca_cert_path') or None
+        self.ca_certs = get_ca_cert_path()
         interval = config.getint('whitespace_interval')
         if int(interval) > 0:
             self.whitespace_keepalive_interval = int(interval)

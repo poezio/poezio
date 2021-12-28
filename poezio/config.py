@@ -629,6 +629,33 @@ def create_global_config(filename):
         sys.exit(1)
 
 
+CA_CERT_DEFAULT_PATHS = {
+    Path('/etc/ssl/certs/ca-bundle.crt'),
+    Path('/etc/pki/tls/certs/ca-bundle.crt'),
+    Path('/etc/ssl/certs/ca-certificates.crt'),
+    Path('/etc/ca-certificates/extracted/tls-ca-bundle.pem'),
+    Path('/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt'),
+    Path('/etc/ssl/cert.pem'),
+}
+
+
+def get_ca_cert_path() -> Optional[Path]:
+    """
+        Find the appropriate CA bundle. Every distribution has got a different
+        path..
+    """
+    ca_cert = config.getstr('ca_cert_path') or None
+
+    if ca_cert is not None:
+        return Path(ca_cert)
+
+    for bundle in CA_CERT_DEFAULT_PATHS:
+        if bundle.is_file():
+            return bundle
+
+    return None
+
+
 def setup_logging(debug_file=''):
     "Change the logging config according to the cmdline options and config"
     global LOG_DIR
