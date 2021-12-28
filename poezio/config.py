@@ -30,6 +30,17 @@ ConfigDict = Dict[str, Dict[str, ConfigValue]]
 
 DEFSECTION = "Poezio"
 
+
+CA_CERT_DEFAULT_PATHS = {
+    '/etc/ssl/cert.pem',
+    '/etc/ssl/certs/ca-certificates.crt',
+    '/etc/ssl/certs/ca-bundle.crt',
+    '/etc/pki/tls/certs/ca-bundle.crt',
+    '/etc/ssl/certs/ca-certificates.crt',
+    '/etc/ca-certificates/extracted/tls-ca-bundle.pem',
+    '/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt',
+}
+
 DEFAULT_CONFIG: ConfigDict = {
     'Poezio': {
         'ack_message_receipts': True,
@@ -40,7 +51,7 @@ DEFAULT_CONFIG: ConfigDict = {
         'autorejoin_delay': '5',
         'autorejoin': False,
         'beep_on': 'highlight private invite disconnect',
-        'ca_cert_path': '',
+        'ca_cert_path': ':'.join(CA_CERT_DEFAULT_PATHS),
         'certificate': '',
         'certfile': '',
         'ciphers': 'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK:!SRP:!3DES:!aNULL',
