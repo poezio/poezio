@@ -117,7 +117,7 @@ class Connection(slixmpp.ClientXMPP):
         self.ciphers = config.getstr(
             'ciphers', 'HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK'
             ':!SRP:!3DES:!aNULL')
-        self.ca_certs = config.getstr('ca_cert_path') or None
+        self.ca_certs = config.getlist('ca_cert_path') or None
         interval = config.getint('whitespace_interval')
         if int(interval) > 0:
             self.whitespace_keepalive_interval = int(interval)
