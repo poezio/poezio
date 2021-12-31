@@ -11,6 +11,7 @@ http://poezio.eu/doc/en/plugins.html#_poezio_events
 
 from collections import OrderedDict
 from typing import Callable, Dict, List
+import asyncio
 
 
 class EventHandler:
@@ -84,7 +85,10 @@ class EventHandler:
             return
         for priority in callbacks.values():
             for callback in priority:
-                callback(*args, **kwargs)
+                if asyncio.iscoroutinefunction(callback):
+                    asyncio.ensure_future(callback(*args, **kwargs))
+                else:
+                    callback(*args, **kwargs)
 
     def del_event_handler(self, name: str, callback: Callable):
         """
