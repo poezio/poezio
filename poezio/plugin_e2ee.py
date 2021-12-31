@@ -505,7 +505,7 @@ class E2EEPlugin(BasePlugin):
 
         has_body = message.xml.find('{%s}%s' % (JCLIENT_NS, 'body')) is not None
 
-        if not self._encryption_enabled(tab.jid):
+        if tab and not self._encryption_enabled(tab.jid):
             raise NothingToEncrypt()
 
         # Drop all messages that don't contain a body if the plugin doesn't do
