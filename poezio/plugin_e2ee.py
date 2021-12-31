@@ -479,7 +479,7 @@ class E2EEPlugin(BasePlugin):
                 if user.jid.bare:
                     jids.append(user.jid)
 
-        if not self._encryption_enabled(tab.jid):
+        if tab and not self._encryption_enabled(tab.jid):
             raise NothingToEncrypt()
 
         log.debug('Sending %s message', self.encryption_name)
