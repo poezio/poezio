@@ -365,7 +365,7 @@ class E2EEPlugin(BasePlugin):
         """
         try:
             # pylint: disable=unexpected-keyword-arg
-            result = await self._decryt(stanza, tab, passthrough=True)
+            result = await self._decrypt(stanza, tab, passthrough=True)
         except Exception as exc:
             jid = stanza['to']
             tab = self.core.tabs.by_name_and_class(jid, ChatTab)
@@ -423,7 +423,7 @@ class E2EEPlugin(BasePlugin):
         func = self.decrypt
         if iscoroutinefunction(func):
             # pylint: disable=unexpected-keyword-arg
-            foo = await func(message, jid, tab, passthrough=passthrough)
+            await func(message, jid, tab, passthrough=True)
         else:
             # pylint: disable=unexpected-keyword-arg
             func(message, jid, tab)
