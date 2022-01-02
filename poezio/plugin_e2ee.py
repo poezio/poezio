@@ -419,16 +419,33 @@ class E2EEPlugin(BasePlugin):
             if user is not None:
                 jid = user.jid or None
 
-        # Call the enabled encrypt method
+        # Call the enabled decrypt method.
+        # We have this method return the decrypted body instead of changing
+        # the the referenced message's body because the poezio event system
+        # doesn't handle ordering for async methods. The message may already
+        # be displayed when we finish decrypting.
         func = self.decrypt
         if iscoroutinefunction(func):
             # pylint: disable=unexpected-keyword-arg
-            await func(message, jid, tab, passthrough=True)
+            body = await func(message, jid, tab, passthrough=True)
         else:
             # pylint: disable=unexpected-keyword-arg
-            func(message, jid, tab)
+            body = func(message, jid, tab)
 
-        log.debug('Decrypted %s message: %r', self.encryption_name, message['body'])
+        log.debug('Decrypted %s message: %r', self.encryption_name, body)
+        if body is not None:
+            message['body'] = message
+            # tab.modify_message(body, message['id'], message['id'], time=None, delayed=False)
+            _, i = tab._text_buffer._find_message(message['id'])
+            if i == -1:
+                return
+            found = tab._text_buffer.messages[i]
+            log.debug('Found message: %r', found.txt)
+            found.txt = body
+            tab.text_win.modify_message(found.identifier, found)
+            tab.text_win.refresh()
+            # self.core.doupdate()
+
         return None
 
     async def _encrypt(self, stanza: StanzaBase, passthrough: bool = True) -> Optional[StanzaBase]:
