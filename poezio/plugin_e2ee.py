@@ -463,7 +463,7 @@ class E2EEPlugin(BasePlugin):
         # It is possible that we are not able to find a jid (e.g., semi-anon
         # MUCs). Let the plugin decide what to do with this information.
         jids: Optional[List[JID]] = [message['to']]
-        tab = self.core.tabs.by_jid(message['to'])
+        tab = self.core.get_conversation_by_jid(message['to'], create=False)
         if tab is None:  # Possible message sent directly by the e2ee lib?
             log.debug(
                 'A message we do not have a tab for '
@@ -505,7 +505,7 @@ class E2EEPlugin(BasePlugin):
 
         has_body = message.xml.find('{%s}%s' % (JCLIENT_NS, 'body')) is not None
 
-        if tab and not self._encryption_enabled(tab.jid):
+        if not self._encryption_enabled(tab.jid):
             raise NothingToEncrypt()
 
         # Drop all messages that don't contain a body if the plugin doesn't do
