@@ -452,7 +452,7 @@ class E2EEPlugin(BasePlugin):
         if self.encrypted_tags is not None:
             tmp: bool = True
             for (namespace, tag) in self.encrypted_tags:
-                tmp = tmp and message.xml.find('{%s}%s' % (namespace, tag)) is not None
+                tmp = tmp and message.xml.find(f'{{{namespace}}}{tag}') is not None
             has_encrypted_tag = tmp
 
         if has_encrypted_tag:
