@@ -441,10 +441,15 @@ class E2EEPlugin(BasePlugin):
         # MUCs). Let the plugin decide what to do with this information.
         jids: Optional[List[JID]] = [message['to']]
         tab = self.core.tabs.by_jid(message['to'])
-        if tab is None:  # When does that ever happen?
-            log.debug('Attempting to encrypt a message to \'%s\' '
-                      'that is not attached to a Tab. ?! Aborting '
-                      'encryption.', message['to'])
+        if tab is None and message['to'].resource:
+            # Redo the search with the bare JID
+            tab = self.core.tabs.by_jid(message['to'].bare)
+
+        if tab is None:  # Possible message sent directly by the e2ee lib?
+            log.debug(
+                'A message we do not have a tab for '
+                'is being sent to \'%s\'. Abort.', message['to'],
+            )
             return None
 
         parent = None
