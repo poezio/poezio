@@ -441,11 +441,12 @@ class E2EEPlugin(BasePlugin):
         # It is possible that we are not able to find a jid (e.g., semi-anon
         # MUCs). Let the plugin decide what to do with this information.
         jids: Optional[List[JID]] = [message['to']]
-        tab = self.core.tabs.by_jid(message['to'])
-        if tab is None:  # When does that ever happen?
-            log.debug('Attempting to encrypt a message to \'%s\' '
-                      'that is not attached to a Tab. ?! Aborting '
-                      'encryption.', message['to'])
+        tab = self.core.get_conversation_by_jid(message['to'], create=False)
+        if tab is None:  # Possible message sent directly by the e2ee lib?
+            log.debug(
+                'A message we do not have a tab for '
+                'is being sent to \'%s\'. Abort.', message['to'],
+            )
             return None
 
         parent = None
