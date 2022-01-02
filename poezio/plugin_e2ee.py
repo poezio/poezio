@@ -191,8 +191,8 @@ class E2EEPlugin(BasePlugin):
             self.encryption_short_name + '_fingerprint',
             self._command_show_fingerprints,
             usage='[jid]',
-            short='Show %s fingerprint(s) for a JID.' % self.encryption_short_name,
-            help='Show %s fingerprint(s) for a JID.' % self.encryption_short_name,
+            short=f'Show {self.encryption_short_name} fingerprint(s) for a JID.',
+            help=f'Show {self.encryption_short_name} fingerprint(s) for a JID.',
         )
 
         ConversationTab.add_information_element(
@@ -244,14 +244,14 @@ class E2EEPlugin(BasePlugin):
             del self._enabled_tabs[jid]
             config.remove_and_save('encryption', section=jid)
             self.api.information(
-                '{} encryption disabled for {}'.format(self.encryption_name, jid),
+                f'{self.encryption_name} encryption disabled for {jid}',
                 'Info',
             )
         elif self.encryption_short_name:
             self._enabled_tabs[jid] = self.encrypt
             config.set_and_save('encryption', self.encryption_short_name, section=jid)
             self.api.information(
-                '{} encryption enabled for {}'.format(self.encryption_name, jid),
+                f'{self.encryption_name} encryption enabled for {jid}',
                 'Info',
             )
 
@@ -260,7 +260,7 @@ class E2EEPlugin(BasePlugin):
         fprs = self.get_fingerprints(jid)
         if len(fprs) == 1:
             self.api.information(
-                'Fingerprint for %s: %s' % (jid, fprs[0]),
+                f'Fingerprint for {jid}: {fprs[0]}',
                 'Info',
             )
         elif fprs:
@@ -281,9 +281,9 @@ class E2EEPlugin(BasePlugin):
         elif args:
             jid = args[0]
         else:
+            shortname = self.encryption_short_name
             self.api.information(
-                '%s_fingerprint: Couldn\'t deduce JID from context' % (
-                    self.encryption_short_name),
+                f'{short_name}_fingerprint: Couldn\'t deduce JID from context',
                 'Error',
             )
             return None
@@ -299,9 +299,9 @@ class E2EEPlugin(BasePlugin):
             return
         jid, fpr = args
         if state not in self._all_trust_states:
+            shortname = self.encryption_short_name
             self.api.information(
-                'Unknown state for plugin %s: %s' % (
-                    self.encryption_short_name, state),
+                f'Unknown state for plugin {short_name}: {state}',
                 'Error'
             )
             return
@@ -324,9 +324,9 @@ class E2EEPlugin(BasePlugin):
             return
         fpr = args[0]
         if state not in self._all_trust_states:
+            shortname = self.encryption_short_name
             self.api.information(
-                'Unknown state for plugin %s: %s' % (
-                    self.encryption_short_name, state),
+                f'Unknown state for plugin {short_name}: {state}',
                 'Error',
             )
             return
@@ -384,7 +384,7 @@ class E2EEPlugin(BasePlugin):
     async def _decrypt(self, message: Message, tab: ChatTabs, passthrough: bool = True) -> None:
 
         has_eme: bool = False
-        if message.xml.find('{%s}%s' % (EME_NS, EME_TAG)) is not None and \
+        if message.xml.find(f'{{{EME_NS}}}{EME_TAG}') is not None and \
                 message['eme']['namespace'] == self.eme_ns:
             has_eme = True
 
@@ -392,7 +392,7 @@ class E2EEPlugin(BasePlugin):
         if not has_eme and self.encrypted_tags is not None:
             tmp: bool = True
             for (namespace, tag) in self.encrypted_tags:
-                tmp = tmp and message.xml.find('{%s}%s' % (namespace, tag)) is not None
+                tmp = tmp and message.xml.find(f'{{{namespace}}}{tag}') is not None
             has_encrypted_tag = tmp
 
         if not has_eme and not has_encrypted_tag:
@@ -452,7 +452,7 @@ class E2EEPlugin(BasePlugin):
         if self.encrypted_tags is not None:
             tmp: bool = True
             for (namespace, tag) in self.encrypted_tags:
-                tmp = tmp and message.xml.find('{%s}%s' % (namespace, tag)) is not None
+                tmp = tmp and message.xml.find(f'{{{namespace}}}{tag}') is not None
             has_encrypted_tag = tmp
 
         if has_encrypted_tag:
@@ -556,7 +556,7 @@ class E2EEPlugin(BasePlugin):
         if self.encrypted_tags is not None:
             whitelist += self.encrypted_tags
 
-        tag_whitelist = {'{%s}%s' % tag for tag in whitelist}
+        tag_whitelist = {f'{{{ns}}}{tag}' for (ns, tag) in whitelist}
 
         for elem in message.xml[:]:
             if elem.tag not in tag_whitelist:
@@ -567,12 +567,12 @@ class E2EEPlugin(BasePlugin):
 
     def store_trust(self, jid: JID, state: str, fingerprint: str) -> None:
         """Store trust for a fingerprint and a jid."""
-        option_name = '%s:%s' % (self.encryption_short_name, fingerprint)
+        option_name = f'{self.encryption_short_name}:{fingerprint}'
         config.silent_set(option=option_name, value=state, section=jid)
 
     def fetch_trust(self, jid: JID, fingerprint: str) -> str:
         """Fetch trust of a fingerprint and a jid."""
-        option_name = '%s:%s' % (self.encryption_short_name, fingerprint)
+        option_name = f'{self.encryption_short_name}:{fingerprint}'
         return config.getstr(option=option_name, section=jid)
 
     async def decrypt(self, message: Message, jid: Optional[JID], tab: ChatTab):
