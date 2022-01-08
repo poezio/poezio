@@ -121,7 +121,7 @@ class Connection(slixmpp.ClientXMPP):
         self.ca_certs = None
         ca_certs = config.getlist('ca_cert_path')
         if ca_certs and ca_certs != ['']:
-            self.ca_certs = map(Path, config.getlist('ca_cert_path'))
+            self.ca_certs = map(Path, ca_certs)
         interval = config.getint('whitespace_interval')
         if int(interval) > 0:
             self.whitespace_keepalive_interval = int(interval)
