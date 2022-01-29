@@ -2209,7 +2209,7 @@ class MucTab(ChatTab):
             'shortdesc':
             'Fix a color for a nick.',
             'completion':
-            self.completion_recolor
+            self.completion_color
         }, {
             'name':
             'cycle',
