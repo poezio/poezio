@@ -7,6 +7,7 @@ This file describes the new features in each poezio release.
 - Reorder: Prevent GapTabs from being serialized and ignore when serialized as
   they're recreated automatically.
 - Ensure bookmark is present before removing it in /close.
+- Impromptu rooms now have pronouceable short names
 - Poezio will now attempt to check common paths itself. ca_cert_path is
   commented in the config file by default and can be overriden.
 
