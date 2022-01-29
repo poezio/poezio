@@ -255,7 +255,7 @@ class Logger:
         if jidstr in self._fds.keys():
             fd = self._fds[jidstr]
         else:
-            option_fd = self._check_and_create_log_dir(jid)
+            option_fd = self._check_and_create_log_dir(jidstr)
             if option_fd is None:
                 return True
             fd = option_fd
