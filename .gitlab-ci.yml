@@ -106,7 +106,6 @@ mypy:
   stage: lint
   image: python:3
   script:
-    - pip3 install mypy
-    - pip install "typed_ast>=1.4.0,<1.5.0" types-pkg_resources
+    - pip3 install mypy types-setuptools
     - mypy --ignore-missing-imports ./poezio
     - mypy --ignore-missing-imports ./plugins
