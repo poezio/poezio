@@ -233,6 +233,8 @@ class MucTab(ChatTab):
                                 message)
             self.core.disable_private_tabs(self.jid.bare, reason=msg)
         else:
+            self.presence_buffer = []
+            self.users = []
             muc.leave_groupchat(self.core.xmpp, self.jid, self.own_nick,
                                 message)
 
