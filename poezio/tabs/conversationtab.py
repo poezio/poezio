@@ -11,6 +11,7 @@ There are two different instances of a ConversationTab:
     the time.
 
 """
+import asyncio
 import curses
 import logging
 from datetime import datetime
@@ -209,7 +210,9 @@ class ConversationTab(OneToOneTab):
         if not msg['body']:
             return
         self.set_last_sent_message(msg, correct=correct)
-        self.core.handler.on_normal_message(msg)
+        asyncio.ensure_future(
+            self.core.handler.on_normal_message(msg)
+        )
         # Our receipts slixmpp hack
         msg._add_receipt = True  # type: ignore
         msg.send()

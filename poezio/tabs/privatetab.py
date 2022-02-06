@@ -10,6 +10,7 @@ both participant’s nicks. It also has slightly different features than
 the ConversationTab (such as tab-completion on nicks from the room).
 
 """
+import asyncio
 import curses
 import logging
 from datetime import datetime
@@ -239,7 +240,9 @@ class PrivateTab(OneToOneTab):
         if not msg['body']:
             return
         self.set_last_sent_message(msg, correct=correct)
-        self.core.handler.on_groupchat_private_message(msg, sent=True)
+        asyncio.ensure_future(
+            self.core.handler.on_groupchat_private_message(msg, sent=True)
+        )
         # Our receipts slixmpp hack
         msg._add_receipt = True  # type: ignore
         msg.send()

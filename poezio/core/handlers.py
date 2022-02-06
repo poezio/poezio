@@ -4,7 +4,7 @@ XMPP-related handlers for the Core class
 
 import logging
 
-from typing import Optional
+from typing import Optional, Union
 
 import asyncio
 import curses
@@ -21,7 +21,7 @@ from os import path
 import pyasn1.codec.der.decoder
 import pyasn1.codec.der.encoder
 import pyasn1_modules.rfc2459
-from slixmpp import InvalidJID, JID, Message
+from slixmpp import InvalidJID, JID, Message, Iq, Presence
 from slixmpp.xmlstream.stanzabase import StanzaBase, ElementBase
 from xml.etree import ElementTree as ET
 
@@ -159,67 +159,57 @@ class HandlerCore:
 
         return None
 
-    def on_carbon_received(self, message):
+    async def on_carbon_received(self, message: Message):
         """
         Carbon <received/> received
         """
-
-        def ignore_message(recv):
-            log.debug('%s has category conference, ignoring carbon',
-                      recv['from'].server)
-
-        def receive_message(recv):
-            recv['to'] = self.core.xmpp.boundjid.full
-            if recv['receipt']:
-                return self.on_receipt(recv)
-            self.on_normal_message(recv)
-
         recv = message['carbon_received']
         is_muc_pm = self.is_known_muc_pm(recv, recv['from'])
         if is_muc_pm:
             log.debug('%s sent a MUC-PM, ignoring carbon', recv['from'])
-            return
-        if is_muc_pm is None:
-            fixes.has_identity(
-                self.core.xmpp,
+        elif is_muc_pm is None:
+            is_muc = self.core.xmpp.plugin['xep_0030'].has_identity(
                 recv['from'].bare,
-                identity='conference',
-                on_true=functools.partial(ignore_message, recv),
-                on_false=functools.partial(receive_message, recv))
-            return
+                node='conference',
+            )
+            if is_muc:
+                log.debug('%s has category conference, ignoring carbon',
+                          recv['from'].server)
+            else:
+                recv['to'] = self.core.xmpp.boundjid.full
+                if recv['receipt']:
+                    await self.on_receipt(recv)
+                else:
+                    await self.on_normal_message(recv)
         else:
-            receive_message(recv)
+            recv['to'] = self.core.xmpp.boundjid.full
+            await self.on_normal_message(recv)
 
-    def on_carbon_sent(self, message):
+    async def on_carbon_sent(self, message: Message):
         """
         Carbon <sent/> received
         """
-
-        def groupchat_private_message(sent):
-            self.on_groupchat_private_message(sent, sent=True)
-
-        def send_message(sent):
-            sent['from'] = self.core.xmpp.boundjid.full
-            self.on_normal_message(sent)
-
         sent = message['carbon_sent']
         is_muc_pm = self.is_known_muc_pm(sent, sent['to'])
         if is_muc_pm:
-            groupchat_private_message(sent)
-            return
-        if is_muc_pm is None:
-            fixes.has_identity(
-                self.core.xmpp,
+            await self.on_groupchat_private_message(sent, sent=True)
+        elif is_muc_pm is None:
+            is_muc = self.core.xmpp.plugin['xep_0030'].has_identity(
                 sent['to'].bare,
-                identity='conference',
-                on_true=functools.partial(groupchat_private_message, sent),
-                on_false=functools.partial(send_message, sent))
+                node='conference',
+            )
+            if is_muc:
+                await self.on_groupchat_private_message(sent, sent=True)
+            else:
+                sent['from'] = self.core.xmpp.boundjid.full
+                await self.on_normal_message(sent)
         else:
-            send_message(sent)
+            sent['from'] = self.core.xmpp.boundjid.full
+            await self.on_normal_message(sent)
 
     ### Invites ###
 
-    def on_groupchat_invitation(self, message):
+    async def on_groupchat_invitation(self, message: Message):
         """
         Mediated invitation received
         """
@@ -243,11 +233,11 @@ class HandlerCore:
         logger.log_roster_change(inviter.full, 'invited you to %s' % jid.full)
         self.core.pending_invites[jid.bare] = inviter.full
 
-    def on_groupchat_decline(self, decline):
+    async def on_groupchat_decline(self, decline):
         "Mediated invitation declined; skip for now"
         pass
 
-    def on_groupchat_direct_invitation(self, message):
+    async def on_groupchat_direct_invitation(self, message: Message):
         """
         Direct invitation received
         """
@@ -280,7 +270,7 @@ class HandlerCore:
 
     ### "classic" messages ###
 
-    def on_message(self, message):
+    async def on_message(self, message: Message):
         """
         When receiving private message from a muc OR a normal message
         (from one of our contacts)
@@ -291,19 +281,19 @@ class HandlerCore:
             return
         # Differentiate both type of messages, and call the appropriate handler.
         if self.is_known_muc_pm(message, message['from']):
-            self.on_groupchat_private_message(message, sent=False)
-            return
-        self.on_normal_message(message)
+            await self.on_groupchat_private_message(message, sent=False)
+        else:
+            await self.on_normal_message(message)
 
-    def on_encrypted_message(self, message):
+    async def on_encrypted_message(self, message: Message):
         """
         When receiving an encrypted message
         """
         if message["body"]:
             return # Already being handled by on_message.
-        self.on_message(message)
+        await self.on_message(message)
 
-    def on_error_message(self, message):
+    async def on_error_message(self, message: Message):
         """
         When receiving any message with type="error"
         """
@@ -332,7 +322,7 @@ class HandlerCore:
             tab.add_message(InfoMessage(error))
             self.core.refresh_window()
 
-    def on_normal_message(self, message):
+    async def on_normal_message(self, message: Message):
         """
         When receiving "normal" messages (not a private message from a
         muc participant)
@@ -388,7 +378,7 @@ class HandlerCore:
         else:
             self.core.refresh_window()
 
-    async def on_0084_avatar(self, msg):
+    async def on_0084_avatar(self, msg: Message):
         jid = msg['from'].bare
         contact = roster[jid]
         if not contact:
@@ -438,7 +428,7 @@ class HandlerCore:
                         exc_info=True)
                 return
 
-    async def on_vcard_avatar(self, pres):
+    async def on_vcard_avatar(self, pres: Presence):
         jid = pres['from'].bare
         contact = roster[jid]
         if not contact:
@@ -474,7 +464,7 @@ class HandlerCore:
             log.debug(
                 'Failed writing %s’s avatar to cache:', jid, exc_info=True)
 
-    def on_nick_received(self, message):
+    async def on_nick_received(self, message: Message):
         """
         Called when a pep notification for a user nickname
         is received
@@ -488,7 +478,7 @@ class HandlerCore:
         else:
             contact.name = ''
 
-    def on_groupchat_message(self, message):
+    async def on_groupchat_message(self, message: Message):
         """
         Triggered whenever a message is received from a multi-user chat room.
         """
@@ -553,6 +543,7 @@ class HandlerCore:
                     log.debug('Unable to correct a message', exc_info=True)
 
         if not replaced:
+            ui_msg: Union[InfoMessage, PMessage]
             # Messages coming from MUC barejid (Server maintenance, IRC mode
             # changes from biboumi, etc.) are displayed as info messages.
             highlight = False
@@ -601,20 +592,20 @@ class HandlerCore:
                     and self.core.own_nick != message['from'].resource):
                 curses.beep()
 
-    def on_muc_own_nickchange(self, muc):
+    def on_muc_own_nickchange(self, muc: tabs.MucTab):
         "We changed our nick in a MUC"
         for tab in self.core.get_tabs(tabs.PrivateTab):
             if tab.parent_muc == muc:
                 tab.own_nick = muc.own_nick
 
-    def on_groupchat_private_message(self, message, sent):
+    async def on_groupchat_private_message(self, message: Message, sent: bool):
         """
         We received a Private Message (from someone in a Muc)
         """
         jid = message['to'] if sent else message['from']
         with_nick = jid.resource
         if not with_nick:
-            self.on_groupchat_message(message)
+            await self.on_groupchat_message(message)
             return
 
         room_from = jid.bare
@@ -660,33 +651,33 @@ class HandlerCore:
 
     ### Chatstates ###
 
-    def on_chatstate_active(self, message):
-        self._on_chatstate(message, "active")
+    async def on_chatstate_active(self, message: Message):
+        await self._on_chatstate(message, "active")
 
-    def on_chatstate_inactive(self, message):
-        self._on_chatstate(message, "inactive")
+    async def on_chatstate_inactive(self, message: Message):
+        await self._on_chatstate(message, "inactive")
 
-    def on_chatstate_composing(self, message):
-        self._on_chatstate(message, "composing")
+    async def on_chatstate_composing(self, message: Message):
+        await self._on_chatstate(message, "composing")
 
-    def on_chatstate_paused(self, message):
-        self._on_chatstate(message, "paused")
+    async def on_chatstate_paused(self, message: Message):
+        await self._on_chatstate(message, "paused")
 
-    def on_chatstate_gone(self, message):
-        self._on_chatstate(message, "gone")
+    async def on_chatstate_gone(self, message: Message):
+        await self._on_chatstate(message, "gone")
 
-    def _on_chatstate(self, message, state):
+    async def _on_chatstate(self, message: Message, state: str):
         if message['type'] == 'chat':
-            if not self._on_chatstate_normal_conversation(message, state):
+            if not await self._on_chatstate_normal_conversation(message, state):
                 tab = self.core.tabs.by_name_and_class(message['from'].full,
                                                        tabs.PrivateTab)
                 if not tab:
                     return
-                self._on_chatstate_private_conversation(message, state)
+                await self._on_chatstate_private_conversation(message, state)
         elif message['type'] == 'groupchat':
-            self.on_chatstate_groupchat_conversation(message, state)
+            await self.on_chatstate_groupchat_conversation(message, state)
 
-    def _on_chatstate_normal_conversation(self, message, state):
+    async def _on_chatstate_normal_conversation(self, message: Message, state: str):
         tab = self.core.get_conversation_by_jid(message['from'], False)
         if not tab:
             return False
@@ -702,7 +693,7 @@ class HandlerCore:
             self.core.refresh_tab_win()
         return True
 
-    def _on_chatstate_private_conversation(self, message, state):
+    async def _on_chatstate_private_conversation(self, message: Message, state: str):
         """
         Chatstate received in a private conversation from a MUC
         """
@@ -719,7 +710,7 @@ class HandlerCore:
             _composing_tab_state(tab, state)
             self.core.refresh_tab_win()
 
-    def on_chatstate_groupchat_conversation(self, message, state):
+    async def on_chatstate_groupchat_conversation(self, message: Message, state: str):
         """
         Chatstate received in a MUC
         """
@@ -745,7 +736,7 @@ class HandlerCore:
             return '%s: %s' % (error_condition,
                                error_text) if error_text else error_condition
 
-    def on_version_result(self, iq):
+    def on_version_result(self, iq: Iq):
         """
         Handle the result of a /version command.
         """
@@ -762,7 +753,7 @@ class HandlerCore:
                                                    'an unknown platform'))
         self.core.information(version, 'Info')
 
-    def on_bookmark_result(self, iq):
+    def on_bookmark_result(self, iq: Iq):
         """
         Handle the result of a /bookmark commands.
         """
@@ -774,7 +765,7 @@ class HandlerCore:
 
     ### subscription-related handlers ###
 
-    def on_roster_update(self, iq):
+    async def on_roster_update(self, iq: Iq):
         """
         The roster was received.
         """
@@ -793,7 +784,7 @@ class HandlerCore:
         if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
-    def on_subscription_request(self, presence):
+    async def on_subscription_request(self, presence: Presence):
         """subscribe received"""
         jid = presence['from'].bare
         contact = roster[jid]
@@ -816,7 +807,7 @@ class HandlerCore:
         if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
-    def on_subscription_authorized(self, presence):
+    async def on_subscription_authorized(self, presence: Presence):
         """subscribed received"""
         jid = presence['from'].bare
         contact = roster[jid]
@@ -831,7 +822,7 @@ class HandlerCore:
         if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
-    def on_subscription_remove(self, presence):
+    async def on_subscription_remove(self, presence: Presence):
         """unsubscribe received"""
         jid = presence['from'].bare
         contact = roster[jid]
@@ -844,7 +835,7 @@ class HandlerCore:
         if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
-    def on_subscription_removed(self, presence):
+    async def on_subscription_removed(self, presence: Presence):
         """unsubscribed received"""
         jid = presence['from'].bare
         contact = roster[jid]
@@ -865,7 +856,7 @@ class HandlerCore:
 
     ### Presence-related handlers ###
 
-    def on_presence(self, presence):
+    async def on_presence(self, presence: Presence):
         if presence.match('presence/muc'):
             return
         jid = presence['from']
@@ -892,7 +883,7 @@ class HandlerCore:
             tab.refresh()
             self.core.doupdate()
 
-    def on_presence_error(self, presence):
+    async def on_presence_error(self, presence: Presence):
         jid = presence['from']
         contact = roster[jid.bare]
         if not contact:
@@ -901,7 +892,7 @@ class HandlerCore:
         contact.error = presence['error']['text'] or presence['error']['type'] + ': ' + presence['error']['condition']
         # TODO:  reset chat states status on presence error
 
-    def on_got_offline(self, presence):
+    async def on_got_offline(self, presence: Presence):
         """
         A JID got offline
         """
@@ -933,7 +924,7 @@ class HandlerCore:
         if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
-    def on_got_online(self, presence):
+    async def on_got_online(self, presence: Presence):
         """
         A JID got online
         """
@@ -972,7 +963,7 @@ class HandlerCore:
         if isinstance(self.core.tabs.current_tab, tabs.RosterInfoTab):
             self.core.refresh_window()
 
-    def on_groupchat_presence(self, presence):
+    async def on_groupchat_presence(self, presence: Presence):
         """
         Triggered whenever a presence stanza is received from a user in a multi-user chat room.
         Display the presence on the room window and update the
@@ -986,14 +977,14 @@ class HandlerCore:
 
     ### Connection-related handlers ###
 
-    def on_failed_connection(self, error):
+    async def on_failed_connection(self, error: str):
         """
         We cannot contact the remote server
         """
         self.core.information(
             "Connection to remote server failed: %s" % (error, ), 'Error')
 
-    def on_session_end(self, event):
+    async def on_session_end(self, event):
         """
         Called when a session is terminated (e.g. due to a manual disconnect or a 0198 resume fail)
         """
@@ -1002,7 +993,7 @@ class HandlerCore:
         for tab in self.core.get_tabs(tabs.MucTab):
             tab.disconnect()
 
-    def on_session_resumed(self, event):
+    async def on_session_resumed(self, event):
         """
         Called when a session is successfully resumed by 0198
         """
@@ -1037,7 +1028,7 @@ class HandlerCore:
         """
         self.core.information("Reconnecting in %d seconds..." % (event), 'Info')
 
-    def on_stream_error(self, event):
+    async def on_stream_error(self, event):
         """
         When we receive a stream error
         """
@@ -1046,7 +1037,7 @@ class HandlerCore:
         if event:
             self.core.last_stream_error = (time.time(), event)
 
-    def on_failed_all_auth(self, event):
+    async def on_failed_all_auth(self, event):
         """
         Authentication failed
         """
@@ -1054,7 +1045,7 @@ class HandlerCore:
                               'Error')
         self.core.legitimate_disconnect = True
 
-    def on_no_auth(self, event):
+    async def on_no_auth(self, event):
         """
         Authentication failed (no mech)
         """
@@ -1062,14 +1053,14 @@ class HandlerCore:
             "Authentication failed, no login method available.", 'Error')
         self.core.legitimate_disconnect = True
 
-    def on_connected(self, event):
+    async def on_connected(self, event):
         """
         Remote host responded, but we are not yet authenticated
         """
         self.core.information("Connected to server.", 'Info')
         self.core.legitimate_disconnect = False
 
-    def on_session_start(self, event):
+    async def on_session_start(self, event):
         """
         Called when we are connected and authenticated
         """
@@ -1103,7 +1094,7 @@ class HandlerCore:
 
     ### Other handlers ###
 
-    def on_status_codes(self, message):
+    async def on_status_codes(self, message: Message):
         """
         Handle groupchat messages with status codes.
         Those are received when a room configuration change occurs.
@@ -1182,7 +1173,7 @@ class HandlerCore:
             if modif:
                 self.core.refresh_window()
 
-    def on_groupchat_subject(self, message):
+    async def on_groupchat_subject(self, message: Message):
         """
         Triggered when the topic is changed.
         """
@@ -1239,7 +1230,7 @@ class HandlerCore:
                 room_from, tabs.MucTab) is self.core.tabs.current_tab:
             self.core.refresh_window()
 
-    def on_receipt(self, message):
+    async def on_receipt(self, message):
         """
         When a delivery receipt is received (XEP-0184)
         """
@@ -1261,13 +1252,13 @@ class HandlerCore:
         except AckError:
             log.debug('Error while receiving an ack', exc_info=True)
 
-    def on_data_form(self, message):
+    async def on_data_form(self, message: Message):
         """
         When a data form is received
         """
         self.core.information(str(message))
 
-    def on_attention(self, message):
+    async def on_attention(self, message: Message):
         """
         Attention probe received.
         """
@@ -1284,7 +1275,7 @@ class HandlerCore:
             tab.state = "attention"
             self.core.refresh_tab_win()
 
-    def outgoing_stanza(self, stanza):
+    def outgoing_stanza(self, stanza: StanzaBase):
         """
         We are sending a new stanza, write it in the xml buffer if needed.
         """
@@ -1315,7 +1306,7 @@ class HandlerCore:
                 self.core.tabs.current_tab.refresh()
                 self.core.doupdate()
 
-    def incoming_stanza(self, stanza):
+    def incoming_stanza(self, stanza: StanzaBase):
         """
         We are receiving a new stanza, write it in the xml buffer if needed.
         """
