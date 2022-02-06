@@ -15,20 +15,6 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def has_identity(xmpp, jid, identity, on_true=None, on_false=None):
-    def _cb(iq):
-        ident = lambda x: x[0]
-        res = identity in map(ident, iq['disco_info']['identities'])
-        if res and on_true is not None:
-            on_true()
-        if not res and on_false is not None:
-            on_false()
-
-    asyncio.create_task(
-        xmpp.plugin['xep_0030'].get_info(jid=jid, callback=_cb)
-    )
-
-
 def _filter_add_receipt_request(self, stanza):
     """
     Auto add receipt requests to outgoing messages, if:
