@@ -8,9 +8,12 @@ Defines the EventHandler class.
 The list of available events is here:
 http://poezio.eu/doc/en/plugins.html#_poezio_events
 """
+import logging
 
 from collections import OrderedDict
 from typing import Callable, Dict, List
+
+log = logging.getLogger(__name__)
 
 
 class EventHandler:
@@ -75,6 +78,20 @@ class EventHandler:
 
         return True
 
+    async def trigger_async(self, name: str, *args, **kwargs):
+        """
+        Call all the callbacks associated to the given event name.
+        """
+        callbacks = self.events.get(name, None)
+        if callbacks is None:
+            return
+        for priority in callbacks.values():
+            for callback in priority:
+                if iscoroutinefunction(callback):
+                    await callback(*args, **kwargs)
+                else:
+                    callback(*args, **kwargs)
+
     def trigger(self, name: str, *args, **kwargs):
         """
         Call all the callbacks associated to the given event name.
@@ -84,7 +101,11 @@ class EventHandler:
             return
         for priority in callbacks.values():
             for callback in priority:
-                callback(*args, **kwargs)
+                if not iscoroutinefunction(callback):
+                    callback(*args, **kwargs)
+                else:
+                    log.error(f'async event handler {callback} '
+                               'called in sync trigger!')
 
     def del_event_handler(self, name: str, callback: Callable):
         """
