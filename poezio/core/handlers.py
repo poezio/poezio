@@ -501,7 +501,7 @@ class HandlerCore:
         if user and user in tab.ignores:
             return
 
-        self.core.events.trigger('muc_msg', message, tab)
+        await self.core.events.trigger_async('muc_msg', message, tab)
         use_xhtml = config.get_by_tabname('enable_xhtml_im', room_from)
         tmp_dir = get_image_cache()
         body = xhtml.get_body_from_message_stanza(
@@ -537,7 +537,7 @@ class HandlerCore:
                             delayed=delayed,
                             nickname=nick_from,
                             user=user):
-                        self.core.events.trigger('highlight', message, tab)
+                        await self.core.events.trigger_async('highlight', message, tab)
                     replaced = True
                 except CorrectionError:
                     log.debug('Unable to correct a message', exc_info=True)
@@ -570,7 +570,7 @@ class HandlerCore:
                 typ = 2
             tab.add_message(ui_msg)
             if highlight:
-                self.core.events.trigger('highlight', message, tab)
+                await self.core.events.trigger_async('highlight', message, tab)
 
         if message['from'].resource == tab.own_nick:
             tab.set_last_sent_message(message, correct=replaced)
@@ -621,7 +621,7 @@ class HandlerCore:
             tabs.PrivateTab)  # get the tab with the private conversation
         ignore = config.get_by_tabname('ignore_private', room_from)
         if ignore and not sent:
-            self.core.events.trigger('ignored_private', message, tab)
+            await self.core.events.trigger_async('ignored_private', message, tab)
             msg = config.get_by_tabname('private_auto_response', room_from)
             if msg and body:
                 self.core.xmpp.send_message(
@@ -681,7 +681,7 @@ class HandlerCore:
         tab = self.core.get_conversation_by_jid(message['from'], False)
         if not tab:
             return False
-        self.core.events.trigger('normal_chatstate', message, tab)
+        await self.core.events.trigger_async('normal_chatstate', message, tab)
         tab.chatstate = state
         if state == 'gone' and isinstance(tab, tabs.DynamicConversationTab):
             tab.unlock()
@@ -701,7 +701,7 @@ class HandlerCore:
                                                tabs.PrivateTab)
         if not tab:
             return
-        self.core.events.trigger('private_chatstate', message, tab)
+        await self.core.events.trigger_async('private_chatstate', message, tab)
         tab.chatstate = state
         if tab == self.core.tabs.current_tab:
             tab.refresh_info_header()
@@ -718,7 +718,7 @@ class HandlerCore:
         room_from = message.get_mucroom()
         tab = self.core.tabs.by_name_and_class(room_from, tabs.MucTab)
         if tab and tab.get_user_by_name(nick):
-            self.core.events.trigger('muc_chatstate', message, tab)
+            await self.core.events.trigger_async('muc_chatstate', message, tab)
             tab.get_user_by_name(nick).chatstate = state
         if tab == self.core.tabs.current_tab:
             if not self.core.size.tab_degrade_x:
@@ -871,8 +871,8 @@ class HandlerCore:
             return
         roster.modified()
         contact.error = None
-        self.core.events.trigger('normal_presence', presence,
-                                 contact[jid.full])
+        await self.core.events.trigger_async('normal_presence', presence,
+                                             contact[jid.full])
         tab = self.core.get_conversation_by_jid(jid, create=False)
         if tab:
             tab.update_status(
@@ -945,7 +945,7 @@ class HandlerCore:
                 'status': presence['status'],
                 'show': presence['show'],
             })
-        self.core.events.trigger('normal_presence', presence, resource)
+        await self.core.events.trigger_async('normal_presence', presence, resource)
         name = contact.name if contact.name else jid.bare
         self.core.add_information_message_to_conversation_tab(
             jid.full, '\x195}%s is \x194}online' % name)
@@ -972,7 +972,7 @@ class HandlerCore:
         from_room = presence['from'].bare
         tab = self.core.tabs.by_name_and_class(from_room, tabs.MucTab)
         if tab:
-            self.core.events.trigger('muc_presence', presence, tab)
+            await self.core.events.trigger_async('muc_presence', presence, tab)
             tab.handle_presence(presence)
 
     ### Connection-related handlers ###
@@ -1079,7 +1079,7 @@ class HandlerCore:
                 pres = self.core.xmpp.make_presence()
                 pres['show'] = self.core.status.show
                 pres['status'] = self.core.status.message
-                self.core.events.trigger('send_normal_presence', pres)
+                await self.core.events.trigger_async('send_normal_presence', pres)
                 pres.send()
         self.core.bookmarks.get_local()
         # join all the available bookmarks. As of yet, this is just the local ones
