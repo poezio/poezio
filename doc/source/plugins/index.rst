@@ -211,6 +211,11 @@ Plugin index
 
         Adds convenient aliases to /status (/away, etc).
 
+    Sticker
+        :ref:`Documentation <sticker-plugin>`
+
+        Opens a graphical sticker picker and sends the selected one.
+
     Tell
         :ref:`Documentation <tell-plugin>`
 
@@ -342,6 +347,7 @@ Plugin index
     simple_notify
     spam
     status
+    sticker
     tell
     time_marker
     uptime
