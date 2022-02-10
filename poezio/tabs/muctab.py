@@ -466,9 +466,6 @@ class MucTab(ChatTab):
         # TODO: send the disco#info identity name here, if it exists.
         return self.jid.node
 
-    def get_text_window(self) -> windows.TextWin:
-        return self.text_win
-
     def on_lose_focus(self) -> None:
         if self.joined:
             if self.input.text:

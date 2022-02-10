@@ -361,9 +361,6 @@ class PrivateTab(OneToOneTab):
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)
 
-    def get_text_window(self):
-        return self.text_win
-
     @refresh_wrapper.conditional
     def rename_user(self, old_nick, user):
         """
