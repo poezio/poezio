@@ -1,7 +1,6 @@
 from typing import Tuple, Dict, List, Union
 import curses
 import hashlib
-import math
 
 from . import hsluv
 

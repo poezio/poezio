@@ -1,5 +1,3 @@
-from datetime import datetime
-
 FORMAT_CHAR = '\x19'
 # These are non-printable chars, so they should never appear in the input,
 # I guess. But maybe we can find better chars that are even less risky.

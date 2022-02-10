@@ -5,7 +5,7 @@ Text inputs.
 import curses
 import logging
 import string
-from typing import List, Dict, Callable, Optional, ClassVar, Union
+from typing import List, Dict, Callable, Optional, ClassVar
 
 from poezio import keyboard
 from poezio import common

@@ -4,19 +4,16 @@ XMPP-related handlers for the Core class
 
 import logging
 
-from typing import Optional, Union
+from typing import Optional
 
 import asyncio
 import curses
-import functools
 import select
 import signal
 import ssl
 import sys
 import time
-from datetime import datetime
 from hashlib import sha1, sha256, sha512
-from os import path
 
 import pyasn1.codec.der.decoder
 import pyasn1.codec.der.encoder
@@ -25,8 +22,6 @@ from slixmpp import InvalidJID, JID, Message, Iq, Presence
 from slixmpp.xmlstream.stanzabase import StanzaBase, ElementBase
 from xml.etree import ElementTree as ET
 
-from poezio import common
-from poezio import fixes
 from poezio import tabs
 from poezio import xhtml
 from poezio import multiuserchat as muc
@@ -36,12 +31,10 @@ from poezio.core.structs import Status
 from poezio.contact import Resource
 from poezio.logger import logger
 from poezio.roster import roster
-from poezio.text_buffer import CorrectionError, AckError
+from poezio.text_buffer import AckError
 from poezio.theming import dump_tuple, get_theme
 from poezio.ui.types import (
     XMLLog,
-    Message as PMessage,
-    BaseMessage,
     InfoMessage,
     PersistentInfoMessage,
 )

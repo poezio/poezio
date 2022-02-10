@@ -12,7 +12,6 @@ A user is a MUC participant, not a roster contact (see contact.py)
 import logging
 from datetime import timedelta, datetime
 from hashlib import md5
-from random import choice
 from typing import Optional, Tuple
 
 from poezio import xhtml, colors
