@@ -390,12 +390,6 @@ class Tab:
         """
         return self.name
 
-    def get_text_window(self) -> Optional[windows.TextWin]:
-        """
-        Returns the principal TextWin window, if there's one
-        """
-        return None
-
     def on_input(self, key: str, raw: bool):
         """
         raw indicates if the key should activate the associated command or not.
