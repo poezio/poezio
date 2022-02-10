@@ -439,9 +439,6 @@ class ConversationTab(OneToOneTab):
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)
 
-    def get_text_window(self):
-        return self.text_win
-
     def on_close(self):
         Tab.on_close(self)
         if config.get_by_tabname('send_chat_states', self.general_jid):
