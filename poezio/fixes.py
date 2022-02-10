@@ -5,17 +5,14 @@ upstream.
 TODO: Check that they are fixed and remove those hacks
 """
 
-import asyncio
-from typing import Callable, Any
-from slixmpp import Message, Iq, ClientXMPP
-from slixmpp.xmlstream import ET
+from slixmpp import ClientXMPP, Message
 
 import logging
 
 log = logging.getLogger(__name__)
 
 
-def _filter_add_receipt_request(self, stanza):
+def _filter_add_receipt_request(self: ClientXMPP, stanza):
     """
     Auto add receipt requests to outgoing messages, if:
 

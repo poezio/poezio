@@ -22,7 +22,6 @@ from slixmpp import JID, InvalidJID, Message as SMessage
 from poezio.tabs.basetabs import OneToOneTab, Tab
 
 from poezio import common
-from poezio import tabs
 from poezio import windows
 from poezio import xhtml
 from poezio.config import config, get_image_cache

@@ -6,11 +6,10 @@ import logging
 log = logging.getLogger(__name__)
 
 from datetime import datetime
-from typing import Optional, List, Union, Dict
+from typing import Optional, List, Union
 
 from poezio.windows.base_wins import Win
 
-from poezio import common
 from poezio.config import config
 from poezio.contact import Contact, Resource
 from poezio.roster import Roster, RosterGroup
