@@ -8,7 +8,7 @@ from xml.etree import ElementTree as ET
 from typing import List, Optional, Tuple
 import logging
 
-from slixmpp import Iq, JID, InvalidJID
+from slixmpp import JID, InvalidJID
 from slixmpp.exceptions import XMPPError, IqError, IqTimeout
 from slixmpp.xmlstream.xmlstream import NotConnectedError
 from slixmpp.xmlstream.stanzabase import StanzaBase
