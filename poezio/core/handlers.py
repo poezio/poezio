@@ -363,7 +363,7 @@ class HandlerCore:
             )
             self.core.tabs.append(conversation)
         else:
-            conversation.handle_message(message)
+            await conversation.handle_message(message)
 
         if not own and 'private' in config.getstr('beep_on').split():
             if not config.get_by_tabname('disable_beep', conv_jid.bare):
@@ -547,7 +547,7 @@ class HandlerCore:
                 self.core.tabs.append(tab)
                 tab.parent_muc.privates.append(tab)
         else:
-            tab.handle_message(message)
+            await tab.handle_message(message)
 
         if not sent and 'private' in config.getstr('beep_on').split():
             if not config.get_by_tabname('disable_beep', jid.full):

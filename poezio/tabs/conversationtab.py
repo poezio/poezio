@@ -106,7 +106,7 @@ class ConversationTab(OneToOneTab):
     def completion(self):
         self.complete_commands(self.input)
 
-    def handle_message(self, message: SMessage, display: bool = True):
+    async def handle_message(self, message: SMessage, display: bool = True):
         """Handle a received message.
 
         The message can come from us (carbon copy).
@@ -133,7 +133,7 @@ class ConversationTab(OneToOneTab):
         else:
             return
 
-        self.core.events.trigger('conversation_msg', message, self)
+        await self.core.events.trigger_async('conversation_msg', message, self)
 
         if not message['body']:
             return
