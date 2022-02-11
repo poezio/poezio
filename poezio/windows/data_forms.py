@@ -6,6 +6,7 @@ does not inherit from the Win base class), as it will create the
 others when needed.
 """
 
+from typing import Type
 from poezio.windows import base_wins
 from poezio.windows.base_wins import Win
 from poezio.windows.inputs import Input
@@ -397,10 +398,10 @@ class FormWin:
         for (name, field) in self._form.getFields().items():
             if field['type'] == 'hidden':
                 continue
-            try:
+            if field['type'] not in self.input_classes:
+                input_class: Type[FieldInputMixin] = TextSingleWin
+            else:
                 input_class = self.input_classes[field['type']]
-            except IndexError:
-                continue
             label = field['label']
             desc = field['desc']
             if field['type'] == 'fixed':
