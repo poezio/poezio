@@ -173,6 +173,7 @@ class ConversationTab(OneToOneTab):
     @refresh_wrapper.always
     @command_args_parser.raw
     async def command_say(self, line: str, attention: bool = False, correct: bool = False):
+        await self._initial_log.wait()
         msg: SMessage = self.core.xmpp.make_message(
             mto=self.get_dest_jid(),
             mfrom=self.core.xmpp.boundjid

@@ -205,6 +205,7 @@ class PrivateTab(OneToOneTab):
     async def command_say(self, line: str, attention: bool = False, correct: bool = False) -> None:
         if not self.on:
             return
+        await self._initial_log.wait()
         our_jid = JID(self.jid.bare)
         our_jid.resource = self.own_nick
         msg: SMessage = self.core.xmpp.make_message(

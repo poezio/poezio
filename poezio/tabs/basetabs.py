@@ -1000,6 +1000,7 @@ class OneToOneTab(ChatTab):
 
         self.__status = Status("", "")
         self.last_remote_message = datetime.now()
+        self._initial_log = asyncio.Event()
 
         # Set to true once the first disco is done
         self.__initial_disco = False
@@ -1036,7 +1037,7 @@ class OneToOneTab(ChatTab):
         elif use_log and initial:
             asyncio.create_task(self.handle_message(initial, display=False))
         asyncio.create_task(
-            LogLoader(logger, self, use_log).tab_open()
+            LogLoader(logger, self, use_log, self._initial_log).tab_open()
         )
 
     async def handle_message(self, msg: SMessage, display: bool = True):
