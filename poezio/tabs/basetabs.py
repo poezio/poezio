@@ -675,7 +675,9 @@ class ChatTab(Tab):
             if not self.execute_command(txt):
                 if txt.startswith('//'):
                     txt = txt[1:]
-                self.command_say(xhtml.convert_simple_to_full_colors(txt))
+                asyncio.ensure_future(
+                    self.command_say(xhtml.convert_simple_to_full_colors(txt))
+                )
         self.cancel_paused_delay()
 
     @command_args_parser.raw
@@ -800,7 +802,7 @@ class ChatTab(Tab):
         self.last_sent_message = msg
 
     @command_args_parser.raw
-    def command_correct(self, line: str) -> None:
+    async def command_correct(self, line: str) -> None:
         """
         /correct <fixed message>
         """
@@ -810,7 +812,7 @@ class ChatTab(Tab):
         if not self.last_sent_message:
             self.core.information('There is no message to correct.', 'Error')
             return
-        self.command_say(line, correct=True)
+        await self.command_say(line, correct=True)
 
     def completion_correct(self, the_input):
         if self.last_sent_message and the_input.get_argument_position() == 1:
@@ -844,7 +846,7 @@ class ChatTab(Tab):
             self.state = 'scrolled'
 
     @command_args_parser.raw
-    def command_say(self, line: str, attention: bool = False, correct: bool = False):
+    async def command_say(self, line: str, attention: bool = False, correct: bool = False):
         pass
 
     def goto_build_lines(self, new_date):
@@ -1116,10 +1118,10 @@ class OneToOneTab(ChatTab):
             self.refresh()
 
     @command_args_parser.raw
-    def command_attention(self, message):
+    async def command_attention(self, message):
         """/attention [message]"""
         if message != '':
-            self.command_say(message, attention=True)
+            await self.command_say(message, attention=True)
         else:
             msg = self.core.xmpp.make_message(self.get_dest_jid())
             msg['type'] = 'chat'
@@ -1127,7 +1129,7 @@ class OneToOneTab(ChatTab):
             msg.send()
 
     @command_args_parser.raw
-    def command_say(self, line: str, attention: bool = False, correct: bool = False):
+    async def command_say(self, line: str, attention: bool = False, correct: bool = False):
         pass
 
     @command_args_parser.ignored

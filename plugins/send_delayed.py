@@ -18,6 +18,7 @@ This plugin adds a command to the chat tabs.
 
 
 """
+import asyncio
 from poezio.plugin import BasePlugin
 from poezio.core.structs import Completion
 from poezio.decorators import command_args_parser
@@ -74,6 +75,6 @@ class Plugin(BasePlugin):
         tab = args[0]
         # anything could happen to the tab during the interval
         try:
-            tab.command_say(args[1])
+            asyncio.ensure_future(tab.command_say(args[1]))
         except:
             pass

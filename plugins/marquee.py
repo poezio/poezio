@@ -34,6 +34,7 @@ Configuration
 
 
 """
+import asyncio
 from poezio.plugin import BasePlugin
 from poezio import tabs
 from poezio import xhtml
@@ -65,7 +66,7 @@ class Plugin(BasePlugin):
     def command_marquee(self, args):
         tab = self.api.current_tab()
         args = xhtml.clean_text(xhtml.convert_simple_to_full_colors(args))
-        tab.command_say(args)
+        asyncio.ensure_future(tab.command_say(args))
         is_muctab = isinstance(tab, tabs.MucTab)
         msg_id = tab.last_sent_message["id"]
         jid = tab.jid

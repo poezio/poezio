@@ -173,7 +173,7 @@ class ConversationTab(OneToOneTab):
 
     @refresh_wrapper.always
     @command_args_parser.raw
-    def command_say(self, line: str, attention: bool = False, correct: bool = False):
+    async def command_say(self, line: str, attention: bool = False, correct: bool = False):
         msg: SMessage = self.core.xmpp.make_message(
             mto=self.get_dest_jid(),
             mfrom=self.core.xmpp.boundjid
@@ -190,7 +190,6 @@ class ConversationTab(OneToOneTab):
         self.core.events.trigger('conversation_say', msg, self)
         if not msg['body']:
             return
-        replaced = False
         if correct or msg['replace']['id']:
             msg['replace']['id'] = self.last_sent_message['id']  # type: ignore
         else:
@@ -210,12 +209,10 @@ class ConversationTab(OneToOneTab):
         if not msg['body']:
             return
         self.set_last_sent_message(msg, correct=correct)
-        asyncio.ensure_future(
-            self.core.handler.on_normal_message(msg)
-        )
-        # Our receipts slixmpp hack
         msg._add_receipt = True  # type: ignore
         msg.send()
+        await self.core.handler.on_normal_message(msg)
+        # Our receipts slixmpp hack
         self.cancel_paused_delay()
 
     @command_args_parser.quoted(0, 1)

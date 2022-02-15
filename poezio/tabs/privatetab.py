@@ -202,7 +202,7 @@ class PrivateTab(OneToOneTab):
 
     @refresh_wrapper.always
     @command_args_parser.raw
-    def command_say(self, line: str, attention: bool = False, correct: bool = False) -> None:
+    async def command_say(self, line: str, attention: bool = False, correct: bool = False) -> None:
         if not self.on:
             return
         our_jid = JID(self.jid.bare)
@@ -240,9 +240,7 @@ class PrivateTab(OneToOneTab):
         if not msg['body']:
             return
         self.set_last_sent_message(msg, correct=correct)
-        asyncio.ensure_future(
-            self.core.handler.on_groupchat_private_message(msg, sent=True)
-        )
+        await self.core.handler.on_groupchat_private_message(msg, sent=True)
         # Our receipts slixmpp hack
         msg._add_receipt = True  # type: ignore
         msg.send()

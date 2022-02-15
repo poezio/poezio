@@ -25,6 +25,7 @@ This plugin defines two new commands for chatroom tabs:
         List all queued messages for the current chatroom.
 
 """
+import asyncio
 from poezio.plugin import BasePlugin
 from poezio.core.structs import Completion
 from poezio.decorators import command_args_parser
@@ -66,7 +67,7 @@ class Plugin(BasePlugin):
         if nick not in self.tabs[tab]:
             return
         for i in self.tabs[tab][nick]:
-            tab.command_say("%s: %s" % (nick, i))
+            asyncio.ensure_future(tab.command_say("%s: %s" % (nick, i)))
         del self.tabs[tab][nick]
 
     @command_args_parser.ignored

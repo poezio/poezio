@@ -1280,7 +1280,7 @@ class CommandCore:
                 list(self.core.plugin_manager.plugins.keys())), 'Info')
 
     @command_args_parser.quoted(1, 1)
-    def message(self, args):
+    async def message(self, args):
         """
         /message <jid> [message]
         """
@@ -1310,7 +1310,7 @@ class CommandCore:
         else:
             self.core.focus_tab(tab)
         if len(args) == 2:
-            tab.command_say(args[1])
+            await tab.command_say(args[1])
 
     @command_args_parser.ignored
     def xml_tab(self):
