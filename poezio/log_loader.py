@@ -76,10 +76,17 @@ class LogLoader:
     mam_only: bool
 
     def __init__(self, logger: Logger, tab: tabs.ChatTab,
-                 local_logs: bool = True):
+                 local_logs: bool = True,
+                 done_event: Optional[asyncio.Event] = None):
         self.mam_only = not local_logs
         self.logger = logger
         self.tab = tab
+        self.done_event = done_event
+
+    def _done(self) -> None:
+        """Signal end if possible"""
+        if self.done_event is not None:
+            self.done_event.set()
 
     async def tab_open(self) -> None:
         """Called on a tab opening or a MUC join"""
@@ -104,6 +111,7 @@ class LogLoader:
         if messages:
             self.tab._text_buffer.add_history_messages(messages)
             self.tab.core.refresh_window()
+        self._done()
 
     async def mam_tab_open(self, nb: int) -> List[BaseMessage]:
         """Fetch messages in MAM when opening a new tab.
@@ -238,6 +246,7 @@ class LogLoader:
         if messages:
             tab._text_buffer.add_history_messages(messages)
             tab.core.refresh_window()
+        self._done()
 
     async def local_scroll_requested(self, nb: int) -> List[BaseMessage]:
         """Fetch messages locally on scroll up.
