@@ -4,6 +4,7 @@ A MucListTab is a tab listing the rooms on a conference server.
 It has no functionality except scrolling the list, and allowing the
 user to join the rooms.
 """
+import asyncio
 import logging
 from typing import Dict, Callable
 
@@ -74,4 +75,4 @@ class MucListTab(ListTab):
         row = self.listview.get_selected_row()
         if not row:
             return
-        self.core.command.join(row[1])
+        asyncio.ensure_future(self.core.command.join(row[1]))
