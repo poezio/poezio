@@ -446,12 +446,17 @@ class CommandCore:
         """
         /bookmark_local [room][/nick] [password]
         """
-        if not args and not isinstance(self.core.tabs.current_tab,
-                                       tabs.MucTab):
+        tab = self.core.tabs.current_tab
+        if not args and not isinstance(tab, tabs.MucTab):
             return
 
         room, nick = self._parse_join_jid(args[0] if args else '')
         password = args[1] if len(args) > 1 else None
+
+        if not room:
+            room = tab.jid.bare
+        if password is None and tab.password is not None:
+            password = tab.password
 
         asyncio.create_task(
             self._add_bookmark(
@@ -468,8 +473,8 @@ class CommandCore:
         """
         /bookmark [room][/nick] [autojoin] [password]
         """
-        if not args and not isinstance(self.core.tabs.current_tab,
-                                       tabs.MucTab):
+        tab = self.core.tabs.current_tab
+        if not args and not isinstance(tab, tabs.MucTab):
             return
         room, nick = self._parse_join_jid(args[0] if args else '')
         password = args[2] if len(args) > 2 else None
@@ -478,13 +483,18 @@ class CommandCore:
         autojoin = (method == 'local' or
                     (len(args) > 1 and args[1].lower() == 'true'))
 
+        if not room:
+            room = tab.jid.bare
+        if password is None and tab.password is not None:
+            password = tab.password
+
         asyncio.create_task(
             self._add_bookmark(room, nick, autojoin, password, method)
         )
 
     async def _add_bookmark(
         self,
-        room: Optional[str],
+        room: str,
         nick: Optional[str],
         autojoin: bool,
         password: str,
@@ -503,16 +513,8 @@ class CommandCore:
             method: 'local' or 'remote'.
         '''
 
-        # No room Jid was specified. A nick may have been specified. Set the
-        # room Jid to be bookmarked to the current tab bare jid.
-        if not room:
-            tab = self.core.tabs.current_tab
-            if not isinstance(tab, tabs.MucTab):
-                return
-            room = tab.jid.bare
-            if password is None and tab.password is not None:
-                password = tab.password
-        elif room == '*':
+
+        if room == '*':
             return await self._add_wildcard_bookmarks(method)
 
         # Once we found which room to bookmark, find corresponding tab if it
@@ -524,13 +526,14 @@ class CommandCore:
 
         # Validate / Normalize
         try:
-            if nick is None:
+            if not nick:
                 jid = JID(room)
             else:
                 jid = JID('{}/{}'.format(room, nick))
             room = jid.bare
             nick = jid.resource or None
         except InvalidJID:
+            self.core.information(f'Invalid address for bookmark: {room}/{nick}', 'Error')
             return
 
         bookmark = self.core.bookmarks[room]
