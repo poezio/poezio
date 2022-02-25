@@ -526,7 +526,7 @@ class CommandCore:
 
         # Validate / Normalize
         try:
-            if nick is None:
+            if not nick:
                 jid = JID(room)
             else:
                 jid = JID('{}/{}'.format(room, nick))
