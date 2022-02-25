@@ -4,19 +4,16 @@ XMPP-related handlers for the Core class
 
 import logging
 
-from typing import Optional, Union
+from typing import Optional
 
 import asyncio
 import curses
-import functools
 import select
 import signal
 import ssl
 import sys
 import time
-from datetime import datetime
 from hashlib import sha1, sha256, sha512
-from os import path
 
 import pyasn1.codec.der.decoder
 import pyasn1.codec.der.encoder
@@ -25,8 +22,6 @@ from slixmpp import InvalidJID, JID, Message, Iq, Presence
 from slixmpp.xmlstream.stanzabase import StanzaBase, ElementBase
 from xml.etree import ElementTree as ET
 
-from poezio import common
-from poezio import fixes
 from poezio import tabs
 from poezio import xhtml
 from poezio import multiuserchat as muc
@@ -36,12 +31,10 @@ from poezio.core.structs import Status
 from poezio.contact import Resource
 from poezio.logger import logger
 from poezio.roster import roster
-from poezio.text_buffer import CorrectionError, AckError
+from poezio.text_buffer import AckError
 from poezio.theming import dump_tuple, get_theme
 from poezio.ui.types import (
     XMLLog,
-    Message as PMessage,
-    BaseMessage,
     InfoMessage,
     PersistentInfoMessage,
 )
@@ -363,7 +356,7 @@ class HandlerCore:
             )
             self.core.tabs.append(conversation)
         else:
-            conversation.handle_message(message)
+            await conversation.handle_message(message)
 
         if not own and 'private' in config.getstr('beep_on').split():
             if not config.get_by_tabname('disable_beep', conv_jid.bare):
@@ -478,7 +471,7 @@ class HandlerCore:
         else:
             contact.name = ''
 
-    async def on_groupchat_message(self, message: Message):
+    async def on_groupchat_message(self, message: Message) -> None:
         """
         Triggered whenever a message is received from a multi-user chat room.
         """
@@ -495,99 +488,8 @@ class HandlerCore:
             muc.leave_groupchat(
                 self.core.xmpp, room_from, self.core.own_nick, msg='')
             return
-
-        nick_from = message['mucnick']
-        user = tab.get_user_by_name(nick_from)
-        if user and user in tab.ignores:
-            return
-
-        await self.core.events.trigger_async('muc_msg', message, tab)
-        use_xhtml = config.get_by_tabname('enable_xhtml_im', room_from)
-        tmp_dir = get_image_cache()
-        body = xhtml.get_body_from_message_stanza(
-            message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
-
-        # TODO: #3314. Is this a MUC reflection?
-        # Is this an encrypted message? Is so ignore.
-        #   It is not possible in the OMEMO case to decrypt these messages
-        #   since we don't encrypt for our own device (something something
-        #   forward secrecy), but even for non-FS encryption schemes anyway
-        #   messages shouldn't have changed after a round-trip to the room.
-        # Otherwire replace the matching message we sent.
-
-        if not body:
-            return
-
-        old_state = tab.state
-        delayed, date = common.find_delayed_tag(message)
-        is_history = not tab.joined and delayed
-
-        replaced = False
-        if message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
-            replaced_id = message['replace']['id']
-            if replaced_id != '' and config.get_by_tabname(
-                    'group_corrections', message['from'].bare):
-                try:
-                    delayed_date = date or datetime.now()
-                    if tab.modify_message(
-                            body,
-                            replaced_id,
-                            message['id'],
-                            time=delayed_date,
-                            delayed=delayed,
-                            nickname=nick_from,
-                            user=user):
-                        await self.core.events.trigger_async('highlight', message, tab)
-                    replaced = True
-                except CorrectionError:
-                    log.debug('Unable to correct a message', exc_info=True)
-
-        if not replaced:
-            ui_msg: Union[InfoMessage, PMessage]
-            # Messages coming from MUC barejid (Server maintenance, IRC mode
-            # changes from biboumi, etc.) are displayed as info messages.
-            highlight = False
-            if message['from'].resource:
-                highlight = tab.message_is_highlight(body, nick_from, is_history)
-                ui_msg = PMessage(
-                    txt=body,
-                    time=date,
-                    nickname=nick_from,
-                    history=is_history,
-                    delayed=delayed,
-                    identifier=message['id'],
-                    jid=message['from'],
-                    user=user,
-                    highlight=highlight,
-                )
-                typ = 1
-            else:
-                ui_msg = InfoMessage(
-                    txt=body,
-                    time=date,
-                    identifier=message['id'],
-                )
-                typ = 2
-            tab.add_message(ui_msg)
-            if highlight:
-                await self.core.events.trigger_async('highlight', message, tab)
-
-        if message['from'].resource == tab.own_nick:
-            tab.set_last_sent_message(message, correct=replaced)
-
-        if tab is self.core.tabs.current_tab:
-            tab.text_win.refresh()
-            tab.info_header.refresh(tab, tab.text_win, user=tab.own_user)
-            tab.input.refresh()
-            self.core.doupdate()
-        elif tab.state != old_state:
-            self.core.refresh_tab_win()
-            current = self.core.tabs.current_tab
-            if hasattr(current, 'input') and current.input:
-                current.input.refresh()
-            self.core.doupdate()
-
-        if 'message' in config.getstr('beep_on').split():
+        valid_message = await tab.handle_message(message)
+        if valid_message and 'message' in config.getstr('beep_on').split():
             if (not config.get_by_tabname('disable_beep', room_from)
                     and self.core.own_nick != message['from'].resource):
                 curses.beep()
@@ -638,7 +540,7 @@ class HandlerCore:
                 self.core.tabs.append(tab)
                 tab.parent_muc.privates.append(tab)
         else:
-            tab.handle_message(message)
+            await tab.handle_message(message)
 
         if not sent and 'private' in config.getstr('beep_on').split():
             if not config.get_by_tabname('disable_beep', jid.full):

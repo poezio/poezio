@@ -14,7 +14,7 @@ from datetime import (
     timezone,
 )
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union, Any
+from typing import Dict, List, Optional, Tuple, Union
 
 import os
 import subprocess
@@ -23,7 +23,7 @@ import string
 import logging
 import itertools
 
-from slixmpp import JID, InvalidJID, Message
+from slixmpp import Message
 from poezio.poezio_shlex import shlex
 
 log = logging.getLogger(__name__)

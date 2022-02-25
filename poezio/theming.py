@@ -73,7 +73,6 @@ except ImportError:
 
 import curses
 import functools
-import os
 from typing import Dict, List, Union, Tuple, Optional, cast
 from pathlib import Path
 from os import path

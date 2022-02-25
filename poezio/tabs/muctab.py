@@ -18,6 +18,7 @@ import random
 import re
 import functools
 from copy import copy
+from dataclasses import dataclass
 from datetime import datetime
 from typing import (
     cast,
@@ -44,12 +45,13 @@ from poezio import timed_events
 from poezio import windows
 from poezio import xhtml
 from poezio.common import to_utc
-from poezio.config import config
+from poezio.config import config, get_image_cache
 from poezio.core.structs import Command
 from poezio.decorators import refresh_wrapper, command_args_parser
 from poezio.logger import logger
 from poezio.log_loader import LogLoader, MAMFiller
 from poezio.roster import roster
+from poezio.text_buffer import CorrectionError
 from poezio.theming import get_theme, dump_tuple
 from poezio.user import User
 from poezio.core.structs import Completion, Status
@@ -71,6 +73,18 @@ log = logging.getLogger(__name__)
 NS_MUC_USER = 'http://jabber.org/protocol/muc#user'
 
 COMPARE_USERS_LAST_TALKED = lambda x: x.last_talked
+
+
+@dataclass
+class MessageData:
+    message: SMessage
+    delayed: bool
+    date: Optional[datetime]
+    nick: str
+    user: Optional[User]
+    room_from: str
+    body: str
+    is_history: bool
 
 
 class MucTab(ChatTab):
@@ -452,9 +466,6 @@ class MucTab(ChatTab):
         # TODO: send the disco#info identity name here, if it exists.
         return self.jid.node
 
-    def get_text_window(self) -> windows.TextWin:
-        return self.text_win
-
     def on_lose_focus(self) -> None:
         if self.joined:
             if self.input.text:
@@ -481,6 +492,126 @@ class MucTab(ChatTab):
                 'send_chat_states',
                 self.general_jid) and not self.input.get_text():
             self.send_chat_state('active')
+
+    async def handle_message(self, message: SMessage) -> bool:
+        """Parse an incoming message
+
+        Returns False if the message was dropped silently.
+        """
+        room_from = message['from'].bare
+        nick_from = message['mucnick']
+        user = self.get_user_by_name(nick_from)
+        if user and user in self.ignores:
+            return False
+
+        await self.core.events.trigger_async('muc_msg', message, self)
+        use_xhtml = config.get_by_tabname('enable_xhtml_im', room_from)
+        tmp_dir = get_image_cache()
+        body = xhtml.get_body_from_message_stanza(
+            message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
+
+        # TODO: #3314. Is this a MUC reflection?
+        # Is this an encrypted message? Is so ignore.
+        #   It is not possible in the OMEMO case to decrypt these messages
+        #   since we don't encrypt for our own device (something something
+        #   forward secrecy), but even for non-FS encryption schemes anyway
+        #   messages shouldn't have changed after a round-trip to the room.
+        # Otherwire replace the matching message we sent.
+        if not body:
+            return False
+
+        old_state = self.state
+        delayed, date = common.find_delayed_tag(message)
+        is_history = not self.joined and delayed
+
+        mdata = MessageData(
+            message, delayed, date, nick_from, user, room_from, body,
+            is_history
+        )
+
+        replaced = False
+        if message.xml.find('{urn:xmpp:message-correct:0}replace') is not None:
+            replaced = await self._handle_correction_message(mdata)
+        if not replaced:
+            await self._handle_normal_message(mdata)
+        if mdata.nick == self.own_nick:
+            self.set_last_sent_message(message, correct=replaced)
+        self._refresh_after_message(old_state)
+        return True
+
+    def _refresh_after_message(self, old_state: str) -> None:
+        """Refresh the appropriate UI after a message is received"""
+        if self is self.core.tabs.current_tab:
+            self.refresh()
+        elif self.state != old_state:
+            self.core.refresh_tab_win()
+            current = self.core.tabs.current_tab
+            current.refresh_input()
+        self.core.doupdate()
+
+    async def _handle_correction_message(self, message: MessageData) -> bool:
+        """Process a correction message.
+
+        Returns true if a message was actually corrected.
+        """
+        replaced_id = message.message['replace']['id']
+        if replaced_id != '' and config.get_by_tabname(
+                'group_corrections', message.room_from):
+            try:
+                delayed_date = message.date or datetime.now()
+                modify_hl = self.modify_message(
+                    message.body,
+                    replaced_id,
+                    message.message['id'],
+                    time=delayed_date,
+                    delayed=message.delayed,
+                    nickname=message.nick,
+                    user=message.user
+                )
+                if modify_hl:
+                    await self.core.events.trigger_async(
+                        'highlight',
+                        message.message,
+                        self
+                    )
+                return True
+            except CorrectionError:
+                log.debug('Unable to correct a message', exc_info=True)
+        return False
+
+    async def _handle_normal_message(self, message: MessageData) -> None:
+        """
+        Process the non-correction groupchat message.
+        """
+        ui_msg: Union[InfoMessage, Message]
+        # Messages coming from MUC barejid (Server maintenance, IRC mode
+        # changes from biboumi, etc.) have no nick/resource and are displayed
+        # as info messages.
+        highlight = False
+        if message.nick:
+            highlight = self.message_is_highlight(
+                message.body, message.nick, message.is_history
+            )
+            ui_msg = Message(
+                txt=message.body,
+                time=message.date,
+                nickname=message.nick,
+                history=message.is_history,
+                delayed=message.delayed,
+                identifier=message.message['id'],
+                jid=message.message['from'],
+                user=message.user,
+                highlight=highlight,
+            )
+        else:
+            ui_msg = InfoMessage(
+                txt=message.body,
+                time=message.date,
+                identifier=message.message['id'],
+            )
+        self.add_message(ui_msg)
+        if highlight:
+            await self.core.events.trigger_async('highlight', message, self)
 
     def handle_presence(self, presence: Presence) -> None:
         """Handle MUC presence"""

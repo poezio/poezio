@@ -142,7 +142,7 @@ class PrivateTab(OneToOneTab):
             and not self.input.get_text().startswith('//'))
         self.send_composing_chat_state(empty_after)
 
-    def handle_message(self, message: SMessage, display: bool = True):
+    async def handle_message(self, message: SMessage, display: bool = True):
         sent = message['from'].bare == self.core.xmpp.boundjid.bare
         jid = message['to'] if sent else message['from']
         with_nick = jid.resource
@@ -156,7 +156,7 @@ class PrivateTab(OneToOneTab):
         )
         tmp_dir = get_image_cache()
         if not sent:
-            self.core.events.trigger('private_msg', message, self)
+            await self.core.events.trigger_async('private_msg', message, self)
         body = xhtml.get_body_from_message_stanza(
             message, use_xhtml=use_xhtml, extract_images_to=tmp_dir)
         if not body or not self:
@@ -360,9 +360,6 @@ class PrivateTab(OneToOneTab):
         self.info_header.resize(
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)
-
-    def get_text_window(self):
-        return self.text_win
 
     @refresh_wrapper.conditional
     def rename_user(self, old_nick, user):

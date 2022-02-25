@@ -15,7 +15,6 @@ import pipes
 import sys
 import shutil
 import time
-import uuid
 from collections import defaultdict
 from typing import (
     Any,

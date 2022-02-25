@@ -10,7 +10,6 @@ log = logging.getLogger(__name__)
 
 import curses
 import os
-from typing import Union, Optional
 from slixmpp import JID, InvalidJID
 from slixmpp.xmlstream import matcher, StanzaBase
 from slixmpp.xmlstream.tostring import tostring

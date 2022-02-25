@@ -390,12 +390,6 @@ class Tab:
         """
         return self.name
 
-    def get_text_window(self) -> Optional[windows.TextWin]:
-        """
-        Returns the principal TextWin window, if there's one
-        """
-        return None
-
     def on_input(self, key: str, raw: bool):
         """
         raw indicates if the key should activate the associated command or not.
@@ -1020,7 +1014,7 @@ class OneToOneTab(ChatTab):
             'send a message along with the attention.')
         self.init_logs(initial=initial)
 
-    def init_logs(self, initial=None) -> None:
+    def init_logs(self, initial: Optional[SMessage] = None) -> None:
         use_log = config.get_by_tabname('use_log', self.jid)
         mam_sync = config.get_by_tabname('mam_sync', self.jid)
         if use_log and mam_sync:
@@ -1031,19 +1025,19 @@ class OneToOneTab(ChatTab):
             if initial is not None:
                 # If there is an initial message, throw it back into the
                 # text buffer if it cannot be fetched from mam
-                async def fallback_no_mam():
+                async def fallback_no_mam() -> None:
                     await mam_filler.done.wait()
                     if mam_filler.result == 0:
-                        self.handle_message(initial)
+                        await self.handle_message(initial)
 
                 asyncio.create_task(fallback_no_mam())
         elif use_log and initial:
-            self.handle_message(initial, display=False)
+            asyncio.create_task(self.handle_message(initial, display=False))
         asyncio.create_task(
             LogLoader(logger, self, use_log).tab_open()
         )
 
-    def handle_message(self, msg: SMessage, display: bool = True):
+    async def handle_message(self, msg: SMessage, display: bool = True):
         pass
 
     def remote_user_color(self):

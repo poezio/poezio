@@ -22,7 +22,6 @@ from slixmpp import JID, InvalidJID, Message as SMessage
 from poezio.tabs.basetabs import OneToOneTab, Tab
 
 from poezio import common
-from poezio import tabs
 from poezio import windows
 from poezio import xhtml
 from poezio.config import config, get_image_cache
@@ -106,7 +105,7 @@ class ConversationTab(OneToOneTab):
     def completion(self):
         self.complete_commands(self.input)
 
-    def handle_message(self, message: SMessage, display: bool = True):
+    async def handle_message(self, message: SMessage, display: bool = True):
         """Handle a received message.
 
         The message can come from us (carbon copy).
@@ -133,7 +132,7 @@ class ConversationTab(OneToOneTab):
         else:
             return
 
-        self.core.events.trigger('conversation_msg', message, self)
+        await self.core.events.trigger_async('conversation_msg', message, self)
 
         if not message['body']:
             return
@@ -438,9 +437,6 @@ class ConversationTab(OneToOneTab):
         self.get_info_header().resize(
             1, self.width, self.height - 2 - self.core.information_win_size -
             Tab.tab_win_height(), 0)
-
-    def get_text_window(self):
-        return self.text_win
 
     def on_close(self):
         Tab.on_close(self)
