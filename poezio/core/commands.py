@@ -533,6 +533,7 @@ class CommandCore:
             room = jid.bare
             nick = jid.resource or None
         except InvalidJID:
+            self.core.information(f'Invalid address for bookmark: {room}/{nick}', 'Error')
             return
 
         bookmark = self.core.bookmarks[room]
