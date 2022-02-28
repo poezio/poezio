@@ -1004,19 +1004,43 @@ class Core:
             )
             return
 
-        nick = self.own_nick
-        localpart = utils.pronounceable()
-        room_str = '{!s}@{!s}'.format(localpart, default_muc)
-        try:
-            room = JID(room_str)
-        except InvalidJID:
+        # Retries generating a name until we find a non-existing room.
+        # Abort otherwise.
+        retries = 3
+        while retries > 0:
+            localpart = utils.pronounceable()
+            room_str = '{!s}@{!s}'.format(localpart, default_muc
+            try:
+                room = JID(room_str)
+            except InvalidJID:
+                self.information(
+                    'The generated XMPP address is invalid: {!s}'.format(room_str),
+                    'Error'
+                )
+                return None
+
+            try:
+                iq = await self.xmpp['xep_0030'].get_info(
+                    jid=room,
+                    cached=False,
+                )
+            except IqTimeout:
+                pass
+            except IqError as exn:
+                if exn.etype == 'cancel' and exn.condition == 'item-not-found':
+                    log.debug('Found empty room for /impromptu')
+                    break
+
+            retries = retries - 1
+
+        if retries == 0:
             self.information(
-                'The generated XMPP address is invalid: {!s}'.format(room_str),
-                'Error'
+                'Couldn\'t generate a room name that isn\'t already used.',
+                'Error',
             )
             return None
 
-        self.open_new_room(room, nick).join()
+        self.open_new_room(room, self.own_nick).join()
 
         async def join_callback(_presence):
             iq = self._impromptu_room_form(room)
