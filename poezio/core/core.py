@@ -31,7 +31,7 @@ from typing import (
 )
 from xml.etree import ElementTree as ET
 
-from slixmpp import JID, InvalidJID
+from slixmpp import Iq, JID, InvalidJID
 from slixmpp.util import FileSystemPerJidCache
 from slixmpp.xmlstream.handler import Callback
 from slixmpp.exceptions import IqError, IqTimeout, XMPPError
@@ -944,7 +944,7 @@ class Core:
             )
         return True
 
-    def _impromptu_room_form(self, room):
+    def _impromptu_room_form(self, room) -> Iq:
         fields = [
             ('hidden', 'FORM_TYPE', 'http://jabber.org/protocol/muc#roomconfig'),
             ('boolean', 'muc#roomconfig_changesubject', True),
@@ -1010,12 +1010,12 @@ class Core:
         retries = 3
         while retries > 0:
             localpart = utils.pronounceable()
-            room_str = '{!s}@{!s}'.format(localpart, default_muc
+            room_str = f'{localpart}@{default_muc}'
             try:
                 room = JID(room_str)
             except InvalidJID:
                 self.information(
-                    'The generated XMPP address is invalid: {!s}'.format(room_str),
+                    f'The generated XMPP address is invalid: {room_str}',
                     'Error'
                 )
                 return None
@@ -1043,7 +1043,7 @@ class Core:
 
         self.open_new_room(room, self.own_nick).join()
 
-        async def join_callback(_presence):
+        async def configure_and_invite(_presence):
             iq = self._impromptu_room_form(room)
             try:
                 await iq.send()
@@ -1052,15 +1052,16 @@ class Core:
                 # TODO: destroy? leave room.
                 return None
 
-            self.information('Room %s created' % room, 'Info')
+            self.information(f'Room {room} created', 'Info')
 
             for jid in jids:
                 await self.invite(jid, room, force_mediated=True)
-            self.information('Invited %s to %s' % (', '.join(jids), room.bare), 'Info')
+            jids_str = ', '.join(jids)
+            self.information(f'Invited {jids_str} to {room.bare}', 'Info')
 
         self.xmpp.add_event_handler(
-            'muc::%s::groupchat_subject' % room.bare,
-            join_callback,
+            f'muc::{room.bare}::groupchat_subject',
+            configure_and_invite,
             disposable=True,
         )
 
