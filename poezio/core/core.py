@@ -1058,9 +1058,8 @@ class Core:
                 await self.invite(jid, room, force_mediated=True)
             self.information('Invited %s to %s' % (', '.join(jids), room.bare), 'Info')
 
-        # TODO: Use xep_0045's async join_muc_wait somehow instead?
         self.xmpp.add_event_handler(
-            'muc::%s::self-presence' % room.bare,
+            'muc::%s::groupchat_subject' % room.bare,
             join_callback,
             disposable=True,
         )
