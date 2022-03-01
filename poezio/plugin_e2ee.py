@@ -148,9 +148,9 @@ class E2EEPlugin(BasePlugin):
 
         # Ensure decryption is done before everything, so that other handlers
         # don't have to know about the encryption mechanism.
-        self.api.add_event_handler('muc_msg', self._decrypt, priority=0)
-        self.api.add_event_handler('conversation_msg', self._decrypt, priority=0)
-        self.api.add_event_handler('private_msg', self._decrypt, priority=0)
+        self.api.add_event_handler('muc_msg', self._decrypt_wrapper, priority=0)
+        self.api.add_event_handler('conversation_msg', self._decrypt_wrapper, priority=0)
+        self.api.add_event_handler('private_msg', self._decrypt_wrapper, priority=0)
 
         # Ensure encryption is done after everything, so that whatever can be
         # encrypted is encrypted, and no plain element slips in.
@@ -345,6 +345,28 @@ class E2EEPlugin(BasePlugin):
         except NothingToEncrypt:
             return stanza
         except Exception as exc:
+            jid = stanza['from']
+            tab = self.core.tabs.by_name_and_class(jid, ChatTab)
+            msg = ' \n\x19%s}Could not decrypt message: %s' % (
+                dump_tuple(get_theme().COLOR_CHAR_NACK),
+                exc,
+            )
+            # XXX: check before commit. Do we not nack in MUCs?
+            if tab and not isinstance(tab, MucTab):
+                tab.nack_message(msg, stanza['id'], stanza['to'])
+            # TODO: display exceptions to the user properly
+            log.error('Exception in encrypt:', exc_info=True)
+            return None
+        return result
+
+    async def _decrypt_wrapper(self, stanza: Message, tab: ChatTabs) -> Optional[Message]:
+        """
+        Wrapper around _decrypt() to handle errors and display the message after encryption.
+        """
+        try:
+            # pylint: disable=unexpected-keyword-arg
+            result = await self._decrypt(stanza, tab, passthrough=True)
+        except Exception as exc:
             jid = stanza['to']
             tab = self.core.tabs.by_name_and_class(jid, ChatTab)
             msg = ' \n\x19%s}Could not send message: %s' % (
@@ -352,14 +374,14 @@ class E2EEPlugin(BasePlugin):
                 exc,
             )
             # XXX: check before commit. Do we not nack in MUCs?
-            if not isinstance(tab, MucTab):
+            if tab and not isinstance(tab, MucTab):
                 tab.nack_message(msg, stanza['id'], stanza['from'])
             # TODO: display exceptions to the user properly
-            log.error('Exception in encrypt:', exc_info=True)
+            log.error('Exception in decrypt:', exc_info=True)
             return None
         return result
 
-    def _decrypt(self, message: Message, tab: ChatTabs) -> None:
+    async def _decrypt(self, message: Message, tab: ChatTabs, passthrough: bool = True) -> None:
 
         has_eme = False
         if message.xml.find('{%s}%s' % (EME_NS, EME_TAG)) is not None and \
@@ -397,7 +419,14 @@ class E2EEPlugin(BasePlugin):
             if user is not None:
                 jid = user.jid or None
 
-        self.decrypt(message, jid, tab)
+        # Call the enabled encrypt method
+        func = self.decrypt
+        if iscoroutinefunction(func):
+            # pylint: disable=unexpected-keyword-arg
+            await func(message, jid, tab, passthrough=True)  # type: ignore
+        else:
+            # pylint: disable=unexpected-keyword-arg
+            func(message, jid, tab)
 
         log.debug('Decrypted %s message: %r', self.encryption_name, message['body'])
         return None
@@ -412,10 +441,15 @@ class E2EEPlugin(BasePlugin):
         # MUCs). Let the plugin decide what to do with this information.
         jids: Optional[List[JID]] = [message['to']]
         tab = self.core.tabs.by_jid(message['to'])
-        if tab is None:  # When does that ever happen?
-            log.debug('Attempting to encrypt a message to \'%s\' '
-                      'that is not attached to a Tab. ?! Aborting '
-                      'encryption.', message['to'])
+        if tab is None and message['to'].resource:
+            # Redo the search with the bare JID
+            tab = self.core.tabs.by_jid(message['to'].bare)
+
+        if tab is None:  # Possible message sent directly by the e2ee lib?
+            log.debug(
+                'A message we do not have a tab for '
+                'is being sent to \'%s\'. Abort.', message['to'],
+            )
             return None
 
         parent = None
@@ -449,7 +483,7 @@ class E2EEPlugin(BasePlugin):
                 if user.jid.bare:
                     jids.append(user.jid)
 
-        if not self._encryption_enabled(tab.jid):
+        if tab and not self._encryption_enabled(tab.jid):
             raise NothingToEncrypt()
 
         log.debug('Sending %s message', self.encryption_name)
