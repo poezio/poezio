@@ -30,7 +30,7 @@ from typing import (
 )
 from xml.etree import ElementTree as ET
 
-from slixmpp import JID, InvalidJID
+from slixmpp import Iq, JID, InvalidJID
 from slixmpp.util import FileSystemPerJidCache
 from slixmpp.xmlstream.handler import Callback
 from slixmpp.exceptions import IqError, IqTimeout, XMPPError
@@ -943,7 +943,7 @@ class Core:
             )
         return True
 
-    def _impromptu_room_form(self, room):
+    def _impromptu_room_form(self, room) -> Iq:
         fields = [
             ('hidden', 'FORM_TYPE', 'http://jabber.org/protocol/muc#roomconfig'),
             ('boolean', 'muc#roomconfig_changesubject', True),
@@ -1004,21 +1004,45 @@ class Core:
             )
             return
 
-        nick = self.own_nick
-        localpart = utils.pronounceable()
-        room_str = '{!s}@{!s}'.format(localpart, default_muc)
-        try:
-            room = JID(room_str)
-        except InvalidJID:
+        # Retries generating a name until we find a non-existing room.
+        # Abort otherwise.
+        retries = 3
+        while retries > 0:
+            localpart = utils.pronounceable()
+            room_str = f'{localpart}@{default_muc}'
+            try:
+                room = JID(room_str)
+            except InvalidJID:
+                self.information(
+                    f'The generated XMPP address is invalid: {room_str}',
+                    'Error'
+                )
+                return None
+
+            try:
+                iq = await self.xmpp['xep_0030'].get_info(
+                    jid=room,
+                    cached=False,
+                )
+            except IqTimeout:
+                pass
+            except IqError as exn:
+                if exn.etype == 'cancel' and exn.condition == 'item-not-found':
+                    log.debug('Found empty room for /impromptu')
+                    break
+
+            retries = retries - 1
+
+        if retries == 0:
             self.information(
-                'The generated XMPP address is invalid: {!s}'.format(room_str),
-                'Error'
+                'Couldn\'t generate a room name that isn\'t already used.',
+                'Error',
             )
             return None
 
-        self.open_new_room(room, nick).join()
+        self.open_new_room(room, self.own_nick).join()
 
-        async def join_callback(_presence):
+        async def configure_and_invite(_presence):
             iq = self._impromptu_room_form(room)
             try:
                 await iq.send()
@@ -1027,16 +1051,16 @@ class Core:
                 # TODO: destroy? leave room.
                 return None
 
-            self.information('Room %s created' % room, 'Info')
+            self.information(f'Room {room} created', 'Info')
 
             for jid in jids:
                 await self.invite(jid, room, force_mediated=True)
-            self.information('Invited %s to %s' % (', '.join(jids), room.bare), 'Info')
+            jids_str = ', '.join(jids)
+            self.information(f'Invited {jids_str} to {room.bare}', 'Info')
 
-        # TODO: Use xep_0045's async join_muc_wait somehow instead?
         self.xmpp.add_event_handler(
-            'muc::%s::self-presence' % room.bare,
-            join_callback,
+            f'muc::{room.bare}::groupchat_subject',
+            configure_and_invite,
             disposable=True,
         )
 
