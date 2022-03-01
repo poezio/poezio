@@ -633,7 +633,9 @@ class Core:
             else:
                 self.do_command(''.join(char_list), True)
         if self.status.show not in ('xa', 'away'):
-            self.xmpp.plugin['xep_0319'].idle()
+            asyncio.ensure_future(
+                self.xmpp.plugin['xep_0319'].idle()
+            )
         self.doupdate()
 
     def save_config(self):

@@ -10,6 +10,7 @@ Add some facilities that are not available on the XEP_0045
 slix plugin
 """
 
+import asyncio
 from xml.etree import ElementTree as ET
 
 from poezio.common import safeJID
@@ -137,7 +138,9 @@ def join_groupchat(core,
         xmpp.plugin['xep_0045'].our_nicks[jid] = to.resource
 
     try:
-        xmpp.plugin['xep_0030'].get_info(jid=jid, callback=on_disco)
+        asyncio.ensure_future(
+            xmpp.plugin['xep_0030'].get_info(jid=jid, callback=on_disco)
+        )
     except (IqError, IqTimeout):
         return core.information('Failed to retrieve messages', 'Error')
 

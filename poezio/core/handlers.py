@@ -98,8 +98,10 @@ class HandlerCore:
                 self.core.xmpp.plugin['xep_0280'].enable()
             self.core.check_bookmark_storage(features)
 
-        self.core.xmpp.plugin['xep_0030'].get_info(
-            jid=self.core.xmpp.boundjid.domain, callback=callback)
+        asyncio.ensure_future(
+            self.core.xmpp.plugin['xep_0030'].get_info(
+                jid=self.core.xmpp.boundjid.domain, callback=callback)
+        )
 
     def find_identities(self, _):
         asyncio.ensure_future(

@@ -8,6 +8,7 @@ TODO: Check that they are fixed and remove those hacks
 from slixmpp.stanza import Message
 from slixmpp.xmlstream import ET
 
+import asyncio
 import logging
 
 log = logging.getLogger(__name__)
@@ -22,7 +23,9 @@ def has_identity(xmpp, jid, identity, on_true=None, on_false=None):
         if not res and on_false is not None:
             on_false()
 
-    xmpp.plugin['xep_0030'].get_info(jid=jid, callback=_cb)
+    asyncio.ensure_future(
+        xmpp.plugin['xep_0030'].get_info(jid=jid, callback=_cb)
+    )
 
 
 def get_room_form(xmpp, room, callback):
