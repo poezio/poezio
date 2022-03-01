@@ -359,7 +359,7 @@ class E2EEPlugin(BasePlugin):
             return None
         return result
 
-    async def _decrypt_wrapper(self, stanza: StanzaBase, tab: ChatTabs) -> Optional[StanzaBase]:
+    async def _decrypt_wrapper(self, stanza: Message, tab: ChatTabs) -> Optional[Message]:
         """
         Wrapper around _decrypt() to handle errors and display the message after encryption.
         """
@@ -423,7 +423,7 @@ class E2EEPlugin(BasePlugin):
         func = self.decrypt
         if iscoroutinefunction(func):
             # pylint: disable=unexpected-keyword-arg
-            await func(message, jid, tab, passthrough=True)
+            await func(message, jid, tab, passthrough=True)  # type: ignore
         else:
             # pylint: disable=unexpected-keyword-arg
             func(message, jid, tab)
