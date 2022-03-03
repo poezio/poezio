@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# vim:fenc=utf-8 et ts=4 sts=4 sw=4
+#
+# Copyright © 2022 Maxime “pep” Buquet <pep@bouah.net>
+#
+# Distributed under terms of the GPLv3+ license.
+
+"""
+    Generate Dockerfiles for our CI containers.
+
+    The output can be used in the following way:
+    ```
+    docker login docker.louiz.org
+    CONTAINER=docker.louiz.org/poezio/poezio:rust-python3.10
+    python generate_container 3.10 | docker -t $CONTAINER -
+    docker push $CONTAINER
+    ```
+"""
+
+import sys
+
+TEMPLATE='''FROM rust:slim
+RUN set -eux; \
+        apt update; \
+        apt install -y --no-install-recommends git libidn11-dev libncurses-dev; \
+        rm -rf /var/lib/apt/lists/*
+RUN rustup component add clippy rustfmt
+COPY --from=python:VERSION-slim /usr/ /usr/
+COPY --from=python:VERSION-slim /lib/ /lib/
+RUN ldconfig'''
+
+REGISTRY='docker.louiz.org'
+CONTAINER='poezio/poezio'
+TAG='rust-python{version}'
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print('./generate_container.py <python version>', file=sys.stderr)
+        sys.exit(1)
+
+    print(TEMPLATE.replace('VERSION', sys.argv[1]))
