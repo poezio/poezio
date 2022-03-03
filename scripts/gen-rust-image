@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# vim:fenc=utf-8 et ts=4 sts=4 sw=4
+#
+# Copyright © 2022 Maxime “pep” Buquet <pep@bouah.net>
+#
+# Distributed under terms of the GPLv3+ license.
+
+"""
+    Generate Rust container images with varying Python versions.
+"""
+
+import sys
+
+TEMPLATE='''FROM rust:slim
+COPY --from=python:VERSION-slim /usr/ /usr/
+COPY --from=python:VERSION-slim /lib/ /lib/
+RUN ldconfig'''
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print('./gen-rust-image.py <python version>', file=sys.stderr)
+        sys.exit(1)
+
+    print(TEMPLATE.replace('VERSION', sys.argv[1]))
