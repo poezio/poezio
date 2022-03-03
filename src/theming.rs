@@ -1,8 +1,8 @@
+use enum_set::{CLike, EnumSet};
+use ncurses::{attr_t, init_pair, A_BLINK, A_BOLD, A_ITALIC, A_UNDERLINE, COLORS, COLOR_PAIR};
 use std::collections::HashMap;
-use std::sync::Mutex;
 use std::mem;
-use enum_set::{EnumSet, CLike};
-use ncurses::{attr_t, A_BOLD, A_ITALIC, A_UNDERLINE, A_BLINK, init_pair, COLOR_PAIR, COLORS};
+use std::sync::Mutex;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 #[repr(u32)]
@@ -87,13 +87,13 @@ fn colour_256_to_16(colour: i16) -> i16 {
     if colour == -1 {
         return -1;
     }
-    return TABLE_256_TO_16[colour as usize] as i16
+    return TABLE_256_TO_16[colour as usize] as i16;
 }
 
 fn get_pair(fg: i16, bg: i16) -> attr_t {
     let mut dict = COLOURS_DICT.lock().unwrap();
     if let Some(val) = dict.get(&(fg, bg)) {
-        return COLOR_PAIR(*val)
+        return COLOR_PAIR(*val);
     }
     let mut pair_mut = NEXT_PAIR.lock().unwrap();
     let pair = *pair_mut;
