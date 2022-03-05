@@ -123,6 +123,13 @@ class ConversationTab(OneToOneTab):
             self.last_remote_message = datetime.now()
             remote_nick = self.get_nick()
         # we wrote the message (happens with carbons)
+        elif message['from'].full == self.core.xmpp.boundjid.full:
+            # XXX: We shouldn't look through messages that have been displayed
+            # but through messages that have been logged. These don't include
+            # IDs though.
+            _, index = self._text_buffer._find_message(message['id'])
+            if index != -1:  # The id has been found
+                return
         elif message['from'].bare == self.core.xmpp.boundjid.bare:
             conv_jid = message['to']
             jid = self.core.xmpp.boundjid
