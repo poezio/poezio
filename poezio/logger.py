@@ -196,6 +196,8 @@ class Logger:
         """
         if not config.get_by_tabname('use_log', JID(jid)):
             return None
+        # POSIX filesystems don't support / in filename, so we replace it with a backslash
+        jid = str(jid).replace('/', '\\')
         try:
             self.log_dir.mkdir(parents=True, exist_ok=True)
         except OSError:
@@ -255,7 +257,7 @@ class Logger:
         if jidstr in self._fds.keys():
             fd = self._fds[jidstr]
         else:
-            option_fd = self._check_and_create_log_dir(jidstr)
+            option_fd = self._check_and_create_log_dir(jid)
             if option_fd is None:
                 return True
             fd = option_fd
