@@ -101,16 +101,11 @@ class SpaceTab(tabs.ListTab):
             'users': int(self.width * 3 / 8)
         }
 
-    def join_selected(self):
-        row = self.listview.get_selected_row()
-        if not row: return
-        self.logger('b %s' % row[0], 'Info')
-
     async def join_selected(self):
         row = self.listview.get_selected_row()
         if not row:
             return
-        self.logger("a %s" % row[0], 'Info')
+        self.logger("Joining selected chat %s" % row[0], 'Info')
         await self.core.command.join(row[0])
 
 TEXT_TO_TAB = {
