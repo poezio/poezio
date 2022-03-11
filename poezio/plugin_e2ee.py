@@ -23,6 +23,8 @@ from typing import (
 
 from slixmpp import InvalidJID, JID, Message
 from slixmpp.xmlstream import StanzaBase
+from slixmpp.xmlstream.handler import Callback
+from slixmpp.xmlstream.matcher import MatchXPath
 from poezio.tabs import (
     ChatTab,
     ConversationTab,
@@ -118,7 +120,9 @@ class E2EEPlugin(BasePlugin):
 
     #: Used to figure out what messages to attempt decryption for. Also used
     #: in combination with `tag_whitelist` to avoid removing encrypted tags
-    #: before sending.
+    #: before sending. If multiple tags are present, a handler will be
+    #: registered for each invididual tag/ns pair under <message/>, as opposed
+    #: to a single handler for all tags combined.
     encrypted_tags: Optional[List[Tuple[str, str]]] = None
 
     # Static map, to be able to limit to one encryption mechanism per tab at a
@@ -151,6 +155,16 @@ class E2EEPlugin(BasePlugin):
         self.api.add_event_handler('muc_msg', self._decrypt_wrapper, priority=0)
         self.api.add_event_handler('conversation_msg', self._decrypt_wrapper, priority=0)
         self.api.add_event_handler('private_msg', self._decrypt_wrapper, priority=0)
+
+        # Register a handler for each invididual tag/ns pair in encrypted_tags
+        # as well. as _msg handlers only include messages with a <body/>.
+        if self.encrypted_tags is not None:
+            default_ns = self.core.xmpp.default_ns
+            for i, (namespace, tag) in enumerate(self.encrypted_tags):
+                self.core.xmpp.register_handler(Callback(f'EncryptedTag{i}',
+                    MatchXPath(f'{{{default_ns}}}message/{{{namespace}}}{tag}'),
+                    self._decrypt_encryptedtag,
+                ))
 
         # Ensure encryption is done after everything, so that whatever can be
         # encrypted is encrypted, and no plain element slips in.
@@ -380,6 +394,18 @@ class E2EEPlugin(BasePlugin):
             log.error('Exception in decrypt:', exc_info=True)
             return None
         return result
+
+    async def _decrypt_encryptedtag(self, stanza: Message, tab: ChatTabs) -> None:
+        """
+        Handler to decrypt encrypted_tags elements that are matched separately
+        from other messages because the default 'message' handler that we use
+        only matches messages containing a <body/>.
+        """
+        # If the message contains a body, it will already be handled by the
+        # other handler. If not, pass it to the handler.
+        if stanza.xml.find(f'{{{self.core.xmpp.default_ns}}}body') is not None:
+            return None
+        return await self._decrypt_wrapper(stanza, tab)
 
     async def _decrypt(self, message: Message, tab: ChatTabs, passthrough: bool = True) -> None:
 
