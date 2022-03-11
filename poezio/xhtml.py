@@ -431,7 +431,7 @@ class XHTMLHandler(ContentHandler):
             if 'href' in attrs and attrs['href'] != link_text:
                 builder.append(' (%s)' % _trim(attrs['href']))
         elif name == 'blockquote':
-            builder.append('”')
+            builder.append('”\n')
         elif name in ('cite', 'em', 'strong'):
             self.pop_formatting()
         elif name in ('ol', 'p', 'ul'):
