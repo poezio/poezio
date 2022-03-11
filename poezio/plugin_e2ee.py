@@ -374,13 +374,13 @@ class E2EEPlugin(BasePlugin):
             return None
         return result
 
-    async def _decrypt_wrapper(self, stanza: Message, tab: Optional[ChatTabs]) -> Optional[Message]:
+    async def _decrypt_wrapper(self, stanza: Message, tab: Optional[ChatTabs]) -> None:
         """
         Wrapper around _decrypt() to handle errors and display the message after encryption.
         """
         try:
             # pylint: disable=unexpected-keyword-arg
-            result = await self._decrypt(stanza, tab, passthrough=True)
+            await self._decrypt(stanza, tab, passthrough=True)
         except Exception as exc:
             jid = stanza['to']
             tab = self.core.tabs.by_name_and_class(jid, ChatTab)
@@ -394,7 +394,7 @@ class E2EEPlugin(BasePlugin):
             # TODO: display exceptions to the user properly
             log.error('Exception in decrypt:', exc_info=True)
             return None
-        return result
+        return None
 
     async def _decrypt_encryptedtag(self, stanza: Message) -> None:
         """
