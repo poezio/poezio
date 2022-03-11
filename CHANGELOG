@@ -2,6 +2,12 @@ This file describes the new features in each poezio release.
 
 * Poezio 0.14 - dev
 
+- Plugin API:
+    - BREAKING: E2EEPlugin.decrypt's `tab` parameter is now of type
+      Optional[ChatTab] instead of ChatTab.
+    - E2EEPlugin decrypts encrypted messages even when they have no body.
+    - E2EEPlugin lets through already encrypted messages without giving them to the user.
+
 # Minor Changes
 
 - Reorder: Prevent GapTabs from being serialized and ignore when serialized as
