@@ -130,7 +130,7 @@ setup(
     description="A console XMPP client",
     long_description=LONG_DESCRIPTION,
     ext_modules=[module_poopt],
-    rust_extensions=[RustExtension('poezio.libpoezio', binding=Binding.RustCPython)],
+    rust_extensions=[RustExtension('poezio.libpoezio', binding=Binding.PyO3)],
     url='https://poez.io/',
     license='GPL-3.0-or-later',
     download_url='https://dev.louiz.org/projects/poezio/files',
