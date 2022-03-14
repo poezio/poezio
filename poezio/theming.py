@@ -411,15 +411,14 @@ def read_tuple(_str: str) -> Tuple[Tuple[int, int], str]:
 
 @functools.lru_cache(maxsize=128)
 def to_curses_attr(
-        colors: Union[Tuple[int, int], Tuple[int, int, str]]) -> int:
+        ccolors: Union[Tuple[int, int], Tuple[int, int, str]]) -> int:
     """
     Takes a color tuple (as defined at the top of this file) and
     returns a valid curses attr that can be passed directly to attron() or attroff()
     """
     # extract the color from that tuple
-    colors: Union[Tuple[int, int], Tuple[int, int, str]]
-    attrs = '' if len(colors) < 3 else colors[2]
-    return libpoezio.to_curses_attr(colors[0], colors[1], attrs)
+    attrs = '' if len(ccolors) < 3 else ccolors[2]  # type: ignore
+    return libpoezio.to_curses_attr(ccolors[0], ccolors[1], attrs)
 
 def get_theme() -> Theme:
     """
