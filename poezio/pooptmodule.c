@@ -47,7 +47,7 @@ static int xwcwidth(wchar_t c)
    cut_text: takes a string and returns a tuple of int.
 
    Each two int tuple is a line, represented by the ending position it
-   (where it should be cut).  Not that this position is calculed using the
+   (where it should be cut).  Not that this position is calculated using the
    position of the python string characters, not just the individual bytes.
 
    For example,

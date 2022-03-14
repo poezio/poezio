@@ -166,8 +166,8 @@ def _datetime_tuple(timestamp: str) -> datetime:
     Because various datetime formats are used, the following exceptions
     are handled:
 
-    * Optional milliseconds appened to the string are removed
-    * Optional Z (that means UTC) appened to the string are removed
+    * Optional milliseconds appended to the string are removed
+    * Optional Z (that means UTC) appended to the string are removed
     * XEP-082 datetime strings have all '-' chars removed to meet the above format.
 
     :param str timestamp: The string containing the formatted date.

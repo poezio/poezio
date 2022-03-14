@@ -20,7 +20,7 @@ using one of these.
 - **CentOS**: Poezio is available in EPEL repositories since CentOS 8.
 - **Flatpak**: A stable package is provided on flathub_.
 - **Debian**: A stable package is provided since buster_ thanks to debacle.
-- **Nix** (and **NixOS**): The last stable version of poezio is availalble in
+- **Nix** (and **NixOS**): The last stable version of poezio is available in
   the unstable branch of `nixpkgs`. Use ``nix-env -f "<nixpkgs>" -iA poezio``
   to install poezio for the current user.
 - **OpenBSD**: a poezio port_ is available
