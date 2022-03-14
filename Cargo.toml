@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>"]
 
 [dependencies]
-cpython = "0.7"
+pyo3 = { version = "0.16", features = ["extension-module"] }
 nom = "4"
 chrono = "0.4"
 ncurses = "5"
