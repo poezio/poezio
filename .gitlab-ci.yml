@@ -49,18 +49,6 @@ security-check:
     - py.test -v test/
     - cargo test
 
-pytest-3.7:
-  stage: test
-  image: docker.louiz.org/poezio/poezio:rust-python3.7
-  extends:
-    - .poezio-tests
-
-pytest-3.8:
-  stage: test
-  image: docker.louiz.org/poezio/poezio:rust-python3.8
-  extends:
-    - .poezio-tests
-
 pytest-3.9:
   stage: test
   image: docker.louiz.org/poezio/poezio:rust-python3.9
