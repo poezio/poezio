@@ -40,7 +40,6 @@ security-check:
 
 .poezio-tests:
   script:
-    - apt-get update && apt-get install -y libidn11-dev
     - git clone https://lab.louiz.org/poezio/slixmpp.git
     - pip3 install pytest pyasn1-modules cffi setuptools-rust --upgrade
     - cd slixmpp
@@ -76,10 +75,9 @@ pytest-3.10:
 
 pylint-plugins:
   stage: lint
-  image: python:3
+  image: docker.louiz.org/poezio/poezio:rust-python3.10
   allow_failure: true
   script:
-    - apt-get update && apt-get install -y libidn11-dev
     - pip3 install pylint pyasn1-modules cffi setuptools-rust --upgrade
     - pip3 install -e git+https://lab.louiz.org/poezio/slixmpp.git#egg=slixmpp
     - pip3 install -r requirements-plugins.txt
