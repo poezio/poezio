@@ -23,10 +23,17 @@ This plugin also respects security guidelines listed in XEP-0419.
 """
 
 from base64 import b64decode, b64encode
-from poezio.plugin_e2ee import E2EEPlugin
-from poezio.tabs import ChatTab
+from typing import List, Optional
 from slixmpp import Message, JID
-from typing import Optional
+
+from poezio.plugin_e2ee import E2EEPlugin
+from poezio.tabs import (
+    ChatTab,
+    MucTab,
+    PrivateTab,
+    DynamicConversationTab,
+    StaticConversationTab,
+)
 
 
 class Plugin(E2EEPlugin):
@@ -39,6 +46,14 @@ class Plugin(E2EEPlugin):
     # This encryption mechanism is using <body/> as a container
     replace_body_with_eme = False
 
+    # In what tab is it ok to use this plugin. Here we want all of them
+    supported_tab_types = (
+        MucTab,
+        PrivateTab,
+        DynamicConversationTab,
+        StaticConversationTab,
+    )
+
     async def decrypt(self, message: Message, jid: Optional[JID], _tab: Optional[ChatTab]) -> None:
         """
             Decrypt base64
@@ -46,7 +61,7 @@ class Plugin(E2EEPlugin):
         body = message['body']
         message['body'] = b64decode(body.encode()).decode()
 
-    async def encrypt(self, message: Message, jid: Optional[JID], _tab: ChatTab) -> None:
+    async def encrypt(self, message: Message, _jid: Optional[List[JID]], _tab: ChatTab) -> None:
         """
             Encrypt to base64
         """

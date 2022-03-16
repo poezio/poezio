@@ -131,7 +131,7 @@ class E2EEPlugin(BasePlugin):
     _enabled_tabs: Dict[JID, Callable] = {}
 
     # Tabs that support this encryption mechanism
-    supported_tab_types: Tuple[Type[ChatTabs], ...] = tuple()
+    supported_tab_types: Tuple[Type[ChatTab], ...] = tuple()
 
     # States for each remote entity
     trust_states: Dict[str, Set[str]] = {'accepted': set(), 'rejected': set()}
@@ -150,6 +150,9 @@ class E2EEPlugin(BasePlugin):
             self.encryption_name = self.encryption_short_name
         if self.encryption_short_name is None:
             self.encryption_short_name = self.encryption_name
+
+        if not self.supported_tab_types:
+            raise NotImplementedError
 
         # Ensure decryption is done before everything, so that other handlers
         # don't have to know about the encryption mechanism.
