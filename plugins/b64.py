@@ -23,10 +23,11 @@ This plugin also respects security guidelines listed in XEP-0419.
 """
 
 from base64 import b64decode, b64encode
+from typing import List, Optional
+from slixmpp import Message, JID
+
 from poezio.plugin_e2ee import E2EEPlugin
 from poezio.tabs import ChatTab
-from slixmpp import Message, JID
-from typing import Optional
 
 
 class Plugin(E2EEPlugin):
@@ -46,7 +47,7 @@ class Plugin(E2EEPlugin):
         body = message['body']
         message['body'] = b64decode(body.encode()).decode()
 
-    async def encrypt(self, message: Message, jid: Optional[JID], _tab: ChatTab) -> None:
+    async def encrypt(self, message: Message, _jid: Optional[List[JID]], _tab: ChatTab) -> None:
         """
             Encrypt to base64
         """
