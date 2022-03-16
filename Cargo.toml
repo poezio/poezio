@@ -8,7 +8,7 @@ authors = [
 
 [dependencies]
 pyo3 = { version = "0.16", features = ["extension-module"] }
-nom = "4"
+nom = "7.1"
 chrono = "0.4"
 ncurses = "5"
 lazy_static = "1"
