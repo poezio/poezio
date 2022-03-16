@@ -1,7 +1,10 @@
 [package]
 name = "poezio"
 version = "0.1.0"
-authors = ["Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>"]
+authors = [
+  "Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>",
+  "Maxime “pep” Buquet <pep@bouah.net>",
+]
 
 [dependencies]
 pyo3 = { version = "0.16", features = ["extension-module"] }
