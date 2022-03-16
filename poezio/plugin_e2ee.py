@@ -151,6 +151,9 @@ class E2EEPlugin(BasePlugin):
         if self.encryption_short_name is None:
             self.encryption_short_name = self.encryption_name
 
+        if not self.supported_tab_types:
+            raise NotImplementedError
+
         # Ensure decryption is done before everything, so that other handlers
         # don't have to know about the encryption mechanism.
         self.api.add_event_handler('muc_msg', self._decrypt_wrapper, priority=0)
