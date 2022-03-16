@@ -1,5 +1,4 @@
 extern crate pyo3;
-#[macro_use]
 extern crate nom;
 extern crate ncurses;
 #[macro_use]
@@ -33,14 +32,14 @@ macro_rules! py_object {
     };
 }
 
-fn nom_to_py_err(py: Python, err: nom::Err<&str>) -> PyErr {
-    LogParseError::new_err(py_object!(py, err.into_error_kind().description()))
+fn nom_to_py_err(py: Python, err: nom::Err<nom::error::Error<&str>>) -> PyErr {
+    LogParseError::new_err(py_object!(py, err.to_string()))
 }
 
 #[pyfunction]
 fn to_curses_attr(py: Python, fg: i16, bg: i16, attrs: &str) -> PyResult<PyObject> {
     let attrs = match parse_attrs(attrs) {
-        Ok(attrs) => attrs.1,
+        Ok(attrs) => attrs,
         Err(err) => return Err(nom_to_py_err(py, err)),
     };
     let result = curses_attr(fg, bg, attrs);

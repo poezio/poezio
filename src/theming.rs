@@ -3,6 +3,13 @@ use ncurses::{attr_t, init_pair, A_BLINK, A_BOLD, A_ITALIC, A_UNDERLINE, COLORS,
 use std::collections::HashMap;
 use std::mem;
 use std::sync::Mutex;
+use nom::{
+    Err as NomErr, IResult,
+    branch::alt,
+    bytes::complete::tag,
+    error::{Error as NomError, ErrorKind, ParseError},
+    multi::many0,
+};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 #[repr(u32)]
@@ -34,22 +41,24 @@ impl CLike for Attr {
     }
 }
 
-named!(
-    pub(crate) parse_attrs<&str, EnumSet<Attr>>,
-    do_parse!(
-        vec: many0!(alt_complete!(
-            tag!("b") => { |_| Attr::Bold } |
-            tag!("i") => { |_| Attr::Italic } |
-            tag!("u") => { |_| Attr::Underline } |
-            tag!("a") => { |_| Attr::Blink }
-        )) >>
-        ({
-            let mut set = EnumSet::new();
-            set.extend(vec);
-            set
-        })
-    )
-);
+fn parse_attr(input: & str) -> IResult<&str, Attr> {
+    let (input, attr) = alt((tag("b"), tag("i"), tag("u"), tag("a")))(input)?;
+
+    Ok((input, match attr {
+        "b" => Attr::Bold,
+        "i" => Attr::Italic,
+        "u" => Attr::Underline,
+        "a" => Attr::Blink,
+        _ => return Err(NomErr::Error(NomError::from_error_kind(input, ErrorKind::Tag))),
+    }))
+}
+
+pub(crate) fn parse_attrs<'a>(input: &'a str) -> Result<EnumSet<Attr>, NomErr<NomError<&'a str>>> {
+    let (_, vec) = many0(parse_attr)(input)?;
+    let mut set = EnumSet::new();
+    set.extend(vec);
+    Ok(set)
+}
 
 lazy_static! {
     // TODO: probably replace that mutex with an atomic.
@@ -135,7 +144,7 @@ mod tests {
         let attrs = "";
         let expected = EnumSet::new();
         let received = parse_attrs(attrs).unwrap();
-        assert_eq!(received.1, expected);
+        assert_eq!(received, expected);
     }
 
     #[test]
@@ -144,7 +153,7 @@ mod tests {
         let mut expected = EnumSet::new();
         expected.insert(Attr::Bold);
         let received = parse_attrs(attrs).unwrap();
-        assert_eq!(received.1, expected);
+        assert_eq!(received, expected);
     }
 
     #[test]
@@ -156,6 +165,6 @@ mod tests {
         expected.insert(Attr::Italic);
         expected.insert(Attr::Underline);
         let received = parse_attrs(attrs).unwrap();
-        assert_eq!(received.1, expected);
+        assert_eq!(received, expected);
     }
 }
