@@ -23,6 +23,8 @@ from typing import (
 
 from slixmpp import InvalidJID, JID, Message
 from slixmpp.xmlstream import StanzaBase
+from slixmpp.xmlstream.handler import CoroutineCallback
+from slixmpp.xmlstream.matcher import MatchXPath
 from poezio.tabs import (
     ChatTab,
     ConversationTab,
@@ -36,6 +38,7 @@ from poezio.theming import get_theme, dump_tuple
 from poezio.config import config
 from poezio.decorators import command_args_parser
 
+import asyncio
 from asyncio import iscoroutinefunction
 
 import logging
@@ -118,7 +121,9 @@ class E2EEPlugin(BasePlugin):
 
     #: Used to figure out what messages to attempt decryption for. Also used
     #: in combination with `tag_whitelist` to avoid removing encrypted tags
-    #: before sending.
+    #: before sending. If multiple tags are present, a handler will be
+    #: registered for each invididual tag/ns pair under <message/>, as opposed
+    #: to a single handler for all tags combined.
     encrypted_tags: Optional[List[Tuple[str, str]]] = None
 
     # Static map, to be able to limit to one encryption mechanism per tab at a
@@ -151,6 +156,16 @@ class E2EEPlugin(BasePlugin):
         self.api.add_event_handler('muc_msg', self._decrypt_wrapper, priority=0)
         self.api.add_event_handler('conversation_msg', self._decrypt_wrapper, priority=0)
         self.api.add_event_handler('private_msg', self._decrypt_wrapper, priority=0)
+
+        # Register a handler for each invididual tag/ns pair in encrypted_tags
+        # as well. as _msg handlers only include messages with a <body/>.
+        if self.encrypted_tags is not None:
+            default_ns = self.core.xmpp.default_ns
+            for i, (namespace, tag) in enumerate(self.encrypted_tags):
+                self.core.xmpp.register_handler(CoroutineCallback(f'EncryptedTag{i}',
+                    MatchXPath(f'{{{default_ns}}}message/{{{namespace}}}{tag}'),
+                    self._decrypt_encryptedtag,
+                ))
 
         # Ensure encryption is done after everything, so that whatever can be
         # encrypted is encrypted, and no plain element slips in.
@@ -191,8 +206,8 @@ class E2EEPlugin(BasePlugin):
             self.encryption_short_name + '_fingerprint',
             self._command_show_fingerprints,
             usage='[jid]',
-            short='Show %s fingerprint(s) for a JID.' % self.encryption_short_name,
-            help='Show %s fingerprint(s) for a JID.' % self.encryption_short_name,
+            short=f'Show {self.encryption_short_name} fingerprint(s) for a JID.',
+            help=f'Show {self.encryption_short_name} fingerprint(s) for a JID.',
         )
 
         ConversationTab.add_information_element(
@@ -244,14 +259,14 @@ class E2EEPlugin(BasePlugin):
             del self._enabled_tabs[jid]
             config.remove_and_save('encryption', section=jid)
             self.api.information(
-                '{} encryption disabled for {}'.format(self.encryption_name, jid),
+                f'{self.encryption_name} encryption disabled for {jid}',
                 'Info',
             )
         elif self.encryption_short_name:
             self._enabled_tabs[jid] = self.encrypt
             config.set_and_save('encryption', self.encryption_short_name, section=jid)
             self.api.information(
-                '{} encryption enabled for {}'.format(self.encryption_name, jid),
+                f'{self.encryption_name} encryption enabled for {jid}',
                 'Info',
             )
 
@@ -260,7 +275,7 @@ class E2EEPlugin(BasePlugin):
         fprs = self.get_fingerprints(jid)
         if len(fprs) == 1:
             self.api.information(
-                'Fingerprint for %s: %s' % (jid, fprs[0]),
+                f'Fingerprint for {jid}: {fprs[0]}',
                 'Info',
             )
         elif fprs:
@@ -281,9 +296,9 @@ class E2EEPlugin(BasePlugin):
         elif args:
             jid = args[0]
         else:
+            shortname = self.encryption_short_name
             self.api.information(
-                '%s_fingerprint: Couldn\'t deduce JID from context' % (
-                    self.encryption_short_name),
+                f'{shortname}_fingerprint: Couldn\'t deduce JID from context',
                 'Error',
             )
             return None
@@ -299,9 +314,9 @@ class E2EEPlugin(BasePlugin):
             return
         jid, fpr = args
         if state not in self._all_trust_states:
+            shortname = self.encryption_short_name
             self.api.information(
-                'Unknown state for plugin %s: %s' % (
-                    self.encryption_short_name, state),
+                f'Unknown state for plugin {shortname}: {state}',
                 'Error'
             )
             return
@@ -324,9 +339,9 @@ class E2EEPlugin(BasePlugin):
             return
         fpr = args[0]
         if state not in self._all_trust_states:
+            shortname = self.encryption_short_name
             self.api.information(
-                'Unknown state for plugin %s: %s' % (
-                    self.encryption_short_name, state),
+                f'Unknown state for plugin {shortname}: {state}',
                 'Error',
             )
             return
@@ -359,13 +374,13 @@ class E2EEPlugin(BasePlugin):
             return None
         return result
 
-    async def _decrypt_wrapper(self, stanza: Message, tab: ChatTabs) -> Optional[Message]:
+    async def _decrypt_wrapper(self, stanza: Message, tab: Optional[ChatTabs]) -> None:
         """
         Wrapper around _decrypt() to handle errors and display the message after encryption.
         """
         try:
             # pylint: disable=unexpected-keyword-arg
-            result = await self._decrypt(stanza, tab, passthrough=True)
+            await self._decrypt(stanza, tab, passthrough=True)
         except Exception as exc:
             jid = stanza['to']
             tab = self.core.tabs.by_name_and_class(jid, ChatTab)
@@ -379,22 +394,52 @@ class E2EEPlugin(BasePlugin):
             # TODO: display exceptions to the user properly
             log.error('Exception in decrypt:', exc_info=True)
             return None
-        return result
+        return None
 
-    async def _decrypt(self, message: Message, tab: ChatTabs, passthrough: bool = True) -> None:
+    async def _decrypt_encryptedtag(self, stanza: Message) -> None:
+        """
+        Handler to decrypt encrypted_tags elements that are matched separately
+        from other messages because the default 'message' handler that we use
+        only matches messages containing a <body/>.
+        """
+        # If the message contains a body, it will already be handled by the
+        # other handler. If not, pass it to the handler.
+        if stanza.xml.find(f'{{{self.core.xmpp.default_ns}}}body') is not None:
+            return None
 
-        has_eme = False
-        if message.xml.find('{%s}%s' % (EME_NS, EME_TAG)) is not None and \
+        mfrom = stanza['from']
+
+        # Find what tab this message corresponds to.
+        if stanza['type'] == 'groupchat':  # MUC
+            tab = self.core.tabs.by_name_and_class(
+                name=mfrom.bare, cls=MucTab,
+            )
+        elif self.core.handler.is_known_muc_pm(stanza, mfrom):  # MUC-PM
+            tab = self.core.tabs.by_name_and_class(
+                name=mfrom.full, cls=PrivateTab,
+            )
+        else:  # 1:1
+            tab = self.core.get_conversation_by_jid(
+                jid=JID(mfrom.bare),
+                create=False,
+                fallback_barejid=True,
+            )
+        log.debug('Found tab %r for encrypted message', tab)
+        await self._decrypt_wrapper(stanza, tab)
+
+    async def _decrypt(self, message: Message, tab: Optional[ChatTabs], passthrough: bool = True) -> None:
+
+        has_eme: bool = False
+        if message.xml.find(f'{{{EME_NS}}}{EME_TAG}') is not None and \
                 message['eme']['namespace'] == self.eme_ns:
             has_eme = True
 
-        has_encrypted_tag = False
+        has_encrypted_tag: bool = False
         if not has_eme and self.encrypted_tags is not None:
+            tmp: bool = True
             for (namespace, tag) in self.encrypted_tags:
-                if message.xml.find('{%s}%s' % (namespace, tag)) is not None:
-                    # TODO: count all encrypted tags.
-                    has_encrypted_tag = True
-                    break
+                tmp = tmp and message.xml.find(f'{{{namespace}}}{tag}') is not None
+            has_encrypted_tag = tmp
 
         if not has_eme and not has_encrypted_tag:
             return None
@@ -432,9 +477,33 @@ class E2EEPlugin(BasePlugin):
         return None
 
     async def _encrypt(self, stanza: StanzaBase, passthrough: bool = True) -> Optional[StanzaBase]:
+        # TODO: Let through messages that contain elements that don't need to
+        # be encrypted even in an encrypted context, such as MUC mediated
+        # invites, etc.
+        # What to do when they're mixed with other elements? It probably
+        # depends on the element. Maybe they can be mixed with
+        # `self.tag_whitelist` that are already assumed to be sent as plain by
+        # the E2EE plugin.
+        # They might not be accompanied by a <body/> most of the time, nor by
+        # an encrypted tag.
+
         if not isinstance(stanza, Message) or stanza['type'] not in ('normal', 'chat', 'groupchat'):
             raise NothingToEncrypt()
         message = stanza
+
+
+        # Is this message already encrypted? Do we need to do all these
+        # checks? Such as an OMEMO heartbeat.
+        has_encrypted_tag: bool = False
+        if self.encrypted_tags is not None:
+            tmp: bool = True
+            for (namespace, tag) in self.encrypted_tags:
+                tmp = tmp and message.xml.find(f'{{{namespace}}}{tag}') is not None
+            has_encrypted_tag = tmp
+
+        if has_encrypted_tag:
+            log.debug('Message already contains encrypted tags.')
+            raise NothingToEncrypt()
 
         # Find who to encrypt to. If in a groupchat this can be multiple JIDs.
         # It is possible that we are not able to find a jid (e.g., semi-anon
@@ -448,9 +517,10 @@ class E2EEPlugin(BasePlugin):
         if tab is None:  # Possible message sent directly by the e2ee lib?
             log.debug(
                 'A message we do not have a tab for '
-                'is being sent to \'%s\'. Abort.', message['to'],
+                'is being sent to \'%s\'. \n%r.',
+                message['to'],
+                message,
             )
-            return None
 
         parent = None
         if isinstance(tab, PrivateTab):
@@ -490,12 +560,15 @@ class E2EEPlugin(BasePlugin):
 
         has_body = message.xml.find('{%s}%s' % (JCLIENT_NS, 'body')) is not None
 
+        if not self._encryption_enabled(tab.jid):
+            raise NothingToEncrypt()
+
         # Drop all messages that don't contain a body if the plugin doesn't do
         # Stanza Encryption
         if not self.stanza_encryption and not has_body:
             log.debug(
                 '%s plugin: Dropping message as it contains no body, and '
-                'not doesn\'t do stanza encryption',
+                'doesn\'t do stanza encryption',
                 self.encryption_name,
             )
             return None
@@ -529,7 +602,7 @@ class E2EEPlugin(BasePlugin):
         if self.encrypted_tags is not None:
             whitelist += self.encrypted_tags
 
-        tag_whitelist = {'{%s}%s' % tag for tag in whitelist}
+        tag_whitelist = {f'{{{ns}}}{tag}' for (ns, tag) in whitelist}
 
         for elem in message.xml[:]:
             if elem.tag not in tag_whitelist:
@@ -540,15 +613,15 @@ class E2EEPlugin(BasePlugin):
 
     def store_trust(self, jid: JID, state: str, fingerprint: str) -> None:
         """Store trust for a fingerprint and a jid."""
-        option_name = '%s:%s' % (self.encryption_short_name, fingerprint)
+        option_name = f'{self.encryption_short_name}:{fingerprint}'
         config.silent_set(option=option_name, value=state, section=jid)
 
     def fetch_trust(self, jid: JID, fingerprint: str) -> str:
         """Fetch trust of a fingerprint and a jid."""
-        option_name = '%s:%s' % (self.encryption_short_name, fingerprint)
+        option_name = f'{self.encryption_short_name}:{fingerprint}'
         return config.getstr(option=option_name, section=jid)
 
-    async def decrypt(self, message: Message, jid: Optional[JID], tab: ChatTab):
+    async def decrypt(self, message: Message, jid: Optional[JID], tab: Optional[ChatTab]):
         """Decryption method
 
         This is a method the plugin must implement.  It is expected that this

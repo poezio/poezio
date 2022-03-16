@@ -39,7 +39,7 @@ class Plugin(E2EEPlugin):
     # This encryption mechanism is using <body/> as a container
     replace_body_with_eme = False
 
-    async def decrypt(self, message: Message, jid: Optional[JID], _tab: ChatTab) -> None:
+    async def decrypt(self, message: Message, jid: Optional[JID], _tab: Optional[ChatTab]) -> None:
         """
             Decrypt base64
         """
