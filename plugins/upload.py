@@ -40,6 +40,12 @@ class Plugin(BasePlugin):
 
         if not self.core.xmpp['xep_0363']:
             raise Exception('slixmpp XEP-0363 plugin failed to load')
+        if not self.core.xmpp['xep_0454']:
+            self.api.information(
+                'slixmpp XEP-0454 plugin failed to load. '
+                'Will not be able to encrypt uploaded files.',
+                'Warning',
+            )
         for _class in (tabs.PrivateTab, tabs.StaticConversationTab, tabs.DynamicConversationTab, tabs.MucTab):
             self.api.add_tab_command(
                 _class,
@@ -50,9 +56,12 @@ class Plugin(BasePlugin):
                 short='Upload a file',
                 completion=self.completion_filename)
 
-    async def upload(self, filename) -> Optional[str]:
+    async def upload(self, filename, encrypted=False) -> Optional[str]:
         try:
-            url = await self.core.xmpp['xep_0363'].upload_file(filename)
+            upload_file = self.core.xmpp['xep_0363'].upload_file
+            if encrypted:
+                upload_file = self.core.xmpp['xep_0454'].upload_file
+            url = await upload_file(filename)
         except UploadServiceNotFound:
             self.api.information('HTTP Upload service not found.', 'Error')
             return None
@@ -66,8 +75,8 @@ class Plugin(BasePlugin):
             return None
         return url
 
-    async def send_upload(self, filename, tab):
-        url = await self.upload(filename)
+    async def send_upload(self, filename, tab, encrypted=False):
+        url = await self.upload(filename, encrypted)
         if url is not None:
             self.embed.embed_image_url(url, tab)
 
@@ -79,7 +88,8 @@ class Plugin(BasePlugin):
         filename, = args
         filename = expanduser(filename)
         tab = self.api.current_tab()
-        asyncio.create_task(self.send_upload(filename, tab))
+        encrypted = self.core.xmpp['xep_0454'] and tab.e2e_encrypted is not None
+        asyncio.create_task(self.send_upload(filename, tab, encrypted))
 
     @staticmethod
     def completion_filename(the_input):
