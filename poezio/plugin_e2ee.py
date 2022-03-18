@@ -257,10 +257,12 @@ class E2EEPlugin(BasePlugin):
         return ""
 
     def _toggle_tab(self, _input: str) -> None:
-        jid: JID = self.api.current_tab().jid
+        tab = self.api.current_tab()
+        jid: JID = tab.jid
 
         if self._encryption_enabled(jid):
             del self._enabled_tabs[jid]
+            tab.e2e_encryption = None
             config.remove_and_save('encryption', section=jid)
             self.api.information(
                 f'{self.encryption_name} encryption disabled for {jid}',
@@ -268,6 +270,7 @@ class E2EEPlugin(BasePlugin):
             )
         elif self.encryption_short_name:
             self._enabled_tabs[jid] = self.encrypt
+            tab.e2e_encryption = self.encryption_name
             config.set_and_save('encryption', self.encryption_short_name, section=jid)
             self.api.information(
                 f'{self.encryption_name} encryption enabled for {jid}',
