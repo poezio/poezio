@@ -514,6 +514,7 @@ class ChatTab(Tab):
     timed_event_paused: Optional[DelayedEvent]
     timed_event_not_paused: Optional[DelayedEvent]
     mam_filler: Optional[MAMFiller]
+    e2e_encryption: Optional[str] = None
 
     def __init__(self, core, jid: Union[JID, str]):
         Tab.__init__(self, core)
