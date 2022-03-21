@@ -284,13 +284,13 @@ class E2EEPlugin(BasePlugin):
         if len(fprs) == 1:
             fingerprint = self.format_fingerprint(fprs[0], theme)
             self.api.information(
-                f'Fingerprint for {jid}: {fingerprint}',
+                f'Fingerprint for {jid}:\n{fingerprint}',
                 'Info',
             )
         elif fprs:
             fmt_fprs = map(lambda fp: self.format_fingerprint(fp, theme), fprs)
             self.api.information(
-                'Fingerprints for %s:\n\t%s' % (jid, '\n\t'.join(fmt_fprs)),
+                'Fingerprints for %s:\n%s' % (jid, '\n\n'.join(fmt_fprs)),
                 'Info',
             )
         else:
