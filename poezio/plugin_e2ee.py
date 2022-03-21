@@ -31,6 +31,7 @@ from poezio.tabs import (
     DynamicConversationTab,
     MucTab,
     PrivateTab,
+    RosterInfoTab,
     StaticConversationTab,
 )
 from poezio.plugin import BasePlugin
@@ -301,8 +302,12 @@ class E2EEPlugin(BasePlugin):
 
     @command_args_parser.quoted(0, 1)
     def _command_show_fingerprints(self, args: List[str]) -> None:
-        if not args and isinstance(self.api.current_tab(), self.supported_tab_types):
-            jid = self.api.current_tab().jid
+        tab = self.api.current_tab()
+        if not args and isinstance(tab, self.supported_tab_types):
+            jid = tab.jid
+        elif not args and isinstance(tab, RosterInfoTab):
+            # Allow running the command without arguments in roster tab
+            jid = self.core.xmpp.boundjid.bare
         elif args:
             jid = args[0]
         else:
