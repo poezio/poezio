@@ -152,7 +152,7 @@ setup(
     package_dir={'poezio': 'poezio',
         'poezio_plugins': 'plugins',
         'poezio_themes': 'data/themes'},
-    package_data={'poezio': ['default_config.cfg']},
+    package_data={'poezio': ['default_config.cfg', 'py.typed']},
     scripts=['scripts/poezio_logs'],
     entry_points={'console_scripts': ['poezio = poezio.__main__:run']},
     data_files=([
