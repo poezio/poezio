@@ -34,7 +34,7 @@ from poezio.tabs import (
     StaticConversationTab,
 )
 from poezio.plugin import BasePlugin
-from poezio.theming import get_theme, dump_tuple
+from poezio.theming import Theme, get_theme, dump_tuple
 from poezio.config import config
 from poezio.decorators import command_args_parser
 
@@ -273,17 +273,24 @@ class E2EEPlugin(BasePlugin):
                 'Info',
             )
 
+    @staticmethod
+    def format_fingerprint(fingerprint: str, theme: Theme) -> str:
+        return fingerprint
+
     async def _show_fingerprints(self, jid: JID) -> None:
         """Display encryption fingerprints for a JID."""
+        theme = get_theme()
         fprs = await self.get_fingerprints(jid)
         if len(fprs) == 1:
+            fingerprint = self.format_fingerprint(fprs[0], theme)
             self.api.information(
-                f'Fingerprint for {jid}: {fprs[0]}',
+                f'Fingerprint for {jid}: {fingerprint}',
                 'Info',
             )
         elif fprs:
+            fmt_fprs = map(lambda fp: self.format_fingerprint(fp, theme), fprs)
             self.api.information(
-                'Fingerprints for %s:\n\t%s' % (jid, '\n\t'.join(fprs)),
+                'Fingerprints for %s:\n\t%s' % (jid, '\n\t'.join(fmt_fprs)),
                 'Info',
             )
         else:
