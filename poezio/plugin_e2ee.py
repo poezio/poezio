@@ -273,9 +273,9 @@ class E2EEPlugin(BasePlugin):
                 'Info',
             )
 
-    def _show_fingerprints(self, jid: JID) -> None:
+    async def _show_fingerprints(self, jid: JID) -> None:
         """Display encryption fingerprints for a JID."""
-        fprs = self.get_fingerprints(jid)
+        fprs = await self.get_fingerprints(jid)
         if len(fprs) == 1:
             self.api.information(
                 f'Fingerprint for {jid}: {fprs[0]}',
@@ -305,7 +305,7 @@ class E2EEPlugin(BasePlugin):
                 'Error',
             )
             return None
-        self._show_fingerprints(JID(jid))
+        asyncio.create_task(self._show_fingerprints(JID(jid)))
 
     @command_args_parser.quoted(2)
     def __command_set_state_global(self, args, state='') -> None:
@@ -656,7 +656,7 @@ class E2EEPlugin(BasePlugin):
 
         raise NotImplementedError
 
-    def get_fingerprints(self, jid: JID) -> List[str]:
+    async def get_fingerprints(self, jid: JID) -> List[str]:
         """Show fingerprint(s) for this encryption method and JID.
 
         To overload in plugins.
