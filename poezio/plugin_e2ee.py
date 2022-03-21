@@ -31,10 +31,11 @@ from poezio.tabs import (
     DynamicConversationTab,
     MucTab,
     PrivateTab,
+    RosterInfoTab,
     StaticConversationTab,
 )
 from poezio.plugin import BasePlugin
-from poezio.theming import get_theme, dump_tuple
+from poezio.theming import Theme, get_theme, dump_tuple
 from poezio.config import config
 from poezio.decorators import command_args_parser
 
@@ -273,17 +274,24 @@ class E2EEPlugin(BasePlugin):
                 'Info',
             )
 
-    def _show_fingerprints(self, jid: JID) -> None:
+    @staticmethod
+    def format_fingerprint(fingerprint: str, theme: Theme) -> str:
+        return fingerprint
+
+    async def _show_fingerprints(self, jid: JID) -> None:
         """Display encryption fingerprints for a JID."""
-        fprs = self.get_fingerprints(jid)
+        theme = get_theme()
+        fprs = await self.get_fingerprints(jid)
         if len(fprs) == 1:
+            fingerprint = self.format_fingerprint(fprs[0], theme)
             self.api.information(
-                f'Fingerprint for {jid}: {fprs[0]}',
+                f'Fingerprint for {jid}:\n{fingerprint}',
                 'Info',
             )
         elif fprs:
+            fmt_fprs = map(lambda fp: self.format_fingerprint(fp, theme), fprs)
             self.api.information(
-                'Fingerprints for %s:\n\t%s' % (jid, '\n\t'.join(fprs)),
+                'Fingerprints for %s:\n%s' % (jid, '\n\n'.join(fmt_fprs)),
                 'Info',
             )
         else:
@@ -294,8 +302,12 @@ class E2EEPlugin(BasePlugin):
 
     @command_args_parser.quoted(0, 1)
     def _command_show_fingerprints(self, args: List[str]) -> None:
-        if not args and isinstance(self.api.current_tab(), self.supported_tab_types):
-            jid = self.api.current_tab().jid
+        tab = self.api.current_tab()
+        if not args and isinstance(tab, self.supported_tab_types):
+            jid = tab.jid
+        elif not args and isinstance(tab, RosterInfoTab):
+            # Allow running the command without arguments in roster tab
+            jid = self.core.xmpp.boundjid.bare
         elif args:
             jid = args[0]
         else:
@@ -305,7 +317,7 @@ class E2EEPlugin(BasePlugin):
                 'Error',
             )
             return None
-        self._show_fingerprints(JID(jid))
+        asyncio.create_task(self._show_fingerprints(JID(jid)))
 
     @command_args_parser.quoted(2)
     def __command_set_state_global(self, args, state='') -> None:
@@ -656,7 +668,7 @@ class E2EEPlugin(BasePlugin):
 
         raise NotImplementedError
 
-    def get_fingerprints(self, jid: JID) -> List[str]:
+    async def get_fingerprints(self, jid: JID) -> List[str]:
         """Show fingerprint(s) for this encryption method and JID.
 
         To overload in plugins.
