@@ -906,7 +906,9 @@ class Core:
         """
         if not isinstance(self.tabs.current_tab, ChatTab):
             return False
-        self.tabs.current_tab.command_say(msg)
+        asyncio.ensure_future(
+            self.tabs.current_tab.command_say(msg)
+        )
         return True
 
     async def invite(self, jid: JID, room: JID, reason: Optional[str] = None, force_mediated: bool = False) -> bool:

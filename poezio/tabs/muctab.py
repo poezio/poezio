@@ -1682,8 +1682,10 @@ class MucTab(ChatTab):
                 r = self.core.open_private_window(self.jid.bare, user.nick)
         if r and len(args) == 2:
             msg = args[1]
-            r.command_say(
-                xhtml.convert_simple_to_full_colors(msg)
+            asyncio.ensure_future(
+                r.command_say(
+                    xhtml.convert_simple_to_full_colors(msg)
+                )
             )
         if not r:
             self.core.information("Cannot find user: %s" % nick, 'Error')
@@ -1856,7 +1858,7 @@ class MucTab(ChatTab):
         return None
 
     @command_args_parser.raw
-    def command_say(self, line: str, attention: bool = False, correct: bool = False):
+    async def command_say(self, line: str, attention: bool = False, correct: bool = False):
         """
         /say <message>
         Or normal input + enter

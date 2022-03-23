@@ -29,7 +29,7 @@ class Plugin(BasePlugin):
             short='Broadcast a message',
             help='Broadcast the message to all the joined rooms.')
 
-    def command_amsg(self, args):
+    async def command_amsg(self, args):
         for room in self.core.tabs:
             if isinstance(room, MucTab) and room.joined:
-                room.command_say(args)
+                await room.command_say(args)
