@@ -88,7 +88,7 @@ class Plugin(BasePlugin):
         filename, = args
         filename = expanduser(filename)
         tab = self.api.current_tab()
-        encrypted = self.core.xmpp['xep_0454'] and tab.e2e_encrypted is not None
+        encrypted = self.core.xmpp['xep_0454'] and tab.e2e_encryption is not None
         asyncio.create_task(self.send_upload(filename, tab, encrypted))
 
     @staticmethod
