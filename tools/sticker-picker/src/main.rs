@@ -1,7 +1,7 @@
 // This file is part of Poezio.
 //
 // Poezio is free software: you can redistribute it and/or modify
-// it under the terms of the zlib license. See the COPYING file.
+// it under the terms of the GPL-3.0-or-later license. See the COPYING file.
 
 mod sticker;
 
