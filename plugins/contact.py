@@ -13,6 +13,7 @@ Usage
 """
 
 from poezio.plugin import BasePlugin
+from slixmpp.exceptions import IqError, IqTimeout
 from slixmpp.jid import InvalidJID
 
 CONTACT_TYPES = ['abuse', 'admin', 'feedback', 'sales', 'security', 'support']
@@ -25,12 +26,6 @@ class Plugin(BasePlugin):
                 help='Get the Contact Addresses of a JID')
 
     def on_disco(self, iq):
-        if iq['type'] == 'error':
-            error_condition = iq['error']['condition']
-            error_text = iq['error']['text']
-            message = 'Error getting Contact Addresses from %s: %s: %s' % (iq['from'], error_condition, error_text)
-            self.api.information(message, 'Error')
-            return
         info = iq['disco_info']
         contacts = []
         # iterate all data forms, in case there are multiple
@@ -57,3 +52,9 @@ class Plugin(BasePlugin):
             self.on_disco(iq)
         except InvalidJID as e:
             self.api.information('Invalid JID “%s”: %s' % (jid, e), 'Error')
+        except (IqError, IqTimeout,) as exn:
+            ifrom = exn.iq['from']
+            condition = exn.iq['error']['condition']
+            text = exn.iq['error']['text']
+            message = f'Error getting Contact Addresses from {ifrom}: {condition}: {text}'
+            self.api.information(message, 'Error')
