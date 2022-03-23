@@ -1,10 +1,3 @@
-extern crate ncurses;
-extern crate nom;
-extern crate pyo3;
-#[macro_use]
-extern crate lazy_static;
-extern crate enum_set;
-
 pub mod theming;
 
 use self::theming::{curses_attr, parse_attrs};
