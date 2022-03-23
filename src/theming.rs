@@ -11,6 +11,8 @@ use std::collections::HashMap;
 use std::mem;
 use std::sync::Mutex;
 
+use lazy_static::lazy_static;
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 #[repr(u32)]
 pub enum Attr {
