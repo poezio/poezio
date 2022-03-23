@@ -2,6 +2,7 @@
 extern crate lazy_static;
 
 pub mod theming;
+pub mod logger;
 
 use self::theming::{curses_attr, parse_attrs};
 
