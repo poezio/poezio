@@ -1,3 +1,4 @@
+mod logger;
 mod theming;
 
 use crate::theming::{curses_attr, parse_attrs};
