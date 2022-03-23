@@ -204,6 +204,11 @@ class Connection(slixmpp.ClientXMPP):
             log.error('Failed to load HTTP File Upload plugin, it can only be '
                       'used with aiohttp installed')
         self.register_plugin('xep_0380')
+        try:
+            self.register_plugin('xep_0454')
+        except slixmpp.plugins.base.PluginNotFound:
+            log.error('Failed to load Media Sharing plugin, '
+                      'it requires slixmpp 1.8.1.')
         self.init_plugins()
 
     def set_keepalive_values(self, option=None, value=None):
