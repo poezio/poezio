@@ -13,6 +13,7 @@ Usage
 """
 
 from poezio.plugin import BasePlugin
+from slixmpp.exceptions import IqError, IqTimeout
 from slixmpp.jid import InvalidJID
 
 CONTACT_TYPES = ['abuse', 'admin', 'feedback', 'sales', 'security', 'support']
@@ -25,12 +26,6 @@ class Plugin(BasePlugin):
                 help='Get the Contact Addresses of a JID')
 
     def on_disco(self, iq):
-        if iq['type'] == 'error':
-            error_condition = iq['error']['condition']
-            error_text = iq['error']['text']
-            message = 'Error getting Contact Addresses from %s: %s: %s' % (iq['from'], error_condition, error_text)
-            self.api.information(message, 'Error')
-            return
         info = iq['disco_info']
         contacts = []
         # iterate all data forms, in case there are multiple
@@ -45,15 +40,21 @@ class Plugin(BasePlugin):
                     field_value = values[var]
                     if field_value:
                         value = sep.join(field_value) if isinstance(field_value, list) else field_value
-                        contacts.append('%s: %s' % (title, value))
+                        contacts.append(f'{title}: {value}')
         if contacts:
             self.api.information('\n'.join(contacts), 'Contact Info')
         else:
-            self.api.information('No Contact Addresses for %s' % iq['from'], 'Error')
+            self.api.information(f'No Contact Addresses for {iq["from"]}', 'Error')
 
     async def command_disco(self, jid):
         try:
             iq = await self.core.xmpp.plugin['xep_0030'].get_info(jid=jid, cached=False)
             self.on_disco(iq)
-        except InvalidJID as e:
-            self.api.information('Invalid JID “%s”: %s' % (jid, e), 'Error')
+        except InvalidJID as exn:
+            self.api.information(f'Invalid JID “{jid}”: {exn}', 'Error')
+        except (IqError, IqTimeout,) as exn:
+            ifrom = exn.iq['from']
+            condition = exn.iq['error']['condition']
+            text = exn.iq['error']['text']
+            message = f'Error getting Contact Addresses from {ifrom}: {condition}: {text}'
+            self.api.information(message, 'Error')
