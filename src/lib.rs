@@ -1,13 +1,6 @@
-extern crate ncurses;
-extern crate nom;
-extern crate pyo3;
-#[macro_use]
-extern crate lazy_static;
-extern crate enum_set;
+mod theming;
 
-pub mod theming;
-
-use self::theming::{curses_attr, parse_attrs};
+use crate::theming::{curses_attr, parse_attrs};
 
 use pyo3::{
     conversion::{IntoPy, ToPyObject},
