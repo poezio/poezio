@@ -400,26 +400,6 @@ def iterate_messages_reverse(filepath: Path) -> Generator[LogDict, None, None]:
         pass
 
 
-def _get_lines_from_fd(fd: IO[Any], nb: int = 10) -> List[str]:
-    """
-    Get the last log lines from a fileno with mmap
-
-    :param fd: File descriptor on the log file
-    :param nb: number of messages to fetch
-    :returns: A list of message lines
-    """
-    with mmap.mmap(fd.fileno(), 0, prot=mmap.PROT_READ) as m:
-        # start of messages begin with MI or MR, after a \n
-        pos = m.rfind(b"\nM") + 1
-        # number of message found so far
-        count = 0
-        while pos != 0 and count < nb - 1:
-            count += 1
-            pos = m.rfind(b"\nM", 0, pos) + 1
-        lines = m[pos:].decode(errors='replace').splitlines()
-    return lines
-
-
 def parse_log_lines(lines: List[str], jid: str = '') -> List[LogDict]:
     """
     Parse raw log lines into poezio log objects
