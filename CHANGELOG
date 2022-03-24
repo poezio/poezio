@@ -24,24 +24,24 @@ This file describes the new features in each poezio release.
 - REMOVED: non-deterministic nick colors in MUC.
 - REMOVED: XEP-0319 support removed for privacy and performance.
 - ADDED: New /request_voice command for moderated rooms
-- ADDED: Support using /join with an XMPP URI (xmpp:...?join)
+- ADDED: /join: support using an XMPP URI (xmpp:...?join)
+- ADDED: /destroy_room: new optional reason and altroom arguments
+- ADDED: Newlines now considered as word separator in input manipulation (#3411)
 - Stop highlighting on MUC history messages just because they're delayed
 - Stop displaying the traceback in debug log when /xhtml fails
-- Add (back?) reason and altroom arguments for /destroy_room
 - Ensure launch.sh can be use outside the repository (Thanks kaliko)
-- #3517: Detect `/set option = value` pattern and do as it `/set option value`
-  was called.
-- #3411: Newlines now considered as word separator in input manipulation
-- #3385: Newlines taken into account on completion
-- #3371: Allow resizing certificate confirmation window
+- Detect `/set option = value` pattern and do as it `/set option value` was
+  called. (#3517)
+- Newlines taken into account on completion (#3385)
+- Allow resizing certificate confirmation window (#3371)
 - Make theming more configurable around nicks
 - Log MUC <destroy/> payload in the information buffer
-- /destroy_room: Allow empty altroom argument
-- impromptu: Wait for subject before configuring and inviting
+- impromptu: wait for room subject before configuring and inviting
 - Impromptu: rooms now have pronouceable short names
 - impromptu: ensure a room is empty before joining
 - impromptu: now uses mediated invites
 - Fetch from MAM by default when use_log is False.
+- xhtml: Add a new line after a blockquote
 
 ## Bug fixes
 
@@ -51,27 +51,26 @@ This file describes the new features in each poezio release.
 - Do not crash on bookmark without a nickname (Thanks Ge0rG)
 - Ensure the correct tab is bookmarked on /bookmark and /join
 - /bookmark: treat empty nick as no nick to avoid failing on empty resource
-- xhtml: Add a new line after a blockquote
 - Fix closing a tab not in bookmarks
 - Disco barejid instead of domains on sent carbons. Follow-up of 5e40437.
   (Thanks Ge0rG)
-- #3536: Only use JID internally when handling affiliations. Add nick if
-  present.
-- Prevent traceback in /last_activity.
+- Only use JID internally when handling affiliations. Add nick if present.
+  (#3536)
+- /last_activity: prevent traceback
 - Fix bad error handling when checking bookmarks storage
 - `/join / password` works again
 - Report available presence in tabs correctly
-- #3532: /display_correction now reports the correct time for private messages
-- #3527: Fix composing indicators not showing
-- #3519: Fix pasting text in data forms and bookmarkstab
-- #3432: Fix /me logging
+- /display_correction: now reports the correct time for private messages (#3532)
+- Fix composing indicators not showing (#3527)
+- Fix pasting text in data forms and bookmarkstab (#3519)
+- Fix /me logging (#3432)
 - Retrieve nick colors from the correct section
 - Do not scroll right by default in dataforms/bookmark text
 - Hack around the time limit for topic messages
 - Ensure MUC-PM logging filenames are generated as expected (Thanks Ge0rG, southerntofu)
 - Fix poezio displaying many times the same participant in the user list.
-- #3554: Fix default dataform field handling
-- #3553: Fix MUCListTab not joining selected MUCs
+- Fix default dataform field handling (#3554)
+- Fix MUCListTab not joining selected MUCs (#3553)
 - Fix /color completion (Thanks eijebong)
 
 ## Plugins
@@ -112,12 +111,12 @@ This file describes the new features in each poezio release.
 - Performance improvements:
   - Trim all messages by 24 bytes on 64-bit systems
   - Reduce log parsing by a lot
-- #3457: No more safeJID calls.
+- No more safeJID calls. (#3457)
 - Rework some features to use slixmpp's API instead of custom poezio code
   (i.e., muc's set_subject, set_role, set_affiliation, destroy_room,
   cancel_config, set_room_config, and most events)
 - Split commands from Core
-- Require typing_extensions package
+- Require typing_extensions package for python
 - Require setuptools package explicitly because of pkg_resources' import
   (Thanks Thomas)
 - Replace asyncio.ensure_future with asyncio.create_task
@@ -126,7 +125,7 @@ This file describes the new features in each poezio release.
 
 - Improve README, badges, new text, more links
 - Update install.txt with instructions for guix (Thanks Raghav)
-- Remove references to dev.louiz.org. Everything is now happening at
+- Remove references to dev.louiz.org. Everything is happening at
   lab.louiz.org.
 
 * Poezio 0.13.1
