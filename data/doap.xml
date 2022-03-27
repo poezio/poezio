@@ -515,7 +515,7 @@
             <xmpp:status>partial</xmpp:status>
             <xmpp:version>0.3</xmpp:version>
             <xmpp:since>0.13</xmpp:since>
-            <xmpp:note>Available at https://lab.louiz.org/poezio/poezio-omemo. 1:1 only</xmpp:note>
+            <xmpp:note>Available at https://lab.louiz.org/poezio/poezio-omemo. UI largely missing, trust management missing</xmpp:note>
         </xmpp:SupportedXep>
     </implements>
     <implements>
