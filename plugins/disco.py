@@ -95,7 +95,7 @@ class Plugin(BasePlugin):
                 self.on_info(iq)
             elif type_ == 'items':
                 iq = await self.core.xmpp.plugin['xep_0030'].get_items(
-                    jid=jid, node=node, cached=False
+                    jid=jid, node=node
                 )
                 self.on_items(iq)
         except InvalidJID as e:
