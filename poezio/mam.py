@@ -130,6 +130,20 @@ def _parse_message(msg: SMessage) -> Dict:
     }
 
 
+def _ignore_private_message(stanza: SMessage, filter_jid: JID) -> bool:
+    """Returns True if a MUC-PM should be ignored, as prosody returns
+    all PMs within the same room.
+    """
+    if filter_jid is None:
+        return False
+    sent = stanza['from'].bare != filter_jid.bare
+    if sent and stanza['to'].full != filter_jid.full:
+        return True
+    elif not sent and stanza['from'].full != filter_jid.full:
+        return True
+    return False
+
+
 async def retrieve_messages(tab: tabs.ChatTab,
                             results: AsyncIterable[SMessage],
                             amount: int = 100) -> List[BaseMessage]:
@@ -137,11 +151,17 @@ async def retrieve_messages(tab: tabs.ChatTab,
     msg_count = 0
     msgs = []
     to_add = []
+    tab_is_private = isinstance(tab, tabs.PrivateTab)
+    filter_jid = None
+    if tab_is_private:
+        filter_jid = tab.jid
     try:
         async for rsm in results:
             for msg in rsm['mam']['results']:
-                if msg['mam_result']['forwarded']['stanza'] \
-                        .xml.find('{%s}%s' % ('jabber:client', 'body')) is not None:
+                stanza = msg['mam_result']['forwarded']['stanza']
+                if stanza.xml.find('{%s}%s' % ('jabber:client', 'body')) is not None:
+                    if _ignore_private_message(stanza, filter_jid):
+                        continue
                     args = _parse_message(msg)
                     msgs.append(make_line(tab, **args))
             for msg in reversed(msgs):
