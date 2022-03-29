@@ -63,10 +63,12 @@ class Plugin(BasePlugin):
                 'Replicate the <marquee/> behavior in a message')
 
     @command_args_parser.raw
-    def command_marquee(self, args):
+    async def command_marquee(self, args):
+        if not args:
+            return None
         tab = self.api.current_tab()
         args = xhtml.clean_text(xhtml.convert_simple_to_full_colors(args))
-        asyncio.ensure_future(tab.command_say(args))
+        await tab.command_say(args)
         is_muctab = isinstance(tab, tabs.MucTab)
         msg_id = tab.last_sent_message["id"]
         jid = tab.jid
