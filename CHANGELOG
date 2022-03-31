@@ -72,6 +72,7 @@ This file describes the new features in each poezio release.
 - Fix default dataform field handling (#3554)
 - Fix MUCListTab not joining selected MUCs (#3553)
 - Fix /color completion (Thanks eijebong)
+- /info: Don't display comma before status message if not available
 
 ## Plugins
 
