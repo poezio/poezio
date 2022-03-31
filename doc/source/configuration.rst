@@ -81,15 +81,6 @@ and certificate validation.
         you know what you are doing, see the :ref:`ciphers` dedicated section
         for more details.
 
-    default_muc_service
-
-       **Default value:** ``[empty]``
-
-       If specified, will be used instead of the MUC service provided by
-       the user domain.
-
-       .. versionadded:: 0.13
-
     force_encryption
 
         **Default value:** ``true``
@@ -141,6 +132,15 @@ Options related to account configuration, nickname…
         A custom port to use instead of the ``5222``.
         This option can be combined with :term:`custom_host`.
         You should not need this in a "normal" use case.
+
+    default_muc_service
+
+       **Default value:** ``[empty]``
+
+       If specified, will be used instead of the MUC service provided by
+       the user domain.
+
+       .. versionadded:: 0.13
 
     default_nick
 
