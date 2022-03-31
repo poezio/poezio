@@ -48,7 +48,7 @@ class PrivateTab(OneToOneTab):
     additional_information: Dict[str, Callable[[str], str]] = {}
 
     def __init__(self, core, jid, nick, initial=None):
-        OneToOneTab.__init__(self, core, jid)
+        OneToOneTab.__init__(self, core, jid, initial)
         self.own_nick = nick
         self.info_header = windows.PrivateInfoWin()
         self.input = windows.MessageInput()
