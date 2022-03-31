@@ -3,7 +3,7 @@
 # This file is part of Poezio.
 #
 # Poezio is free software: you can redistribute it and/or modify
-# it under the terms of the zlib license. See the COPYING file.
+# it under the terms of the GPL-3.0+ license. See the COPYING file.
 """
 The logger module that handles logging of the poezio
 conversations and roster changes

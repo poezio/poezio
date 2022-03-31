@@ -95,7 +95,7 @@ License
 Poezio is Free Software.
 (learn more: http://www.gnu.org/philosophy/free-sw.html)
 
-Poezio is released under the zlib License.
+Poezio is released under the GPL-3.0+ License.
 Please read the COPYING file for details.
 
 The artwork logo was made by Gaëtan Ribémont and released under
@@ -148,7 +148,7 @@ Thanks
 
 .. |python versions| image:: https://img.shields.io/pypi/pyversions/poezio.svg
 
-.. |license| image:: https://img.shields.io/badge/license-zlib-blue.svg
+.. |license| image:: https://img.shields.io/badge/license-gpl--3.0--or--later-blue.svg
 
 .. |discuss| image:: https://inverse.chat/badge.svg?room=poezio@muc.poez.io
    :target: https://chat.jabberfr.org/converse.js/poezio@muc.poez.io

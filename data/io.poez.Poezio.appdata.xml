@@ -4,7 +4,7 @@
   <id>io.poez.Poezio</id>
   <name>Poezio</name>
   <summary>Poezio is a free console XMPP client</summary>
-  <project_license>Zlib</project_license>
+  <project_license>GPL-3.0+</project_license>
   <metadata_license>CC0-1.0</metadata_license>
   <developer_name>Poezio Team</developer_name>
   <icon type="remote">https://poez.io/img/logo.svg</icon>

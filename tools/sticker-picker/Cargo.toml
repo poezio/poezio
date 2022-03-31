@@ -3,7 +3,7 @@ name = "poezio-sticker-picker"
 version = "0.1.0"
 edition = "2021"
 authors = ["Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>"]
-license = "Zlib"
+license = "GPL-3.0-or-later"
 description = "Helper tool for selecting a sticker inside a pack"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
