@@ -1016,9 +1016,9 @@ class OneToOneTab(ChatTab):
             shortdesc='Request the attention.',
             desc='Attention: Request the attention of the contact.  Can also '
             'send a message along with the attention.')
-        self.init_logs(initial=initial)
+        asyncio.create_task(self.init_logs(initial=initial))
 
-    def init_logs(self, initial: Optional[SMessage] = None) -> None:
+    async def init_logs(self, initial: Optional[SMessage] = None) -> None:
         use_log = config.get_by_tabname('use_log', self.jid)
         mam_sync = config.get_by_tabname('mam_sync', self.jid)
         if use_log and mam_sync:
@@ -1029,19 +1029,14 @@ class OneToOneTab(ChatTab):
             if initial is not None:
                 # If there is an initial message, throw it back into the
                 # text buffer if it cannot be fetched from mam
-                async def fallback_no_mam() -> None:
-                    await mam_filler.done.wait()
-                    if mam_filler.result == 0:
-                        await self.handle_message(initial)
-
-                asyncio.create_task(fallback_no_mam())
+                await mam_filler.done.wait()
+                if mam_filler.result == 0:
+                    await self.handle_message(initial)
         elif use_log and initial:
-            asyncio.create_task(self.handle_message(initial, display=False))
+            await self.handle_message(initial, display=False)
         elif initial:
-            asyncio.create_task(self.handle_message(initial))
-        asyncio.create_task(
-            LogLoader(logger, self, use_log, self._initial_log).tab_open()
-        )
+            await self.handle_message(initial)
+        await LogLoader(logger, self, use_log, self._initial_log).tab_open()
 
     async def handle_message(self, msg: SMessage, display: bool = True):
         pass

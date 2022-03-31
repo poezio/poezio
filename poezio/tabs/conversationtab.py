@@ -540,7 +540,7 @@ class StaticConversationTab(ConversationTab):
         self.update_commands()
         self.update_keys()
 
-    def init_logs(self, initial=None) -> None:
+    async def init_logs(self, initial=None) -> None:
         # Disable local logs because…
         pass
 
