@@ -1037,6 +1037,8 @@ class OneToOneTab(ChatTab):
                 asyncio.create_task(fallback_no_mam())
         elif use_log and initial:
             asyncio.create_task(self.handle_message(initial, display=False))
+        elif initial:
+            asyncio.create_task(self.handle_message(initial))
         asyncio.create_task(
             LogLoader(logger, self, use_log, self._initial_log).tab_open()
         )
