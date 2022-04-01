@@ -208,7 +208,7 @@ class Connection(slixmpp.ClientXMPP):
             self.register_plugin('xep_0454')
         except slixmpp.plugins.base.PluginNotFound:
             log.error('Failed to load Media Sharing plugin, '
-                      'it requires slixmpp 1.8.1.')
+                      'it requires slixmpp 1.8.2.')
         self.init_plugins()
 
     def set_keepalive_values(self, option=None, value=None):
