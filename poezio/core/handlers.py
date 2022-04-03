@@ -83,8 +83,6 @@ class HandlerCore:
         """
         Enable carbons & blocking on session start if wanted and possible
         """
-
-
         iq = await self.core.xmpp.plugin['xep_0030'].get_info(
             jid=self.core.xmpp.boundjid.domain
         )
@@ -161,7 +159,7 @@ class HandlerCore:
         if is_muc_pm:
             log.debug('%s sent a MUC-PM, ignoring carbon', recv['from'])
         elif is_muc_pm is None:
-            is_muc = self.core.xmpp.plugin['xep_0030'].has_identity(
+            is_muc = await self.core.xmpp.plugin['xep_0030'].has_identity(
                 recv['from'].bare,
                 node='conference',
             )
@@ -187,7 +185,7 @@ class HandlerCore:
         if is_muc_pm:
             await self.on_groupchat_private_message(sent, sent=True)
         elif is_muc_pm is None:
-            is_muc = self.core.xmpp.plugin['xep_0030'].has_identity(
+            is_muc = await self.core.xmpp.plugin['xep_0030'].has_identity(
                 sent['to'].bare,
                 node='conference',
             )
