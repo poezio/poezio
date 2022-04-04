@@ -32,6 +32,7 @@ from xml.etree import ElementTree as ET
 
 from slixmpp import Iq, JID, InvalidJID
 from slixmpp.util import FileSystemPerJidCache
+from slixmpp.xmlstream.xmlstream import InvalidCABundle
 from slixmpp.xmlstream.handler import Callback
 from slixmpp.exceptions import IqError, IqTimeout, XMPPError
 
@@ -673,6 +674,20 @@ class Core:
             else:
                 self.do_command(''.join(char_list), True)
         self.doupdate()
+
+    def loop_exception_handler(self, loop, context) -> None:
+        log.debug('FOO1')
+        """Do not log unhandled iq errors and timeouts"""
+        if not isinstance(context['exception'], (IqError, IqTimeout, InvalidCABundle)):
+            loop.default_exception_handler(context)
+        elif isinstance(context['exception'], InvalidCABundle):
+            self.information(
+                'Poezio could not find a valid CA bundle file automatically. '
+                'Ensure the ca_cert_path configuration is set to a valid CA bundle, '
+                'generally provided by the ca-certificates package in your '
+                'distribution.',
+                'Error',
+            )
 
     def save_config(self):
         """
