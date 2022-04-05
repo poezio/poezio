@@ -277,16 +277,9 @@ class ConversationTab(OneToOneTab):
         else:
             resource = None
         if resource:
-            status = (
-                'Status: %s' % resource.status) if resource.status else ''
-            self.add_message(
-                InfoMessage(
-                    "Show: %(show)s, %(status)s" % {
-                        'show': resource.presence or 'available',
-                        'status': status,
-                    }
-                ),
-            )
+            status = (f', Status: {resource.status}') if resource.status else ''
+            show = f"Show: {resource.presence or 'available'}"
+            self.add_message(InfoMessage(f'{show}{status}'))
             return True
         self.add_message(
             InfoMessage("No information available"),
