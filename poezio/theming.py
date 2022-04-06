@@ -233,6 +233,15 @@ class Theme:
     COLOR_TAB_ATTENTION = (7, 1)
     COLOR_TAB_DISCONNECTED = (7, 8)
 
+    # If autocolor_tab_names is set to true, the following modes are used to
+    # distinguish tabs with normal and important messages.
+    MODE_TAB_NORMAL = ''
+    MODE_TAB_IMPORTANT = 'r'  # reverse video mode
+
+    # This is the mode used for the tab name in the info bar of MUC and 1:1
+    # chat tabs.
+    MODE_TAB_NAME = 'r'
+
     COLOR_VERTICAL_TAB_NORMAL = (4, -1)
     COLOR_VERTICAL_TAB_NONEMPTY = (4, -1)
     COLOR_VERTICAL_TAB_JOINED = (82, -1)
@@ -487,6 +496,8 @@ def to_curses_attr(
                 curses, 'A_ITALIC') else curses.A_REVERSE)
         if 'a' in additional_val:
             curses_pair = curses_pair | curses.A_BLINK
+        if 'r' in additional_val:
+            curses_pair = curses_pair | curses.A_REVERSE
     return curses_pair
 
 
