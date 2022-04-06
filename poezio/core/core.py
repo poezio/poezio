@@ -29,9 +29,11 @@ from typing import (
     TYPE_CHECKING,
 )
 from xml.etree import ElementTree as ET
+from pathlib import Path
 
 from slixmpp import Iq, JID, InvalidJID
 from slixmpp.util import FileSystemPerJidCache
+from slixmpp.xmlstream.xmlstream import InvalidCABundle
 from slixmpp.xmlstream.handler import Callback
 from slixmpp.exceptions import IqError, IqTimeout, XMPPError
 
@@ -673,6 +675,26 @@ class Core:
             else:
                 self.do_command(''.join(char_list), True)
         self.doupdate()
+
+    def loop_exception_handler(self, loop, context) -> None:
+        """Do not log unhandled iq errors and timeouts"""
+        handled_exceptions = (IqError, IqTimeout, InvalidCABundle)
+        if not isinstance(context['exception'], handled_exceptions):
+            loop.default_exception_handler(context)
+        elif isinstance(context['exception'], InvalidCABundle):
+            paths = context['exception'].path
+            error = (
+                'Poezio could not find a valid CA bundle file automatically. '
+                'Ensure the ca_cert_path configuration is set to a valid '
+                'CA bundle path, generally provided by the \'ca-certificates\' '
+                'package in your distribution.'
+            )
+            if isinstance(paths, (str, Path)):
+                # error += '\nFound the following value: {path}'.format(path=str(path))
+                paths = [paths]
+            if paths is not None:
+                error += f"\nThe following values were tried: {str([str(s) for s in paths])}"
+            self.information(error, 'Error')
 
     def save_config(self):
         """
