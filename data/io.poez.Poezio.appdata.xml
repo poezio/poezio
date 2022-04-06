@@ -34,7 +34,7 @@
     <p>Features</p>
 
     <ul>
-      <li>Encryption: TLS, OTR, always chat with encryption.</li>
+      <li>Encryption: TLS, OMEMO, OTR, always chat with encryption.</li>
       <li>Chatrooms: Discuss on your favorite topics with your friends or strangers.</li>
       <li>Carbon copies: Switch devices while staying in the same conversations without losing messages.</li>
       <li>Plugins: Add the features you want through official or other plugins.</li>
