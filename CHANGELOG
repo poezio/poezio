@@ -5,6 +5,7 @@ This file describes the new features in each poezio release.
 # Configuration changes:
 
 - ADDED: `mam_sync`, `mam_sync_limit`.
+- ADDED: `autocolor_tab_names`.
 - CHANGED: `ca_cert_path` is commented out. Poezio will attempt to guess
   common CA bundle paths. The option can be used to overwrite this behaviour.
 - REMOVED: `force_remote_bookmarks`.
@@ -27,6 +28,8 @@ This file describes the new features in each poezio release.
 - ADDED: /join: support using an XMPP URI (xmpp:...?join)
 - ADDED: /destroy_room: new optional reason and altroom arguments
 - ADDED: Newlines now considered as word separator in input manipulation (#3411)
+- ADDED: Colored tab names or number using Consistent Color Generation behind
+  `autocolor_tab_names` (thanks jonas!)
 - Stop highlighting on MUC history messages just because they're delayed
 - Stop displaying the traceback in debug log when /xhtml fails
 - Ensure launch.sh can be use outside the repository (Thanks kaliko)
