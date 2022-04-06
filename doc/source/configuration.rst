@@ -617,6 +617,14 @@ or the way messages are displayed.
         If set to true, the color of the nick will be used in chatroom
         information messages, instead of the default color from the theme.
 
+    autocolor_tab_names
+
+        **Default value:** ``false``
+
+        If ``true``, uses deterministic coloration for tab names or tab
+        numbers in the activity bar, using Consistent Color Generation
+        (XEP-0392).
+
     enable_vertical_tab_list
 
         **Default value:** ``true``
