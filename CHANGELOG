@@ -24,6 +24,7 @@ This file describes the new features in each poezio release.
   and /gaming. These are moved to the new user_extras plugin.
 - REMOVED: non-deterministic nick colors in MUC.
 - REMOVED: XEP-0319 support removed for privacy and performance.
+- REMOVED: Support for pypy3 with the removal of poopt.py
 - ADDED: New /request_voice command for moderated rooms
 - ADDED: /join: support using an XMPP URI (xmpp:...?join)
 - ADDED: /destroy_room: new optional reason and altroom arguments
