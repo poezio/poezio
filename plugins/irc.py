@@ -20,9 +20,9 @@ Global configuration
     :sorted:
 
     gateway
-        **Default:** ``irc.poez.io``
+        **Default:** ``irc.jabberfr.org``
 
-        The JID of the IRC gateway to use. If empty, irc.poez.io will be
+        The JID of the IRC gateway to use. If empty, irc.jabberfr.org will be
         used. Please try to run your own, though, it’s painless to setup.
 
     initial_connect
@@ -90,9 +90,9 @@ Example configuration
 .. code-block:: ini
 
     [irc]
-    gateway = irc.poez.io
+    gateway = irc.jabberfr.org
 
-    [irc.freenode.net]
+    [irc.libera.chat]
     nickname = mynick
     login_nick = nickserv
     login_command = identify mypassword
@@ -112,18 +112,18 @@ Example configuration
 
 import asyncio
 
+from typing import Optional, Tuple, List, Any
 from slixmpp.jid import JID, InvalidJID
 
 from poezio.plugin import BasePlugin
 from poezio.decorators import command_args_parser
 from poezio.core.structs import Completion
-from poezio import common
 from poezio import tabs
 
 
 class Plugin(BasePlugin):
-    def init(self):
-        if self.config.get('initial_connect', True):
+    def init(self) -> None:
+        if self.config.getbool('initial_connect'):
             asyncio.create_task(
                 self.initial_connect()
             )
@@ -153,11 +153,11 @@ class Plugin(BasePlugin):
                   'example.com "hi there"`'),
             short='Open a private conversation with an IRC user')
 
-    async def join(self, gateway, server):
+    async def join(self, gateway: str, server: JID) -> None:
         "Join irc rooms on a server"
-        nick = self.config.get_by_tabname(
+        nick: str = self.config.get_by_tabname(
             'nickname', server, default='') or self.core.own_nick
-        rooms = self.config.get_by_tabname(
+        rooms: List[str] = self.config.get_by_tabname(
             'rooms', server, default='').split(':')
         joins = []
         for room in rooms:
@@ -166,9 +166,9 @@ class Plugin(BasePlugin):
 
         await asyncio.gather(*joins)
 
-    async def initial_connect(self):
-        gateway = self.config.get('gateway', 'irc.poez.io')
-        sections = self.config.sections()
+    async def initial_connect(self) -> None:
+        gateway: str = self.config.getstr('gateway') or 'irc.jabberfr.org'
+        sections: List[str] = self.config.sections()
 
         sections_jid = []
         for sect in sections:
@@ -197,33 +197,36 @@ class Plugin(BasePlugin):
                 await self.join(gateway, section)
 
     @command_args_parser.quoted(1, 1)
-    async def command_irc_join(self, args):
+    async def command_irc_join(self, args: Optional[List[str]]) -> None:
         """
         /irc_join <room or server>
         """
         if not args:
-            return self.core.command.help('irc_join')
-        sections = self.config.sections()
+            self.core.command.help('irc_join')
+            return
+        sections: List[str] = self.config.sections()
         if 'irc' in sections:
             sections.remove('irc')
         if args[0] in sections:
             try:
                 section_jid = JID(args[0])
             except InvalidJID:
+                self.api.information(f'Invalid address: {args[0]}', 'Error')
                 return
-            self.config.get_by_tabname('rooms', section_jid)
+            #self.config.get_by_tabname('rooms', section_jid)
             await self.join_server_rooms(section_jid)
         else:
             await self.join_room(args[0])
 
     @command_args_parser.quoted(1, 1)
-    def command_irc_query(self, args):
+    def command_irc_query(self, args: Optional[List[str]]) -> None:
         """
         Open a private conversation with the given nickname, on the current IRC
         server.
         """
         if args is None:
-            return self.core.command.help('irc_query')
+            self.core.command.help('irc_query')
+            return
         current_tab_info = self.get_current_tab_irc_info()
         if not current_tab_info:
             return
@@ -238,14 +241,14 @@ class Plugin(BasePlugin):
         else:
             self.core.command.message('{}'.format(jid))
 
-    async def join_server_rooms(self, section: JID):
+    async def join_server_rooms(self, section: JID) -> None:
         """
         Join all the rooms configured for a section
         (section = irc server)
         """
-        gateway = self.config.get('gateway', 'irc.poez.io')
-        rooms = self.config.get_by_tabname('rooms', section).split(':')
-        nick = self.config.get_by_tabname('nickname', section)
+        gateway: str = self.config.getstr('gateway') or 'irc.jabberfr.org'
+        rooms: List[str] = self.config.get_by_tabname('rooms', section).split(':')
+        nick: str = self.config.get_by_tabname('nickname', section)
         if nick:
             nick = '/' + nick
         else:
@@ -255,7 +258,7 @@ class Plugin(BasePlugin):
         for room in rooms:
             await self.core.command.join(room + suffix)
 
-    async def join_room(self, name):
+    async def join_room(self, name: str) -> None:
         """
         Join a room with only its name and the current tab
         """
@@ -269,18 +272,18 @@ class Plugin(BasePlugin):
             return
 
         room = '{}%{}@{}'.format(name, server, gateway)
-        if self.config.get_by_tabname('nickname', server_jid):
-            room += '/' + self.config.get_by_tabname('nickname', server)
+        if self.config.get_by_tabname('nickname', server_jid.bare):
+            room += '/' + self.config.get_by_tabname('nickname', server_jid.bare)
 
         await self.core.command.join(room)
 
-    def get_current_tab_irc_info(self):
+    def get_current_tab_irc_info(self) -> Optional[Tuple[str, str]]:
         """
         Return a tuple with the irc server and the gateway hostnames of the
         current tab. If the current tab is not an IRC channel or private
         conversation, a warning is displayed and None is returned
         """
-        gateway = self.config.get('gateway', 'irc.poez.io')
+        gateway: str = self.config.getstr('gateway') or 'irc.jabberfr.org'
         current = self.api.current_tab()
         current_jid = current.jid
         if not current_jid.server == gateway:
@@ -303,11 +306,11 @@ class Plugin(BasePlugin):
             return None
         return server, gateway
 
-    def completion_irc_join(self, the_input):
+    def completion_irc_join(self, the_input: Any) -> Completion:
         """
         completion for /irc_join
         """
-        sections = self.config.sections()
+        sections: List[str] = self.config.sections()
         if 'irc' in sections:
             sections.remove('irc')
         return Completion(the_input.new_completion, sections, 1)
