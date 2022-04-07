@@ -26,6 +26,7 @@ class PluginConfig(config.Config):
     def __init__(self, filename, module_name, default=None):
         config.Config.__init__(self, filename, default=default)
         self.module_name = module_name
+        self.default_section = module_name
         self.read()
 
     def get(self, option, default=None, section=None):
