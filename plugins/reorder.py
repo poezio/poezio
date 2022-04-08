@@ -118,7 +118,7 @@ def parse_runtime_tablist(tablist):
         i += 1
         result = check_tab(tab)
         # Don't serialize gap tabs as they're recreated automatically
-        if result != 'empty':
+        if result != 'empty' and isinstance(tab, TEXT_TO_TAB.values()):
             props.append((i, '%s:%s' % (result, tab.jid.full)))
     return props
 
