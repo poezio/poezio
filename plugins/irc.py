@@ -122,6 +122,13 @@ from poezio import tabs
 
 
 class Plugin(BasePlugin):
+    default_config = {
+        'irc': {
+            "initial_connect": True,
+            "gateway": "irc.jabberfr.org",
+        }
+    }
+
     def init(self) -> None:
         if self.config.getbool('initial_connect'):
             asyncio.create_task(
@@ -167,7 +174,7 @@ class Plugin(BasePlugin):
         await asyncio.gather(*joins)
 
     async def initial_connect(self) -> None:
-        gateway: str = self.config.getstr('gateway') or 'irc.jabberfr.org'
+        gateway: str = self.config.getstr('gateway')
         sections: List[str] = self.config.sections()
 
         sections_jid = []
@@ -246,7 +253,7 @@ class Plugin(BasePlugin):
         Join all the rooms configured for a section
         (section = irc server)
         """
-        gateway: str = self.config.getstr('gateway') or 'irc.jabberfr.org'
+        gateway: str = self.config.getstr('gateway')
         rooms: List[str] = self.config.get_by_tabname('rooms', section).split(':')
         nick: str = self.config.get_by_tabname('nickname', section)
         if nick:
@@ -283,7 +290,7 @@ class Plugin(BasePlugin):
         current tab. If the current tab is not an IRC channel or private
         conversation, a warning is displayed and None is returned
         """
-        gateway: str = self.config.getstr('gateway') or 'irc.jabberfr.org'
+        gateway: str = self.config.getstr('gateway')
         current = self.api.current_tab()
         current_jid = current.jid
         if not current_jid.server == gateway:
