@@ -91,6 +91,8 @@ This file describes the new features in each poezio release.
 - Contact: iterate all data forms (Thanks Ge0rG)
 - Fix plugins (embed, lastlog, otr, quote, time_marker) to use poezio.ui.types
 - Disco: Added error handling
+- IRC: Fix the plugin to work with the various refactors, and use
+  irc.jabberfr.org as a default gateway
 
 ## API
 
