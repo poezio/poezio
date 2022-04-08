@@ -28,8 +28,7 @@ ConfigValue = Union[str, int, float, bool]
 
 ConfigDict = Dict[str, Dict[str, ConfigValue]]
 
-DEFSECTION = "Poezio"
-
+USE_DEFAULT_SECTION = '__DEFAULT SECTION PLACEHOLDER__'
 
 CA_CERT_DEFAULT_PATHS = {
     '/etc/ssl/cert.pem',
@@ -185,6 +184,7 @@ class Config:
     configparser: PoezioConfigParser
     file_name: Path
     default: ConfigDict
+    default_section: str = 'Poezio'
 
     def __init__(self, file_name: Path, default: Optional[ConfigDict] = None) -> None:
         self.configparser = PoezioConfigParser()
@@ -208,13 +208,15 @@ class Config:
     def get(self,
             option: str,
             default: Optional[ConfigValue] = None,
-            section: str = DEFSECTION) -> Any:
+            section: str = USE_DEFAULT_SECTION) -> Any:
         """
         get a value from the config but return
         a default value if it is not found
         The type of default defines the type
         returned
         """
+        if section == USE_DEFAULT_SECTION:
+            section = self.default_section
         if default is None:
             default = self.default.get(section, {}).get(option, '')
 
@@ -241,16 +243,16 @@ class Config:
         else:
             return ''
 
-    def sections(self, *args, **kwargs):
+    def sections(self, *args, **kwargs) -> List[str]:
         return self.configparser.sections(*args, **kwargs)
 
     def options(self, *args, **kwargs):
         return self.configparser.options(*args, **kwargs)
 
-    def has_option(self, *args, **kwargs):
+    def has_option(self, *args, **kwargs) -> bool:
         return self.configparser.has_option(*args, **kwargs)
 
-    def has_section(self, *args, **kwargs):
+    def has_section(self, *args, **kwargs) -> bool:
         return self.configparser.has_section(*args, **kwargs)
 
     def add_section(self, *args, **kwargs):
@@ -272,7 +274,7 @@ class Config:
         True. And we return `default` as a fallback as a last resort.
         """
         if self.default and (not default) and fallback:
-            default = self.default.get(DEFSECTION, {}).get(option, '')
+            default = self.default.get(self.default_section, {}).get(option, '')
         if tabname in self.sections():
             if option in self.options(tabname):
                 # We go the tab-specific option
@@ -300,10 +302,12 @@ class Config:
             return self.get(option, default)
         return default
 
-    def __get(self, option, section=DEFSECTION, **kwargs):
+    def __get(self, option, section=USE_DEFAULT_SECTION, **kwargs):
         """
         facility for RawConfigParser.get
         """
+        if section == USE_DEFAULT_SECTION:
+            section = self.default_section
         return self.configparser.get(section, option, **kwargs)
 
     def _get(self, section, conv, option, **kwargs):
@@ -312,44 +316,53 @@ class Config:
         """
         return conv(self.__get(option, section, **kwargs))
 
-    def getstr(self, option, section=DEFSECTION) -> str:
+    def getstr(self, option, section=USE_DEFAULT_SECTION) -> str:
         """
         get a value and returns it as a string
         """
+        if section == USE_DEFAULT_SECTION:
+            section = self.default_section
         try:
             return self.configparser.get(section, option)
         except (NoOptionError, NoSectionError, ValueError, AttributeError):
             return cast(str, self._get_default(option, section))
 
-    def getint(self, option, section=DEFSECTION) -> int:
+    def getint(self, option, section=USE_DEFAULT_SECTION) -> int:
         """
         get a value and returns it as an int
         """
+        if section == USE_DEFAULT_SECTION:
+            section = self.default_section
         try:
             return self.configparser.getint(section, option)
         except (NoOptionError, NoSectionError, ValueError, AttributeError):
             return cast(int, self._get_default(option, section))
 
-    def getfloat(self, option, section=DEFSECTION) -> float:
+    def getfloat(self, option, section=USE_DEFAULT_SECTION) -> float:
         """
         get a value and returns it as a float
         """
+        if section == USE_DEFAULT_SECTION:
+            section = self.default_section
         try:
             return self.configparser.getfloat(section, option)
         except (NoOptionError, NoSectionError, ValueError, AttributeError):
             return cast(float, self._get_default(option, section))
 
-
-    def getbool(self, option, section=DEFSECTION) -> bool:
+    def getbool(self, option, section=USE_DEFAULT_SECTION) -> bool:
         """
         get a value and returns it as a boolean
         """
+        if section == USE_DEFAULT_SECTION:
+            section = self.default_section
         try:
             return self.configparser.getboolean(section, option)
         except (NoOptionError, NoSectionError, ValueError, AttributeError):
             return cast(bool, self._get_default(option, section))
 
-    def getlist(self, option, section=DEFSECTION) -> List[str]:
+    def getlist(self, option, section=USE_DEFAULT_SECTION) -> List[str]:
+        if section == USE_DEFAULT_SECTION:
+            section = self.default_section
         return self.getstr(option, section).split(':')
 
     def write_in_file(self, section: str, option: str,
@@ -483,7 +496,7 @@ class Config:
         return (sections, lines_before)
 
     def set_and_save(self, option: str, value: ConfigValue,
-                     section=DEFSECTION) -> Tuple[str, str]:
+                     section=USE_DEFAULT_SECTION) -> Tuple[str, str]:
         """
         set the value in the configuration then save it
         to the file
@@ -491,6 +504,8 @@ class Config:
         # Special case for a 'toggle' value. We take the current value
         # and set the opposite. Warning if the no current value exists
         # or it is not a bool.
+        if section == USE_DEFAULT_SECTION:
+            section = self.default_section
         if isinstance(value, str) and value == "toggle":
             current = self.getbool(option, section)
             if isinstance(current, bool):
@@ -518,20 +533,24 @@ class Config:
         return ("%s=%s" % (option, value), 'Info')
 
     def remove_and_save(self, option: str,
-                        section=DEFSECTION) -> Tuple[str, str]:
+                        section=USE_DEFAULT_SECTION) -> Tuple[str, str]:
         """
         Remove an option and then save it the config file
         """
+        if section == USE_DEFAULT_SECTION:
+            section = self.default_section
         if self.has_section(section):
             self.configparser.remove_option(section, option)
         if not self.remove_in_file(section, option):
             return ('Unable to save the config file', 'Error')
         return ('Option %s deleted' % option, 'Info')
 
-    def silent_set(self, option: str, value: ConfigValue, section=DEFSECTION):
+    def silent_set(self, option: str, value: ConfigValue, section=USE_DEFAULT_SECTION):
         """
         Set a value, save, and return True on success and False on failure
         """
+        if section == USE_DEFAULT_SECTION:
+            section = self.default_section
         if self.has_section(section):
             self.configparser.set(section, option, str(value))
         else:
@@ -539,10 +558,12 @@ class Config:
             self.configparser.set(section, option, str(value))
         return self.write_in_file(section, option, str(value))
 
-    def set(self, option: str, value: ConfigValue, section=DEFSECTION):
+    def set(self, option: str, value: ConfigValue, section=USE_DEFAULT_SECTION):
         """
         Set the value of an option temporarily
         """
+        if section == USE_DEFAULT_SECTION:
+            section = self.default_section
         try:
             self.configparser.set(section, option, str(value))
         except NoSectionError:
