@@ -110,11 +110,20 @@ class ConversationTab(OneToOneTab):
 
         The message can come from us (carbon copy).
         """
+
+        # Prevent messages coming from our own devices (1:1) to be reflected
+        if message['to'].bare == self.core.xmpp.boundjid.bare and \
+           message['from'].bare == self.core.xmpp.boundjid.bare:
+            _, index = self._text_buffer._find_message(message['id'])
+            if index != -1:
+                return
+
         use_xhtml = config.get_by_tabname(
             'enable_xhtml_im',
             message['from'].bare
         )
         tmp_dir = get_image_cache()
+
         # normal message, we are the recipient
         if message['to'].bare == self.core.xmpp.boundjid.bare:
             conv_jid = message['from']
@@ -123,13 +132,6 @@ class ConversationTab(OneToOneTab):
             self.last_remote_message = datetime.now()
             remote_nick = self.get_nick()
         # we wrote the message (happens with carbons)
-        elif message['from'].full == self.core.xmpp.boundjid.full:
-            # XXX: We shouldn't look through messages that have been displayed
-            # but through messages that have been logged. These don't include
-            # IDs though.
-            _, index = self._text_buffer._find_message(message['id'])
-            if index != -1:  # The id has been found
-                return
         elif message['from'].bare == self.core.xmpp.boundjid.bare:
             conv_jid = message['to']
             jid = self.core.xmpp.boundjid
