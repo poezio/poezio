@@ -1,5 +1,7 @@
 use enum_set::{CLike, EnumSet};
-use ncurses::{attr_t, init_pair, A_BLINK, A_BOLD, A_ITALIC, A_UNDERLINE, COLORS, COLOR_PAIR};
+use ncurses::{
+    attr_t, init_pair, A_BLINK, A_BOLD, A_ITALIC, A_REVERSE, A_UNDERLINE, COLORS, COLOR_PAIR,
+};
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -18,6 +20,7 @@ pub enum Attr {
     Italic,
     Underline,
     Blink,
+    Reverse,
 }
 
 impl Attr {
@@ -27,6 +30,7 @@ impl Attr {
             Attr::Italic => A_ITALIC(),
             Attr::Underline => A_UNDERLINE(),
             Attr::Blink => A_BLINK(),
+            Attr::Reverse => A_REVERSE(),
         }
     }
 }
@@ -42,7 +46,7 @@ impl CLike for Attr {
 }
 
 fn parse_attr(input: &str) -> IResult<&str, Attr> {
-    let (input, attr) = alt((tag("b"), tag("i"), tag("u"), tag("a")))(input)?;
+    let (input, attr) = alt((tag("b"), tag("i"), tag("u"), tag("a"), tag("r")))(input)?;
 
     Ok((
         input,
@@ -51,6 +55,7 @@ fn parse_attr(input: &str) -> IResult<&str, Attr> {
             "i" => Attr::Italic,
             "u" => Attr::Underline,
             "a" => Attr::Blink,
+            "r" => Attr::Reverse,
             _ => {
                 return Err(NomErr::Error(NomError::from_error_kind(
                     input,
@@ -166,12 +171,13 @@ mod tests {
 
     #[test]
     fn all() {
-        let attrs = "baiu";
+        let attrs = "baiur";
         let mut expected = EnumSet::new();
         expected.insert(Attr::Bold);
         expected.insert(Attr::Blink);
         expected.insert(Attr::Italic);
         expected.insert(Attr::Underline);
+        expected.insert(Attr::Reverse);
         let received = parse_attrs(attrs).unwrap();
         assert_eq!(received, expected);
     }
