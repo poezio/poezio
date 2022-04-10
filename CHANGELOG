@@ -85,7 +85,6 @@ This file describes the new features in each poezio release.
 - ADDED: sticker plugin.
 - DEPRECATED: remove_get_trackers
 - REMOVED: /irc_login from the irc plugin.
-- Irc: many fixes
 - Reorder: Prevent GapTabs from being serialized and ignore when serialized as
   they're recreated automatically.
 - Code: prevent traceback when not enough arguments
