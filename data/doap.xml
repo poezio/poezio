@@ -454,9 +454,9 @@
     <implements>
         <xmpp:SupportedXep>
             <xmpp:xep rdf:resource="https://xmpp.org/extensions/xep-0319.html"/>
-            <xmpp:status>complete</xmpp:status>
+            <xmpp:status>removed</xmpp:status>
             <xmpp:version>1.0</xmpp:version>
-            <xmpp:since>0.10</xmpp:since>
+            <xmpp:since>0.14</xmpp:since>
         </xmpp:SupportedXep>
     </implements>
     <implements>
@@ -526,8 +526,23 @@
             <xmpp:since>0.13</xmpp:since>
         </xmpp:SupportedXep>
     </implements>
+    <implements>
+        <xmpp:SupportedXep>
+            <xmpp:xep rdf:resource="https://xmpp.org/extensions/xep-0454.html"/>
+            <xmpp:status>partial</xmpp:status>
+            <xmpp:version>0.1</xmpp:version>
+            <xmpp:since>0.14</xmpp:since>
+            <xmpp:note>No thumbnails support</xmpp:note>
+        </xmpp:SupportedXep>
+    </implements>
+
 
     <release>
+        <Version>
+            <revision>0.14</revision>
+            <created>2022-04-10</created>
+            <file-release rdf:resource="https://lab.louiz.org/poezio/poezio/-/archive/v0.14/poezio-v0.14.tar.gz"/>
+        </Version>
         <Version>
             <revision>0.13.1</revision>
             <created>2020-05-31</created>
