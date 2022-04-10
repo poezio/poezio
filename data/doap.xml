@@ -529,6 +529,11 @@
 
     <release>
         <Version>
+            <revision>0.14</revision>
+            <created>2022-04-10</created>
+            <file-release rdf:resource="https://lab.louiz.org/poezio/poezio/-/archive/v0.14/poezio-v0.14.tar.gz"/>
+        </Version>
+        <Version>
             <revision>0.13.1</revision>
             <created>2020-05-31</created>
             <file-release rdf:resource="https://lab.louiz.org/poezio/poezio/-/archive/v0.13.1/poezio-v0.13.1.tar.gz"/>
