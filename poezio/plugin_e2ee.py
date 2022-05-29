@@ -232,9 +232,15 @@ class E2EEPlugin(BasePlugin):
     def __load_encrypted_states(self) -> None:
         """Load previously stored encryption states for jids."""
         for section in config.sections():
-            value = config.getstr('encryption', section=section)
+            try:
+                jid = JID(section)
+                if section != jid.full:
+                    continue
+            except InvalidJID:
+                continue
+            value = config.getstr('encryption', section=jid.full)
             if value and value == self.encryption_short_name:
-                self._enabled_tabs[section] = self.encrypt
+                self._enabled_tabs[jid] = self.encrypt
 
     def cleanup(self):
         ConversationTab.remove_information_element(self.encryption_short_name)
