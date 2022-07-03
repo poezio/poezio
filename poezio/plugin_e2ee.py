@@ -299,7 +299,7 @@ class E2EEPlugin(BasePlugin):
             )
         else:
             self.api.information(
-                'No fingerprints to display',
+                f'{jid}: No fingerprints to display',
                 'Info',
             )
 
