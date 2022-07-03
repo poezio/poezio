@@ -308,6 +308,8 @@ class E2EEPlugin(BasePlugin):
         tab = self.api.current_tab()
         if not args and isinstance(tab, self.supported_tab_types):
             jid = tab.jid
+            if isinstance(tab, MucTab):
+                jid = self.core.xmpp.boundjid.bare
         elif not args and isinstance(tab, RosterInfoTab):
             # Allow running the command without arguments in roster tab
             jid = self.core.xmpp.boundjid.bare
