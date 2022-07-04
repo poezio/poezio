@@ -299,7 +299,7 @@ class E2EEPlugin(BasePlugin):
             )
         else:
             self.api.information(
-                'No fingerprints to display',
+                f'{jid}: No fingerprints to display',
                 'Info',
             )
 
@@ -308,6 +308,8 @@ class E2EEPlugin(BasePlugin):
         tab = self.api.current_tab()
         if not args and isinstance(tab, self.supported_tab_types):
             jid = tab.jid
+            if isinstance(tab, MucTab):
+                jid = self.core.xmpp.boundjid.bare
         elif not args and isinstance(tab, RosterInfoTab):
             # Allow running the command without arguments in roster tab
             jid = self.core.xmpp.boundjid.bare
@@ -489,7 +491,7 @@ class E2EEPlugin(BasePlugin):
             await func(message, jid, tab, passthrough=True)  # type: ignore
         else:
             # pylint: disable=unexpected-keyword-arg
-            func(message, jid, tab)
+            func(message, jid, tab)  # type: ignore
 
         log.debug('Decrypted %s message: %r', self.encryption_name, message['body'])
         return None
