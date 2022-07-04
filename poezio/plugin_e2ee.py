@@ -491,7 +491,7 @@ class E2EEPlugin(BasePlugin):
             await func(message, jid, tab, passthrough=True)  # type: ignore
         else:
             # pylint: disable=unexpected-keyword-arg
-            func(message, jid, tab)
+            func(message, jid, tab)  # type: ignore
 
         log.debug('Decrypted %s message: %r', self.encryption_name, message['body'])
         return None
