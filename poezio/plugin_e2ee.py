@@ -278,7 +278,7 @@ class E2EEPlugin(BasePlugin):
             )
 
     @staticmethod
-    def format_fingerprint(fingerprint: str, theme: Theme) -> str:
+    def format_fingerprint(fingerprint: str, own: bool, theme: Theme) -> str:
         return fingerprint
 
     async def _show_fingerprints(self, jid: JID) -> None:
@@ -286,13 +286,14 @@ class E2EEPlugin(BasePlugin):
         theme = get_theme()
         fprs = await self.get_fingerprints(jid)
         if len(fprs) == 1:
-            fingerprint = self.format_fingerprint(fprs[0], theme)
+            fp, own = fprs[0]
+            fingerprint = self.format_fingerprint(fp, own, theme)
             self.api.information(
                 f'Fingerprint for {jid}:\n{fingerprint}',
                 'Info',
             )
         elif fprs:
-            fmt_fprs = map(lambda fp: self.format_fingerprint(fp, theme), fprs)
+            fmt_fprs = map(lambda fp: self.format_fingerprint(fp[0], fp[1], theme), fprs)
             self.api.information(
                 'Fingerprints for %s:\n%s' % (jid, '\n\n'.join(fmt_fprs)),
                 'Info',
@@ -673,7 +674,7 @@ class E2EEPlugin(BasePlugin):
 
         raise NotImplementedError
 
-    async def get_fingerprints(self, jid: JID) -> List[str]:
+    async def get_fingerprints(self, jid: JID) -> List[Tuple[str, bool]]:
         """Show fingerprint(s) for this encryption method and JID.
 
         To overload in plugins.
