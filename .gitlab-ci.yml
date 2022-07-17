@@ -93,6 +93,7 @@ pytest-3.10:
 pytest-3.11:
   stage: test
   image: python:3.11-rc
+  allow_failure: true
   script:
     - apt-get update && apt-get install -y libidn11-dev
     - git clone https://lab.louiz.org/poezio/slixmpp.git
