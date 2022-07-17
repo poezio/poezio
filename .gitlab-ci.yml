@@ -79,7 +79,21 @@ pytest-3.9:
 
 pytest-3.10:
   stage: test
-  image: python:3.10-rc
+  image: python:3.10
+  script:
+    - apt-get update && apt-get install -y libidn11-dev
+    - git clone https://lab.louiz.org/poezio/slixmpp.git
+    - pip3 install pytest pyasn1-modules cffi --upgrade
+    - cd slixmpp
+    - python3 setup.py install
+    - cd ..
+    - python3 setup.py install
+    - py.test -v test/
+
+pytest-3.11:
+  stage: test
+  image: python:3.11-rc
+  allow_failure: true
   script:
     - apt-get update && apt-get install -y libidn11-dev
     - git clone https://lab.louiz.org/poezio/slixmpp.git
@@ -102,9 +116,18 @@ pylint-plugins:
     - python3 setup.py install
     - pylint -E plugins
 
-mypy:
+mypy-fixed:
   stage: lint
   image: python:3
+  script:
+    - pip3 install mypy==0.961 types-setuptools
+    - mypy --ignore-missing-imports ./poezio
+    - mypy --ignore-missing-imports ./plugins
+
+mypy-latest:
+  stage: lint
+  image: python:3
+  allow_failure: true
   script:
     - pip3 install mypy types-setuptools
     - mypy --ignore-missing-imports ./poezio
