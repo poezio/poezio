@@ -115,9 +115,18 @@ pylint-plugins:
     - python3 setup.py install
     - pylint -E plugins
 
-mypy:
+mypy-fixed:
   stage: lint
   image: python:3
+  script:
+    - pip3 install mypy==0.961 types-setuptools
+    - mypy --ignore-missing-imports ./poezio
+    - mypy --ignore-missing-imports ./plugins
+
+mypy-latest:
+  stage: lint
+  image: python:3
+  allow_failure: true
   script:
     - pip3 install mypy types-setuptools
     - mypy --ignore-missing-imports ./poezio
