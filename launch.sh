@@ -1,20 +1,20 @@
 #!/bin/sh
-cd $(dirname "$(readlink -f "$0")")
+proj_dir=$(dirname "$(readlink -f "$0")")
 if [ -z "$POEZIO_VENV" ]
 then
     POEZIO_VENV="poezio-venv"
 fi
 
-if [ -e .git ]
+if [ -e "$proj_dir/.git" ]
 then
-    args=$(git show --format='%h %ci' | head -n1)
+    args=$(git -C "$proj_dir" show --format='%h %ci' | head -n1)
 else
     args="0.14-dev"
 fi
 
-if [ -e "$POEZIO_VENV" ]
+if [ -e "$proj_dir/$POEZIO_VENV" ]
 then
-    PYTHON3="$POEZIO_VENV/bin/python3"
+    PYTHON3="$proj_dir/$POEZIO_VENV/bin/python3"
 else
     echo ""
     echo "WARNING: Not using the up-to-date launch format"
@@ -25,5 +25,5 @@ else
 fi
 
 $PYTHON3 -c 'import sys;(print("Python 3.7 or newer is required") and exit(1)) if sys.version_info < (3, 7) else exit(0)' || exit 1
-exec "$PYTHON3" -m poezio --custom-version "$args" "$@"
+PYTHONPATH="$proj_dir:$PYTHONPATH" exec "$PYTHON3" -m poezio --custom-version "$args" "$@"
 
