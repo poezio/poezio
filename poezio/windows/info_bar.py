@@ -73,7 +73,7 @@ class GlobalInfoBar(Win):
                 continue
             color = tab.color
             if not show_inactive and color is theme.COLOR_TAB_NORMAL and (
-                    tab.priority < 0):
+                    tab.priority < 0 and not (hasattr(tab, 'force_display') and tab.force_display)):
                 continue
             if autocolor_tab_names:
                 # TODO: in case of private MUC conversations, we should try to
@@ -138,7 +138,8 @@ class VerticalGlobalInfoBar(Win):
                 tab for tab in sorted_tabs
                 if (
                     tab.vertical_color != theme.COLOR_VERTICAL_TAB_NORMAL or
-                    tab.priority > 0
+                    tab.priority > 0 or
+                    (hasattr(tab, 'force_display') and tab.force_display)
                 )
             ]
         nb_tabs = len(sorted_tabs)
