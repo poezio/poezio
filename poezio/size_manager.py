@@ -18,21 +18,25 @@ class SizeManager:
         self._core = core
 
     @property
-    def tab_degrade_x(self):
+    def tab_degrade_x(self) -> bool:
+        if base_wins.TAB_WIN is None:
+            raise ValueError
         _, x = base_wins.TAB_WIN.getmaxyx()
         return x < THRESHOLD_WIDTH_DEGRADE
 
     @property
-    def tab_degrade_y(self):
+    def tab_degrade_y(self) -> bool:
+        if base_wins.TAB_WIN is None:
+            raise ValueError
         y, x = base_wins.TAB_WIN.getmaxyx()
         return y < THRESHOLD_HEIGHT_DEGRADE
 
     @property
-    def core_degrade_x(self):
+    def core_degrade_x(self) -> bool:
         y, x = self._core.stdscr.getmaxyx()
         return x < FULL_WIDTH_DEGRADE
 
     @property
-    def core_degrade_y(self):
+    def core_degrade_y(self) -> bool:
         y, x = self._core.stdscr.getmaxyx()
         return y < FULL_HEIGHT_DEGRADE
