@@ -1,13 +1,13 @@
-use std::str::FromStr;
-use chrono::{DateTime, Utc, TimeZone};
+use chrono::{DateTime, TimeZone, Utc};
 use nom;
 use nom::{
-    IResult,
-    sequence::tuple,
     bytes::complete::{tag, take, take_until},
     combinator::{map, map_res},
     multi::many_m_n,
+    sequence::tuple,
+    IResult,
 };
+use std::str::FromStr;
 
 pub trait LogItem {
     fn get_time(&self) -> &DateTime<Utc>;
@@ -76,15 +76,15 @@ pub fn parse_log_info(i: &str) -> IResult<&str, LogInfo> {
         tag(" "),
         map_res(take(3usize), usize::from_str),
     ))(i)?;
-    let (i, message) = many_m_n(nb_lines + 1, nb_lines + 1, map(tuple((
-        tag(" "),
-        take_until("\n"),
-        tag("\n"),
-    )), |(_, line, _)| line))(i)?;
-    Ok((i, LogInfo {
-        time,
-        message,
-    }))
+    let (i, message) = many_m_n(
+        nb_lines + 1,
+        nb_lines + 1,
+        map(
+            tuple((tag(" "), take_until("\n"), tag("\n"))),
+            |(_, line, _)| line,
+        ),
+    )(i)?;
+    Ok((i, LogInfo { time, message }))
 }
 
 pub fn parse_log_message(i: &str) -> IResult<&str, LogMessage> {
@@ -99,20 +99,26 @@ pub fn parse_log_message(i: &str) -> IResult<&str, LogMessage> {
         take_until("\n"),
         tag("\n"),
     ))(i)?;
-    let (i, lines) = many_m_n(nb_lines, nb_lines, map(tuple((
-        tag(" "),
-        take_until("\n"),
-        tag("\n"),
-    )), |(_, line, _)| line))(i)?;
-    Ok((i, LogMessage {
-        time,
-        nick,
-        message: {
-            let mut message = lines;
-            message.insert(0, line0);
-            message
-        }
-    }))
+    let (i, lines) = many_m_n(
+        nb_lines,
+        nb_lines,
+        map(
+            tuple((tag(" "), take_until("\n"), tag("\n"))),
+            |(_, line, _)| line,
+        ),
+    )(i)?;
+    Ok((
+        i,
+        LogMessage {
+            time,
+            nick,
+            message: {
+                let mut message = lines;
+                message.insert(0, line0);
+                message
+            },
+        },
+    ))
 }
 
 #[derive(Debug, PartialEq)]
@@ -136,7 +142,10 @@ pub fn parse_logs(mut logs: &str) -> IResult<&str, Vec<Item>> {
             logs = info.0;
             items.push(Item::Info(info.1));
         } else {
-            return Err(nom::Err::Error(nom::error::Error::new(logs, nom::error::ErrorKind::Fail)));
+            return Err(nom::Err::Error(nom::error::Error::new(
+                logs,
+                nom::error::ErrorKind::Fail,
+            )));
         }
     }
     Ok((logs, items))
@@ -171,7 +180,7 @@ mod tests {
                 time: "2018-10-16T16:10:11+0200".parse().unwrap(),
                 nick: "Link Mauve",
                 message: vec!["world!"],
-            }
+            },
         ];
         let (i, message1) = parse_log_message(log).unwrap();
         let (_, message2) = parse_log_message(i).unwrap();
@@ -191,7 +200,7 @@ mod tests {
                 time: "2018-10-16T16:10:11+0200".parse().unwrap(),
                 nick: "Link Mauve",
                 message: vec!["world!"],
-            })
+            }),
         ];
         let (_, messages1) = parse_logs(log).unwrap();
         assert_eq!(messages, messages1);

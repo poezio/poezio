@@ -1,5 +1,7 @@
 use enum_set::{CLike, EnumSet};
-use ncurses::{attr_t, init_pair, A_BLINK, A_BOLD, A_ITALIC, A_UNDERLINE, A_REVERSE, COLORS, COLOR_PAIR};
+use ncurses::{
+    attr_t, init_pair, A_BLINK, A_BOLD, A_ITALIC, A_REVERSE, A_UNDERLINE, COLORS, COLOR_PAIR,
+};
 use nom::{
     branch::alt,
     bytes::complete::tag,
