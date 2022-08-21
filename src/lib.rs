@@ -4,6 +4,7 @@ pub mod args;
 pub mod error;
 pub mod logger;
 pub mod theming;
+mod xdg;
 
 use crate::args::parse_args;
 use crate::logger::LogItem;
@@ -27,6 +28,7 @@ fn libpoezio(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(to_curses_attr, m)?)?;
     m.add_function(wrap_pyfunction!(parse_logs, m)?)?;
     m.add_function(wrap_pyfunction!(run_cmdline_args, m)?)?;
+    m.add("XDG", xdg::PyProject::new(xdg::PROJECT.clone()))?;
 
     Ok(())
 }

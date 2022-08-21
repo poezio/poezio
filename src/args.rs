@@ -14,9 +14,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Error;
+use crate::xdg::PROJECT;
 
 use std::cell::LazyCell;
-use std::env;
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
@@ -28,17 +28,8 @@ use pyo3::{
 };
 
 const VERSION: &'static str = "v0.14.0";
-const CONFIG_FILE: LazyCell<PathBuf> = LazyCell::new(|| {
-    let prefix = {
-        if let Ok(home) = env::var("HOME") {
-            PathBuf::from(home)
-        } else {
-            PathBuf::from("/home").join(env::var("USER").unwrap())
-        }
-    };
-
-    prefix.join(".config/poezio/poezio.cfg")
-});
+const CONFIG_FILE: LazyCell<PathBuf> =
+    LazyCell::new(|| PROJECT.config_dir().to_path_buf().join("poezio.cfg"));
 
 #[pyclass]
 #[derive(Parser, Debug)]

@@ -13,7 +13,8 @@ from pathlib import Path
 from os import path
 import pkg_resources
 
-from poezio import tabs, xdg
+from poezio import tabs
+from poezio.libpoezio import XDG
 from poezio.core.structs import Command, Completion
 from poezio.plugin import PluginAPI
 from poezio.config import config
@@ -395,7 +396,7 @@ class PluginManager:
         """
         plugins_conf_dir = config.getstr('plugins_conf_dir')
         self.plugins_conf_dir = Path(plugins_conf_dir).expanduser(
-        ) if plugins_conf_dir else xdg.CONFIG_HOME / 'plugins'
+        ) if plugins_conf_dir else XDG.config_dir / 'plugins'
         self.check_create_plugins_conf_dir()
 
     def check_create_plugins_conf_dir(self):
@@ -420,7 +421,7 @@ class PluginManager:
         """
         plugins_dir = config.getstr('plugins_dir')
         self.plugins_dir = Path(plugins_dir).expanduser(
-        ) if plugins_dir else xdg.DATA_HOME / 'plugins'
+        ) if plugins_dir else XDG.data_dir / 'plugins'
         self.check_create_plugins_dir()
 
     def check_create_plugins_dir(self):

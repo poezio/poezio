@@ -17,6 +17,7 @@ ncurses = "5"
 lazy_static = "1"
 enum-set = "0.0"
 clap = { version = "3.2.17", features = ["derive"] }
+directories = "4.0.1"
 
 [lib]
 crate-type = ["cdylib"]

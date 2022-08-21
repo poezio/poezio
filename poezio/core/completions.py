@@ -11,7 +11,7 @@ from slixmpp import JID, InvalidJID
 
 from poezio import common
 from poezio import tabs
-from poezio import xdg
+from poezio.libpoezio import XDG
 from poezio.config import config
 from poezio.roster import roster
 
@@ -82,7 +82,7 @@ class CompletionCore:
         """ Completion for /theme"""
         themes_dir = config.getstr('themes_dir')
         themes_dir = Path(themes_dir).expanduser(
-        ) if themes_dir else xdg.DATA_HOME / 'themes'
+        ) if themes_dir else XDG.data_dir / 'themes'
         try:
             theme_files = [
                 name.stem for name in themes_dir.iterdir()
