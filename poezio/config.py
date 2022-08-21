@@ -19,7 +19,7 @@ from configparser import RawConfigParser, NoOptionError, NoSectionError
 from pathlib import Path
 from typing import Dict, List, Optional, Union, Tuple, cast, Any
 
-from poezio import xdg
+from poezio.libpoezio import XDG
 from slixmpp import JID, InvalidJID
 
 log = logging.getLogger(__name__)  # type: logging.Logger
@@ -603,7 +603,7 @@ def get_image_cache() -> Optional[Path]:
     tmp_dir = config.getstr('tmp_image_dir')
     if tmp_dir:
         return Path(tmp_dir)
-    return xdg.CACHE_HOME / 'images'
+    return XDG.cache_dir / 'images'
 
 
 def check_config():
@@ -656,7 +656,7 @@ def setup_logging(debug_file=''):
     "Change the logging config according to the cmdline options and config"
     global LOG_DIR
     LOG_DIR = config.get('log_dir')
-    LOG_DIR = Path(LOG_DIR).expanduser() if LOG_DIR else xdg.DATA_HOME / 'logs'
+    LOG_DIR = Path(LOG_DIR).expanduser() if LOG_DIR else XDG.data_dir / 'logs'
     from copy import deepcopy
     logging_config = deepcopy(LOGGING_CONFIG)
     if config.get('log_errors'):
