@@ -120,7 +120,7 @@ mypy-fixed:
   stage: lint
   image: python:3
   script:
-    - pip3 install mypy==0.961 types-setuptools
+    - pip3 install mypy==0.971 types-setuptools
     - mypy --ignore-missing-imports ./poezio
     - mypy --ignore-missing-imports ./plugins
 
