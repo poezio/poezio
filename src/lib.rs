@@ -1,12 +1,19 @@
+#![feature(once_cell)]
+
+pub mod args;
+pub mod error;
 pub mod theming;
 pub mod logger;
 
 use self::theming::{curses_attr, parse_attrs};
 use self::logger::LogItem;
+use crate::args::parse_args;
+
 use chrono::{Datelike, Timelike};
 use pyo3::{
     types::{PyDict, PyDateTime},
     conversion::{IntoPy, ToPyObject},
+    exceptions::PyIOError,
     create_exception,
     marker::Python,
     prelude::{pyfunction, pymodule, wrap_pyfunction, PyErr, PyModule, PyObject, PyResult},
@@ -19,6 +26,7 @@ fn libpoezio(py: Python, m: &PyModule) -> PyResult<()> {
     m.add("LogParseError", py.get_type::<LogParseError>())?;
     m.add_function(wrap_pyfunction!(to_curses_attr, m)?)?;
     m.add_function(wrap_pyfunction!(parse_logs, m)?)?;
+    m.add_function(wrap_pyfunction!(run_cmdline_args, m)?)?;
 
     Ok(())
 }
@@ -82,4 +90,10 @@ fn parse_logs(py: Python, input: &str) -> PyResult<PyObject> {
         items.push(dict);
     }
     Ok(items.into_py(py).to_object(py))
+}
+
+#[pyfunction]
+fn run_cmdline_args(py: Python, argv: Vec<String>) -> PyResult<(PyObject, bool)> {
+    let (args, firstrun) = parse_args(argv).map_err(|err| PyIOError::new_err(err.to_string()))?;
+    Ok((args.into_py(py), firstrun))
 }
