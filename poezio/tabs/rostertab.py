@@ -14,7 +14,7 @@ import ssl
 from functools import partial
 from os import getenv, path
 from pathlib import Path
-from typing import Dict, Callable
+from typing import Dict, Callable, Union
 
 from slixmpp import JID, InvalidJID
 from slixmpp.exceptions import IqError, IqTimeout
@@ -199,7 +199,7 @@ class RosterInfoTab(Tab):
                 completion=self.completion_cert_fetch)
 
     @property
-    def selected_row(self):
+    def selected_row(self) -> Union[Contact, Resource]:
         return self.roster_win.get_selected_row()
 
     @command_args_parser.ignored

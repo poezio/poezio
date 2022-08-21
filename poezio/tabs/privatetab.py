@@ -85,14 +85,14 @@ class PrivateTab(OneToOneTab):
         return super().remote_user_color()
 
     @property
-    def general_jid(self):
+    def general_jid(self) -> JID:
         return self.jid
 
-    def get_dest_jid(self):
+    def get_dest_jid(self) -> JID:
         return self.jid
 
     @property
-    def nick(self):
+    def nick(self) -> str:
         return self.get_nick()
 
     def ack_message(self, msg_id: str, msg_jid: JID):

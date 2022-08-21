@@ -234,7 +234,8 @@ class E2EEPlugin(BasePlugin):
         for section in config.sections():
             value = config.getstr('encryption', section=section)
             if value and value == self.encryption_short_name:
-                self._enabled_tabs[section] = self.encrypt
+                section_jid = JID(section)
+                self._enabled_tabs[section_jid] = self.encrypt
 
     def cleanup(self):
         ConversationTab.remove_information_element(self.encryption_short_name)
