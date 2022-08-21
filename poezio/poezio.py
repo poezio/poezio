@@ -79,8 +79,8 @@ def main():
 
     sys.stdout.write("\x1b]0;poezio\x07")
     sys.stdout.flush()
-    from poezio.args import run_cmdline_args
-    options, firstrun = run_cmdline_args()
+    from poezio.libpoezio import run_cmdline_args
+    options, firstrun = run_cmdline_args(sys.argv)
     from poezio import config
     config.create_global_config(options.filename)
     config.setup_logging(options.debug)
