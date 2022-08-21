@@ -83,8 +83,8 @@ class ConversationTab(OneToOneTab):
         self.update_keys()
 
     @property
-    def general_jid(self):
-        return self.jid.bare
+    def general_jid(self) -> JID:
+        return JID(self.jid.bare)
 
     def get_info_header(self):
         raise NotImplementedError

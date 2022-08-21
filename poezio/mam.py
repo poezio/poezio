@@ -130,7 +130,7 @@ def _parse_message(msg: SMessage) -> Dict:
     }
 
 
-def _ignore_private_message(stanza: SMessage, filter_jid: JID) -> bool:
+def _ignore_private_message(stanza: SMessage, filter_jid: Optional[JID]) -> bool:
     """Returns True if a MUC-PM should be ignored, as prosody returns
     all PMs within the same room.
     """

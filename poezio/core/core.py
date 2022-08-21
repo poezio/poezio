@@ -276,7 +276,7 @@ class Core:
         self.key_func.try_execute = self.try_execute
 
         # Add handlers
-        xmpp_event_handlers = [
+        xmpp_event_handlers: List[Tuple[str, Callable[..., Any]]] = [
             ('attention', self.handler.on_attention),
             ('carbon_received', self.handler.on_carbon_received),
             ('carbon_sent', self.handler.on_carbon_sent),

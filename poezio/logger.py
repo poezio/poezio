@@ -184,7 +184,7 @@ class Logger:
             self._check_and_create_log_dir(room)
             log.debug('Log handle for %s re-created', room)
 
-    def _check_and_create_log_dir(self, jid: str,
+    def _check_and_create_log_dir(self, jid: Union[str, JID],
                                   open_fd: bool = True) -> Optional[IO[str]]:
         """
         Check that the directory where we want to log the messages

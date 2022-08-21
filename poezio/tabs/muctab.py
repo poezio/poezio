@@ -556,7 +556,7 @@ class MucTab(ChatTab):
         """
         replaced_id = message.message['replace']['id']
         if replaced_id != '' and config.get_by_tabname(
-                'group_corrections', message.room_from):
+                'group_corrections', JID(message.room_from)):
             try:
                 delayed_date = message.date or datetime.now()
                 modify_hl = self.modify_message(

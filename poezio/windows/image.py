@@ -2,6 +2,8 @@
 Defines a window which contains either an image or a border.
 """
 
+from __future__ import annotations
+
 import curses
 from io import BytesIO
 
@@ -9,9 +11,9 @@ try:
     from PIL import Image
     HAS_PIL = True
 except ImportError:
-    class Image:  # type: ignore
-        class Image:
-            pass
+    #class Image:  # type: ignore
+    #    class Image:
+    #        pass
     HAS_PIL = False
 
 try:
