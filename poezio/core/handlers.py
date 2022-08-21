@@ -1180,25 +1180,26 @@ class HandlerCore:
         We are sending a new stanza, write it in the xml buffer if needed.
         """
         if self.core.xml_tab:
+            stanza_str = str(stanza)
             if PYGMENTS:
-                xhtml_text = highlight(str(stanza), LEXER, FORMATTER)
+                xhtml_text = highlight(stanza_str, LEXER, FORMATTER)
                 poezio_colored = xhtml.xhtml_to_poezio_colors(
                     xhtml_text, force=True).rstrip('\x19o').strip()
             else:
-                poezio_colored = str(stanza)
+                poezio_colored = stanza_str
             self.core.xml_buffer.add_message(
                 XMLLog(txt=poezio_colored, incoming=False),
             )
             try:
                 if self.core.xml_tab.match_stanza(
-                        ElementBase(ET.fromstring(stanza))):
+                        ElementBase(ET.fromstring(stanza_str))):
                     self.core.xml_tab.filtered_buffer.add_message(
                         XMLLog(txt=poezio_colored, incoming=False),
                     )
             except:
                 # Most of the time what gets logged is whitespace pings. Skip.
                 # And also skip tab updates.
-                if stanza.strip() == '':
+                if stanza_str.strip() == '':
                     return None
                 log.debug('', exc_info=True)
 

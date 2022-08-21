@@ -170,15 +170,15 @@ class Tab:
         return 1
 
     @property
-    def info_win(self):
+    def info_win(self) -> windows.TextWin:
         return self.core.information_win
 
     @property
-    def color(self):
+    def color(self) -> Union[Tuple[int, int], Tuple[int, int, 'str']]:
         return STATE_COLORS[self._state]()
 
     @property
-    def vertical_color(self):
+    def vertical_color(self) -> Union[Tuple[int, int], Tuple[int, int, 'str']]:
         return VERTICAL_STATE_COLORS[self._state]()
 
     @property
@@ -492,7 +492,7 @@ class GapTab(Tab):
         return 0
 
     @property
-    def name(self):
+    def name(self) -> str:
         return ''
 
     def refresh(self):

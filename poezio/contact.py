@@ -21,6 +21,7 @@ from typing import (
 )
 
 from slixmpp import InvalidJID, JID
+from slixmpp.roster import RosterItem
 
 log = logging.getLogger(__name__)
 
@@ -74,7 +75,7 @@ class Contact:
     to get the resource with the highest priority, etc
     """
 
-    def __init__(self, item):
+    def __init__(self, item: RosterItem):
         """
         item: a slixmpp RosterItem pointing to that contact
         """
@@ -96,7 +97,7 @@ class Contact:
         return self.__item.jid
 
     @property
-    def name(self):
+    def name(self) -> str:
         """The name of the contact or an empty string."""
         return self.__item['name'] or self._name or ''
 
@@ -106,26 +107,27 @@ class Contact:
         self._name = value
 
     @property
-    def ask(self):
+    def ask(self) -> Optional[str]:
         if self.__item['pending_out']:
             return 'asked'
+        return None
 
     @property
-    def pending_in(self):
+    def pending_in(self) -> bool:
         """We received a subscribe stanza from this contact."""
         return self.__item['pending_in']
 
     @pending_in.setter
-    def pending_in(self, value):
+    def pending_in(self, value: bool):
         self.__item['pending_in'] = value
 
     @property
-    def pending_out(self):
+    def pending_out(self) -> bool:
         """We sent a subscribe stanza to this contact."""
         return self.__item['pending_out']
 
     @pending_out.setter
-    def pending_out(self, value):
+    def pending_out(self, value: bool):
         self.__item['pending_out'] = value
 
     @property

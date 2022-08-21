@@ -426,7 +426,7 @@ class BasePlugin(object, metaclass=SafetyMetaclass):
         self.init()
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Get the name (module name) of the plugin.
         """

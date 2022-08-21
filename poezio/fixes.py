@@ -5,14 +5,15 @@ upstream.
 TODO: Check that they are fixed and remove those hacks
 """
 
-from slixmpp import ClientXMPP, Message
+from slixmpp import Message
+from slixmpp.plugins.xep_0184 import XEP_0184
 
 import logging
 
 log = logging.getLogger(__name__)
 
 
-def _filter_add_receipt_request(self: ClientXMPP, stanza):
+def _filter_add_receipt_request(self: XEP_0184, stanza):
     """
     Auto add receipt requests to outgoing messages, if:
 
