@@ -2,21 +2,21 @@
 
 pub mod args;
 pub mod error;
-pub mod theming;
 pub mod logger;
+pub mod theming;
 
-use self::theming::{curses_attr, parse_attrs};
-use self::logger::LogItem;
 use crate::args::parse_args;
+use crate::logger::LogItem;
+use crate::theming::{curses_attr, parse_attrs};
 
 use chrono::{Datelike, Timelike};
 use pyo3::{
-    types::{PyDict, PyDateTime},
     conversion::{IntoPy, ToPyObject},
-    exceptions::PyIOError,
     create_exception,
+    exceptions::PyIOError,
     marker::Python,
     prelude::{pyfunction, pymodule, wrap_pyfunction, PyErr, PyModule, PyObject, PyResult},
+    types::{PyDateTime, PyDict},
 };
 
 create_exception!(libpoezio, LogParseError, pyo3::exceptions::PyException);
@@ -52,7 +52,8 @@ fn to_curses_attr(py: Python, fg: i16, bg: i16, attrs: &str) -> PyResult<PyObjec
 }
 
 fn chrono_to_datetime(py: Python, chrono: &chrono::DateTime<chrono::Utc>) -> PyResult<PyObject> {
-    let datetime = PyDateTime::new(py,
+    let datetime = PyDateTime::new(
+        py,
         chrono.year(),
         chrono.month() as u8,
         chrono.day() as u8,
@@ -60,7 +61,8 @@ fn chrono_to_datetime(py: Python, chrono: &chrono::DateTime<chrono::Utc>) -> PyR
         chrono.minute() as u8,
         chrono.second() as u8,
         0,
-        None)?;
+        None,
+    )?;
     Ok(datetime.to_object(py))
 }
 
