@@ -77,7 +77,7 @@ from typing import Dict, List, Union, Tuple, Optional, cast
 from pathlib import Path
 from os import path
 from datetime import datetime
-from poezio import colors, xdg, libpoezio
+from poezio import colors, libpoezio
 
 from importlib import machinery
 finder = machinery.PathFinder()
@@ -450,7 +450,7 @@ def update_themes_dir(option: Optional[str] = None,
     # import from the user-defined prefs
     themes_dir_str = config.getstr('themes_dir')
     themes_dir = Path(themes_dir_str).expanduser(
-    ) if themes_dir_str else xdg.DATA_HOME / 'themes'
+    ) if themes_dir_str else libpoezio.XDG.data_dir / 'themes'
     try:
         themes_dir.mkdir(parents=True, exist_ok=True)
     except OSError:
