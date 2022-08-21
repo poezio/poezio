@@ -278,7 +278,7 @@ class RosterWin(Win):
         elif contact.name and contact.name != contact.bare_jid:
             display_name = '%s (%s)' % (contact.name, contact.bare_jid)
         else:
-            display_name = contact.bare_jid
+            display_name = str(contact.bare_jid)
 
         display_name = self.truncate_name(display_name, added) + nb
 

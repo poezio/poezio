@@ -71,7 +71,7 @@ class Roster:
         self.last_modified = datetime.now()
 
     @property
-    def needs_rebuild(self):
+    def needs_rebuild(self) -> bool:
         return self.last_modified >= self.last_built
 
     def __getitem__(self, key):
@@ -133,7 +133,7 @@ class Roster:
             return False
 
     @property
-    def jid(self):
+    def jid(self) -> JID:
         """Our JID"""
         return self.__node.jid
 

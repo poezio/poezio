@@ -984,7 +984,7 @@ class CommandCore:
                 bare = JID(jid).bare
             except InvalidJID:
                 return self.core.information('Invalid JID for /impromptu: %s' % args[0], 'Error')
-            jids.add(bare)
+            jids.add(JID(bare))
 
         asyncio.create_task(self.core.impromptu(jids))
 

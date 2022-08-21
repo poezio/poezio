@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright 2010-2011 Florent Le Coz <louiz@louiz.org>
 #
 # This file is part of Poezio.
@@ -391,7 +392,7 @@ class Theme:
     }
 
     @property
-    def ccg_palette(self):
+    def ccg_palette(self) -> Optional[Dict[float, int]]:
         prepare_ccolor_palette(self)
         return self.CCG_PALETTE
 
