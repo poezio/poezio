@@ -66,7 +66,8 @@ from poezio.size_manager import SizeManager
 from poezio.user import User
 from poezio.text_buffer import TextBuffer
 from poezio.timed_events import DelayedEvent
-from poezio import keyboard, xdg
+from poezio import keyboard
+from poezio.libpoezio import XDG
 
 from poezio.core.completions import CompletionCore
 from poezio.core.tabs import Tabs
@@ -154,7 +155,7 @@ class Core:
         self.bookmarks = BookmarkList()
         self.remote_fifo = None
         self.avatar_cache = FileSystemPerJidCache(
-            str(xdg.CACHE_HOME), 'avatars', binary=True)
+            str(XDG.cache_dir), 'avatars', binary=True)
         # a unique buffer used to store global information
         # that are displayed in almost all tabs, in an
         # information window.

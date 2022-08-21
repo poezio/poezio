@@ -5,7 +5,9 @@ edition = "2021"
 authors = [
   "Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>",
   "Maxime “pep” Buquet <pep@bouah.net>",
+  "Mathieu Pasquet <mathieui@mathieui.net>",
 ]
+description = "A console XMPP client"
 
 [dependencies]
 pyo3 = { version = "0.16", features = ["extension-module"] }
@@ -14,6 +16,8 @@ chrono = "0.4"
 ncurses = "5"
 lazy_static = "1"
 enum-set = "0.0"
+clap = { version = "3.2.17", features = ["derive"] }
+directories = "4.0.1"
 
 [lib]
 crate-type = ["cdylib"]

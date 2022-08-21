@@ -27,7 +27,7 @@ from slixmpp.util import FileSystemCache
 
 from poezio import common
 from poezio import fixes
-from poezio import xdg
+from poezio.libpoezio import XDG
 from poezio.config import config
 
 
@@ -136,7 +136,7 @@ class Connection(slixmpp.ClientXMPP):
                 'https://poez.io',
                 'cache':
                 FileSystemCache(
-                    str(xdg.CACHE_HOME),
+                    str(XDG.cache_dir),
                     'caps',
                     encode=str,
                     decode=lambda x: DiscoInfo(ET.fromstring(x))),
