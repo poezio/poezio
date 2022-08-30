@@ -4,6 +4,7 @@ sortable list.  It should be inherited, to actually provide methods that
 insert items in the list, and that lets the user interact with them.
 """
 
+import asyncio
 import curses
 import collections
 import logging
@@ -164,7 +165,7 @@ class ListTab(Tab):
         if res:
             return not isinstance(self.input, windows.Input)
         if not raw and key in self.key_func:
-            return self.key_func[key]()
+            asyncio.ensure_future(self.key_func[key]())
 
     def on_info_win_size_changed(self):
         if self.core.information_win_size >= self.height - 3:
