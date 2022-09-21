@@ -10,8 +10,8 @@ or use the :term:`/set` command to edit some of its values directly from poezio.
 This file is also used to configure key bindings, but this is explained
 in the :ref:`keys-page` documentation file.
 
-That file is read at each startup and the configuration is saved when poezio
-is closed.
+The configuration is read at each startup or when the `/reload` command is
+issued, and it is updated after every `/set` command.
 
 This configuration file **requires** all global options to be in a section
 named [Poezio]. Some other options can be in optional sections and will
